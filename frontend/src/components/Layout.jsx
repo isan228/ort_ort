@@ -12,6 +12,7 @@ export default function Layout() {
   const isNews = location.pathname.startsWith('/news');
   const isTours = location.pathname.startsWith('/tours');
   const isAnalysis = location.pathname.startsWith('/analysis');
+  const isUniversities = location.pathname === '/universities';
   const { t, locale, setLocale } = useI18n();
   const [user, setUser] = useState(() => getStoredUser());
   const staff = isStaffRole(user?.role?.code);
@@ -31,7 +32,12 @@ export default function Layout() {
               ORT.KG
             </Link>
             <nav className="nav">
-              <Link to="/universities">{t('nav.universities')}</Link>
+              <Link
+                to="/universities"
+                className={isUniversities || location.pathname.startsWith('/universities/') ? 'nav-link-active' : undefined}
+              >
+                {t('nav.universities')}
+              </Link>
               <Link to="/analysis" className={isAnalysis ? 'nav-link-active' : undefined}>{t('nav.analysis')}</Link>
               <Link to="/tours" className={isTours ? 'nav-link-active' : undefined}>{t('nav.tours')}</Link>
               <Link to="/rankings">{t('nav.rankings')}</Link>
@@ -81,7 +87,7 @@ export default function Layout() {
           </div>
         </header>
       )}
-      <main className={isLanding ? 'main-landing' : isAccount ? 'main-account' : isNews ? 'main-news' : isTours ? 'main-tours' : isAnalysis ? 'main-analysis' : 'container'}>
+      <main className={isLanding ? 'main-landing' : isAccount ? 'main-account' : isNews ? 'main-news' : isTours ? 'main-tours' : isAnalysis ? 'main-analysis' : isUniversities ? 'main-universities' : 'container'}>
         <Outlet />
       </main>
       {!isLanding && !isAccount && (
