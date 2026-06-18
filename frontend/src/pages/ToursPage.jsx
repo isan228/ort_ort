@@ -148,7 +148,8 @@ function buildStages(tours) {
 }
 
 export default function ToursPage() {
-  const user = getStoredUser();
+  const userId = getStoredUser()?.id ?? null;
+  const isLoggedIn = Boolean(userId);
   const [tours, setTours] = useState([]);
   const [programs, setPrograms] = useState([]);
   const [userScore, setUserScore] = useState(null);
@@ -168,6 +169,8 @@ export default function ToursPage() {
   const stages = useMemo(() => buildStages(tours), [tours]);
 
   useEffect(() => {
+    let cancelled = false;
+
     async function load() {
       setLoading(true);
       setError('');
@@ -176,26 +179,35 @@ export default function ToursPage() {
           api.getTours(),
           api.listPrograms(),
         ]);
+        if (cancelled) return;
+
         setTours(toursData.tours || []);
         setPrograms(programsData.programs || []);
 
-        if (user) {
+        if (userId) {
           try {
             const scores = await api.getScores();
+            if (cancelled) return;
             const profile = scores.final || scores.draft;
             if (profile?.main_score != null) setUserScore(Number(profile.main_score));
           } catch {
             /* optional */
           }
+        } else {
+          setUserScore(null);
         }
       } catch (err) {
-        setError(err.message);
+        if (!cancelled) setError(err.message);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
+
     load();
-  }, [user]);
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
 
   useEffect(() => {
     if (currentTour?.id) {
@@ -229,7 +241,7 @@ export default function ToursPage() {
   const appliedIds = new Set(applications.map((a) => a.programId));
 
   function handleSubmit(program) {
-    if (!user) {
+    if (!isLoggedIn) {
       setError('Войдите в аккаунт, чтобы подать заявление');
       return;
     }
@@ -545,7 +557,7 @@ export default function ToursPage() {
                               {chanceLabel(chance.level)}
                             </span>
                           </div>
-                        ) : user ? (
+                        ) : userId ? (
                           <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Укажите баллы</span>
                         ) : (
                           <Link to="/login" style={{ fontSize: '0.75rem' }}>
