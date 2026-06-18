@@ -852,6 +852,8 @@ main {
   border-radius: 1rem;
   padding: 1.35rem;
   backdrop-filter: blur(12px);
+  overflow-x: auto;
+  max-width: 100%;
 }
 
 .landing-example-card h3 {
@@ -1250,7 +1252,7 @@ main {
 }
 
 @media (max-width: 640px) {
-  .header-inner {
+  .site-header--landing .header-inner {
     grid-template-columns: 1fr auto;
   }
 
@@ -1272,13 +1274,14 @@ main {
 
   .landing-cards-grid,
   .landing-news-grid,
-  .landing-steps {
+  .landing-steps,
+  .landing-uni-grid {
     grid-template-columns: 1fr;
   }
 
   .landing-stats-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
   }
 
   .landing-bottom-cta-inner {

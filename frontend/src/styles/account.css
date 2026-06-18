@@ -17,6 +17,8 @@
   min-height: 100vh;
   background: var(--account-bg);
   color: var(--account-text);
+  overflow-x: clip;
+  max-width: 100%;
 }
 
 .account-icon {
@@ -473,6 +475,13 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 0.875rem;
+}
+
+.account-compare-block {
+  overflow-x: auto;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 1rem;
 }
 
 .account-table th,
@@ -1261,11 +1270,13 @@
   .account-topbar {
     padding: 0.65rem 0.75rem;
     flex-wrap: wrap;
+    overflow-x: clip;
   }
 
   .account-topbar-actions {
     flex-wrap: wrap;
     justify-content: flex-end;
+    max-width: 100%;
   }
 
   .account-lang-switch {
@@ -1274,6 +1285,21 @@
 
   .account-body {
     padding: 0.75rem 0.65rem 1.5rem;
+    overflow-x: clip;
+  }
+
+  .account-content {
+    overflow-x: clip;
+  }
+
+  .account-plans-head,
+  .account-panel-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .account-program-picker {
+    max-height: none;
   }
 
   .account-list-row {
@@ -1296,14 +1322,25 @@
     display: none;
   }
 
+  .account-lang-switch {
+    display: none;
+  }
+
   .account-panel {
     padding: 1rem;
-    overflow-x: auto;
+    overflow-x: clip;
   }
 
   .account-table {
-    display: block;
-    overflow-x: auto;
-    max-width: 100%;
+    display: table;
+    min-width: 280px;
+  }
+
+  .account-stats-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  .account-tools-grid {
+    grid-template-columns: 1fr !important;
   }
 }

@@ -397,6 +397,8 @@
 
 .tours-table-wrap {
   overflow-x: auto;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
 }
 
 .tours-table {
@@ -600,6 +602,15 @@
     grid-template-columns: 1fr;
   }
 
+  .tours-search {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .tours-info-bar a {
+    white-space: normal;
+  }
+
   .tours-recommendation {
     flex-direction: column;
     align-items: stretch;
@@ -608,11 +619,11 @@
 
 @media (max-width: 480px) {
   .tours-page {
-    overflow-x: hidden;
+    overflow-x: clip;
   }
 
   .tours-timeline {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
   }
 
   .tours-info-bar {
@@ -620,16 +631,7 @@
     align-items: flex-start;
   }
 
-  .tours-info-bar a {
-    white-space: normal;
-  }
-
   .tours-table {
-    min-width: 640px;
-  }
-
-  .tours-stat-card strong small {
-    display: block;
-    margin-top: 0.15rem;
+    min-width: 420px;
   }
 }

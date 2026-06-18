@@ -17,6 +17,10 @@ canvas {
   height: auto;
 }
 
+svg:not(.account-icon):not(.news-icon):not(.tours-icon):not(.uni-icon) {
+  max-width: 100%;
+}
+
 main,
 .container,
 [class*='-page-inner'],
@@ -26,14 +30,54 @@ main,
   min-width: 0;
 }
 
-[class*='-table-wrap'] {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  max-width: 100%;
+[class*='-page-inner'] {
+  width: 100%;
+  overflow-x: clip;
 }
 
-table[class*='-table'] {
-  min-width: 520px;
+[class*='-layout'],
+[class*='-main'],
+[class*='-aside'],
+[class*='-content'],
+[class*='-body'],
+[class*='-dashboard'],
+[class*='-card'],
+[class*='-panel'],
+[class*='-item'],
+[class*='-row'],
+[class*='-featured'],
+[class*='-topbar'],
+[class*='-toolbar'],
+[class*='-tabs'],
+[class*='-timeline'],
+[class*='-stats-row'],
+[class*='-params-wrap'],
+[class*='-params-card'],
+[class*='-params-grid'],
+[class*='-meta-col'],
+[class*='-card-body'],
+[class*='-card-side'],
+[class*='-card-head'],
+[class*='-info-bar'],
+[class*='-cta-content'],
+[class*='-recommendation-content'],
+.site-header,
+.header-inner,
+.header-controls {
+  max-width: 100%;
+  min-width: 0;
+}
+
+[class*='-table-wrap'] {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+table[class*='-table'],
+table.data-table {
   width: 100%;
 }
 
@@ -61,10 +105,33 @@ button,
   max-width: 100%;
 }
 
+.main-landing,
+.main-news,
+.main-tours,
+.main-analysis,
+.main-universities,
+.main-account {
+  overflow-x: clip;
+  max-width: 100%;
+}
+
+.data-table {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tiles {
+  min-width: 0;
+}
+
 /* ——— Шапка сайта: мобильное меню ——— */
 
 .header-inner {
   position: relative;
+  max-width: 100%;
 }
 
 .nav-toggle {
@@ -126,6 +193,22 @@ button,
 
   .site-header:not(.site-header--landing) .header-controls {
     justify-content: flex-end;
+    flex-wrap: wrap;
+    min-width: 0;
+    gap: 0.35rem;
+  }
+
+  .site-header:not(.site-header--landing) .lang-switch {
+    flex-shrink: 1;
+  }
+
+  .news-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .news-sidebar-right {
+    grid-column: 1 / -1 !important;
+    grid-template-columns: 1fr !important;
   }
 }
 
@@ -136,15 +219,17 @@ button,
 
   .site-header {
     padding: 0.75rem 0;
-  }
-
-  .header-inner {
-    grid-template-columns: 1fr auto;
-    gap: 0.5rem;
+    overflow-x: clip;
   }
 
   .site-header--landing .header-inner {
     grid-template-columns: 1fr auto;
+    gap: 0.5rem;
+  }
+
+  .site-header:not(.site-header--landing) .header-inner {
+    grid-template-columns: 1fr auto auto;
+    gap: 0.5rem;
   }
 
   .site-header--landing .nav {
@@ -173,31 +258,15 @@ button,
   .program-picker {
     max-height: none;
   }
-}
 
-.main-landing,
-.main-news,
-.main-tours,
-.main-analysis,
-.main-universities,
-.main-account {
-  overflow-x: hidden;
-  max-width: 100%;
-}
+  .btn-landing--inline {
+    min-width: 0;
+    width: 100%;
+  }
 
-.data-table {
-  display: block;
-  width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-table.data-table {
-  min-width: 480px;
-}
-
-.tiles {
-  min-width: 0;
+  .landing-stats-grid {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 @media (max-width: 480px) {
@@ -216,7 +285,6 @@ table.data-table {
   }
 }
 
-
 /* ——— Общие паттерны страниц ——— */
 
 @media (max-width: 768px) {
@@ -226,17 +294,37 @@ table.data-table {
   }
 
   [class*='-page-head'] {
-    flex-direction: column;
+    flex-direction: column !important;
     align-items: stretch !important;
   }
 
-  [class*='-stats-row'] {
+  [class*='-stats-row'],
+  [class*='-summary-row'],
+  [class*='-params-grid'],
+  [class*='-params-wrap'],
+  [class*='-layout'],
+  [class*='-timeline'],
+  [class*='-rec-grid'],
+  .account-tools-grid,
+  .account-content--dashboard .account-dashboard {
     grid-template-columns: 1fr !important;
   }
 
-  [class*='-params-grid'],
   [class*='-params-wrap'] {
-    grid-template-columns: 1fr !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.75rem !important;
+  }
+
+  [class*='-meta-col'] {
+    flex-direction: column !important;
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  [class*='-card-side'] {
+    min-width: 0 !important;
+    text-align: left !important;
   }
 
   [class*='-cta-banner'],
@@ -252,18 +340,109 @@ table.data-table {
     align-items: stretch !important;
   }
 
+  [class*='-tabs'] {
+    flex-wrap: wrap !important;
+  }
+
   [class*='-search'] {
     min-width: 0 !important;
-    width: 100%;
+    width: 100% !important;
   }
 
   [class*='-sort'] {
-    width: 100%;
+    width: 100% !important;
   }
 
   [class*='-sort'] select,
   [class*='-sort'] [class*='-select'] {
-    width: 100%;
+    width: 100% !important;
+  }
+
+  [class*='-info-bar'] {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+
+  [class*='-info-bar'] a {
+    white-space: normal !important;
+  }
+
+  .news-item,
+  .news-featured-card,
+  .universities-card {
+    grid-template-columns: 1fr !important;
+  }
+
+  [class*='-table-wrap'],
+  .account-compare-block {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+  }
+
+  table[class*='-table'],
+  table.data-table {
+    min-width: 520px;
+  }
+
+  .analysis-line-chart,
+  .analysis-gauge {
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .account-topbar {
+    flex-wrap: wrap;
+    padding: 0.65rem 0.75rem;
+    overflow-x: clip;
+    gap: 0.5rem;
+  }
+
+  .account-topbar-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.35rem;
+  }
+
+  .account-ring {
+    width: 110px;
+    height: 110px;
+  }
+
+  .account-ring-inner {
+    width: 85px;
+    height: 85px;
+  }
+
+  .account-recent-scroll {
+    max-width: 100%;
+  }
+
+  .universities-card {
+    padding: 1rem;
+  }
+
+  .news-featured-content {
+    padding: 1.25rem;
+  }
+
+  .news-featured-content h2 {
+    font-size: 1.15rem;
+  }
+
+  .tours-info-bar a,
+  .universities-cta a,
+  .analysis-cta-banner a {
+    white-space: normal !important;
+  }
+
+  .landing-example-card {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .landing-example-table {
+    min-width: 280px;
   }
 }
 
@@ -273,8 +452,17 @@ table.data-table {
     padding-right: 0.65rem !important;
   }
 
-  [class*='-card-side'],
   [class*='-card-head'] {
-    text-align: left !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+
+  .account-tools-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  table[class*='-table'],
+  table.data-table {
+    min-width: 420px;
   }
 }

@@ -263,6 +263,8 @@
   text-decoration: none;
   color: inherit;
   transition: border-color 0.15s, box-shadow 0.15s;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .universities-card:hover {
@@ -347,7 +349,7 @@
 }
 
 .universities-card-side {
-  min-width: 200px;
+  min-width: 0;
   text-align: right;
 }
 
@@ -504,6 +506,11 @@
 @media (max-width: 768px) {
   .universities-stats-row {
     grid-template-columns: 1fr;
+  }
+
+  .universities-search {
+    min-width: 0;
+    width: 100%;
   }
 
   .universities-card {
