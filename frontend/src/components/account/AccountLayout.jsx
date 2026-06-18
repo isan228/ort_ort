@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { api, getStoredUser } from '../../api/client.js';
 import { useI18n } from '../../i18n/I18nContext.jsx';
 import { AccountIcon } from '../icons/AccountIcons.jsx';
@@ -23,7 +23,8 @@ function navClass({ isActive }) {
 }
 
 export default function AccountLayout() {
-  const { t } = useI18n();
+  const { t, locale, setLocale } = useI18n();
+  const navigate = useNavigate();
   const location = useLocation();
   const stored = getStoredUser();
   const [unread, setUnread] = useState(0);
@@ -35,6 +36,11 @@ export default function AccountLayout() {
       .then((data) => setUnread(data.unread_count ?? 0))
       .catch(() => setUnread(0));
   }, [location.pathname]);
+
+  async function handleLogout() {
+    await api.logout();
+    navigate('/login');
+  }
 
   const mainNav = [
     { to: '/account', icon: 'home', label: t('account.nav.home'), end: true },
@@ -61,13 +67,38 @@ export default function AccountLayout() {
 
   return (
     <div className="account-shell">
-      <div className="account-topbar">
-        <h1 className="account-topbar-title">{t('account.title')}</h1>
+      <header className="account-topbar">
+        <div className="account-topbar-left">
+          <Link to="/" className="account-logo">
+            ORT.KG
+          </Link>
+          <span className="account-topbar-sep" aria-hidden />
+          <span className="account-topbar-label">{t('account.title')}</span>
+        </div>
+
         <div className="account-topbar-actions">
+          <div className="lang-switch account-lang-switch" role="group" aria-label={t('account.language')}>
+            <button
+              type="button"
+              className={locale === 'ru' ? 'chip active' : 'chip'}
+              onClick={() => setLocale('ru')}
+            >
+              {t('lang.ru')}
+            </button>
+            <button
+              type="button"
+              className={locale === 'ky' ? 'chip active' : 'chip'}
+              onClick={() => setLocale('ky')}
+            >
+              {t('lang.ky')}
+            </button>
+          </div>
+
           <Link to="/account/notifications" className="account-bell-btn" aria-label={t('account.nav.notifications')}>
-            <AccountIcon name="bell" size={22} />
+            <AccountIcon name="bell" size={20} />
             {unread > 0 && <span className="account-bell-badge">{unread > 9 ? '9+' : unread}</span>}
           </Link>
+
           <div className="account-user-chip">
             <div className="account-avatar">{getInitials(stored)}</div>
             <div className="account-user-meta">
@@ -77,8 +108,12 @@ export default function AccountLayout() {
               </span>
             </div>
           </div>
+
+          <button type="button" className="account-logout-btn" onClick={handleLogout}>
+            {t('nav.logout')}
+          </button>
         </div>
-      </div>
+      </header>
 
       <div className="account-body">
         <aside className="account-sidebar">

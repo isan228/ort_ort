@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { api, getStoredUser } from '../api/client.js';
+import { api } from '../api/client.js';
+import { AccountAlerts, AccountPageWrap, AccountPanel } from '../components/account/AccountSection.jsx';
 
 export default function WalletPage() {
-  const user = getStoredUser();
   const [wallet, setWallet] = useState(null);
   const [referral, setReferral] = useState(null);
   const [rules, setRules] = useState(null);
@@ -12,9 +11,8 @@ export default function WalletPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
     load();
-  }, [user]);
+  }, []);
 
   async function load() {
     setLoading(true);
@@ -46,71 +44,62 @@ export default function WalletPage() {
     setMessage('');
     try {
       const result = await api.redeemBonus(feature);
-      setMessage(`Списано ${result.cost} бонусов за «${feature}»`);
+      setMessage(`Списано ${result.cost} бонусов`);
       load();
     } catch (err) {
       setError(err.message);
     }
   }
 
-  if (!user) {
-    return (
-      <div className="card">
-        <h1>Бонусы и рефералы</h1>
-        <p>
-          <Link to="/login">Войдите</Link>, чтобы увидеть баланс и реферальную ссылку.
-        </p>
-      </div>
-    );
-  }
-
-  if (loading) return <p>Загрузка...</p>;
+  if (loading) return <p className="account-loading">Загрузка...</p>;
 
   return (
-    <>
-      <h1>Бонусы / Рефералы</h1>
-      <p className="muted">Приглашайте друзей и тратьте бонусы на функции платформы.</p>
+    <AccountPageWrap
+      title="Бонусы и рефералы"
+      subtitle="Приглашайте друзей и тратьте бонусы на функции платформы"
+    >
+      <AccountAlerts error={error} message={message} />
 
-      {error && <div className="error">{error}</div>}
-      {message && <div className="success">{message}</div>}
-
-      <div className="card">
-        <h2>Баланс</h2>
-        <p>
-          Бонусы: <strong>{wallet?.bonus_balance ?? 0}</strong>
-        </p>
-        <p>
-          Монеты: <strong>{wallet?.coin_balance ?? 0}</strong>
-        </p>
+      <div className="account-stats-row account-stats-row--2">
+        <div className="account-stat-card account-stat-card--blue">
+          <div>
+            <strong>{wallet?.bonus_balance ?? 0}</strong>
+            <span>бонусов</span>
+          </div>
+        </div>
+        <div className="account-stat-card account-stat-card--amber">
+          <div>
+            <strong>{wallet?.coin_balance ?? 0}</strong>
+            <span>монет</span>
+          </div>
+        </div>
       </div>
 
-      <div className="card">
-        <h2>Реферальная ссылка</h2>
-        <p className="muted">
-          За каждого приглашённого после регистрации: +{referral?.reward_per_referral ?? 100} бонусов
+      <AccountPanel title="Реферальная ссылка">
+        <p className="account-muted-line">
+          За каждого приглашённого: +{referral?.reward_per_referral ?? 100} бонусов
         </p>
         <p>
           Код: <strong>{referral?.code}</strong>
         </p>
-        <p style={{ wordBreak: 'break-all' }}>{referral?.link}</p>
-        <p className="muted">
+        <p className="account-link-box">{referral?.link}</p>
+        <p className="account-muted-line">
           Приглашено: {referral?.referred_count ?? 0} · Начислено: {referral?.awarded_count ?? 0}
         </p>
         <button type="button" className="btn" onClick={copyLink}>
           Копировать ссылку
         </button>
-      </div>
+      </AccountPanel>
 
       {rules?.costs && (
-        <div className="card">
-          <h2>На что потратить бонусы</h2>
-          <ul>
+        <AccountPanel title="На что потратить бонусы">
+          <ul className="account-list">
             <li>Доп. анализ — {rules.costs.extra_analysis} бонусов</li>
             <li>Сравнение программ — {rules.costs.compare_unlock} бонусов</li>
             <li>Доступ к симулятору тура — {rules.costs.tour_unlock} бонусов</li>
-            <li>Скидка на подписку — до {rules.subscription_discount_max_percent}% при оплате</li>
+            <li>Скидка на подписку — до {rules.subscription_discount_max_percent}%</li>
           </ul>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
+          <div className="account-btn-row">
             <button type="button" className="btn btn-secondary" onClick={() => redeem('extra_analysis')}>
               Купить анализ
             </button>
@@ -121,21 +110,27 @@ export default function WalletPage() {
               Открыть тур
             </button>
           </div>
-        </div>
+        </AccountPanel>
       )}
 
-      <div className="card">
-        <h2>История операций</h2>
-        {!wallet?.transactions?.length && <p className="muted">Пока нет операций</p>}
-        <ul>
-          {(wallet?.transactions || []).map((tx) => (
-            <li key={tx.id}>
-              {tx.type === 'credit' ? '+' : '-'}
-              {tx.amount} ({tx.balance_type}) — {tx.reason}
-            </li>
-          ))}
-        </ul>
-      </div>
-    </>
+      <AccountPanel title="История операций">
+        {!wallet?.transactions?.length ? (
+          <p className="account-muted-line">Пока нет операций</p>
+        ) : (
+          <ul className="account-tx-list">
+            {(wallet.transactions || []).map((tx) => (
+              <li key={tx.id} className="account-tx-item">
+                <span className={tx.type === 'credit' ? 'account-tx-plus' : 'account-tx-minus'}>
+                  {tx.type === 'credit' ? '+' : '−'}
+                  {tx.amount}
+                </span>
+                <span>{tx.reason}</span>
+                <span className="account-muted-line">{tx.balance_type}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </AccountPanel>
+    </AccountPageWrap>
   );
 }

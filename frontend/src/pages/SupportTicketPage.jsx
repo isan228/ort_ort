@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { api } from '../api/client.js';
+import { AccountAlerts, AccountPageWrap, AccountPanel } from '../components/account/AccountSection.jsx';
 
 export default function SupportTicketPage() {
   const { id } = useParams();
@@ -42,51 +44,46 @@ export default function SupportTicketPage() {
     }
   }
 
-  if (loading) return <p>Загрузка...</p>;
-  if (error && !ticket) return <div className="error">{error}</div>;
-  if (!ticket) return <p>Тикет не найден</p>;
+  if (loading) return <p className="account-loading">Загрузка...</p>;
+  if (!ticket) return <div className="error account-alert">{error || 'Тикет не найден'}</div>;
 
   return (
-    <>
-      <p className="muted">
+    <AccountPageWrap title={ticket.topic} subtitle={`Статус: ${ticket.status}`}>
+      <p className="account-back-link">
         <Link to="/account/support">← Все обращения</Link>
       </p>
 
-      <h1>{ticket.topic}</h1>
-      <p className="muted">Статус: {ticket.status}</p>
+      <AccountAlerts error={error} />
 
-      {error && <div className="error">{error}</div>}
-
-      <div className="chat-thread">
+      <div className="account-chat-thread">
         {(ticket.messages || []).map((msg) => (
           <div
             key={msg.id}
-            className={`chat-bubble${msg.sender_role === 'user' ? ' chat-user' : ' chat-staff'}`}
+            className={`account-chat-bubble${msg.sender_role === 'user' ? ' user' : ' staff'}`}
           >
-            <div className="chat-meta">{msg.sender_role}</div>
+            <div className="account-chat-meta">{msg.sender_role}</div>
             <p>{msg.message}</p>
-            <span className="muted chat-time">
-              {new Date(msg.created_at).toLocaleString('ru-RU')}
-            </span>
+            <time>{new Date(msg.created_at).toLocaleString('ru-RU')}</time>
           </div>
         ))}
       </div>
 
       {ticket.status !== 'closed' && (
-        <form className="card" onSubmit={sendReply}>
-          <h2>Ответить</h2>
-          <textarea
-            value={reply}
-            onChange={(e) => setReply(e.target.value)}
-            required
-            rows={3}
-            style={{ width: '100%', marginBottom: 8 }}
-          />
-          <button type="submit" className="btn" disabled={sending}>
-            {sending ? 'Отправка...' : 'Отправить'}
-          </button>
-        </form>
+        <AccountPanel title="Ответить">
+          <form className="account-form" onSubmit={sendReply}>
+            <textarea
+              className="account-textarea"
+              value={reply}
+              onChange={(e) => setReply(e.target.value)}
+              required
+              rows={3}
+            />
+            <button type="submit" className="btn" disabled={sending}>
+              {sending ? 'Отправка...' : 'Отправить'}
+            </button>
+          </form>
+        </AccountPanel>
       )}
-    </>
+    </AccountPageWrap>
   );
 }

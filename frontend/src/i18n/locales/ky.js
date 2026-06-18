@@ -228,4 +228,6 @@ export default {
   'account.invite.title': 'Досуңузду чакырыңыз',
   'account.invite.desc': 'Ар бир чакырылган үчүн бонус алыңыз',
   'account.invite.btn': 'Чакыруу',
+  'account.page.wallet': 'Бонустар жана рефералдар',
+  'account.page.ticket': 'Колдоого кайрылуу',
 };

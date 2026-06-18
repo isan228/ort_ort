@@ -31,31 +31,6 @@
   background: var(--bg);
 }
 
-[data-theme='dark'] {
-  --bg: #0f172a;
-  --text: #f1f5f9;
-  --text-muted: #94a3b8;
-  --link: #93c5fd;
-  --surface: #1e293b;
-  --border: #334155;
-  --hero-from: #1e3a8a;
-  --hero-to: #2563eb;
-  --btn-bg: #2563eb;
-  --btn-text: #f8fafc;
-  --btn-secondary-bg: #334155;
-  --btn-secondary-text: #f1f5f9;
-  --error-bg: #450a0a;
-  --error-text: #fecaca;
-  --error-border: #991b1b;
-  --success-bg: #052e16;
-  --success-text: #bbf7d0;
-  --success-border: #166534;
-  --panel-bg: #422006;
-  --panel-border: #854d0e;
-  --accent-soft: #172554;
-  --accent-border: #1d4ed8;
-}
-
 * {
   box-sizing: border-box;
 }

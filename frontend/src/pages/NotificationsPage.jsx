@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client.js';
+import { AccountAlerts, AccountPageWrap } from '../components/account/AccountSection.jsx';
 
 export default function NotificationsPage() {
   const navigate = useNavigate();
@@ -37,51 +38,43 @@ export default function NotificationsPage() {
     }
   }
 
-  if (loading) return <p>Загрузка...</p>;
+  if (loading) return <p className="account-loading">Загрузка...</p>;
 
   return (
-    <>
-      <h1>Уведомления</h1>
-      {unreadCount > 0 && <p className="muted">Непрочитанных: {unreadCount}</p>}
+    <AccountPageWrap
+      title="Уведомления"
+      subtitle={unreadCount > 0 ? `Непрочитанных: ${unreadCount}` : 'Все уведомления прочитаны'}
+    >
+      <AccountAlerts error={error} />
 
-      {error && <div className="error">{error}</div>}
-
-      <div className="notification-list">
+      <div className="account-notification-list">
         {notifications.map((item) => (
-          <div
+          <article
             key={item.id}
-            className={`card notification-item${item.is_read ? '' : ' unread'}`}
+            className={`account-notification-item${item.is_read ? '' : ' unread'}`}
           >
-            <div className="notification-head">
+            <div className="account-notification-head">
               <strong>{item.title}</strong>
-              <span className="muted">{new Date(item.created_at).toLocaleString('ru-RU')}</span>
+              <time>{new Date(item.created_at).toLocaleString('ru-RU')}</time>
             </div>
             <p>{item.body}</p>
-            <div className="notification-actions">
+            <div className="account-btn-row">
               {!item.is_read && (
                 <button type="button" className="btn btn-secondary" onClick={() => markRead(item.id, null)}>
                   Прочитано
                 </button>
               )}
               {item.action_url && (
-                <button
-                  type="button"
-                  className="btn"
-                  onClick={() => markRead(item.id, item.action_url)}
-                >
+                <button type="button" className="btn" onClick={() => markRead(item.id, item.action_url)}>
                   Открыть
                 </button>
               )}
             </div>
-          </div>
+          </article>
         ))}
       </div>
 
-      {!notifications.length && <p className="muted">Уведомлений пока нет.</p>}
-
-      <p style={{ marginTop: 16 }}>
-        <Link to="/account">← Личный кабинет</Link>
-      </p>
-    </>
+      {!notifications.length && <p className="account-muted-line">Уведомлений пока нет.</p>}
+    </AccountPageWrap>
   );
 }

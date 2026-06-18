@@ -228,4 +228,6 @@ export default {
   'account.invite.title': 'Пригласи друга',
   'account.invite.desc': 'Получите бонусы за каждого приглашённого',
   'account.invite.btn': 'Пригласить',
+  'account.page.wallet': 'Бонусы и рефералы',
+  'account.page.ticket': 'Обращение в поддержку',
 };
