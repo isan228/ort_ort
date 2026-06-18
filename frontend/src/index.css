@@ -671,6 +671,14 @@ main {
   --surface: #ffffff;
   --border: #e2e8f0;
   color: var(--text);
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+.main-landing {
+  overflow-x: hidden;
+  max-width: 100%;
+  padding: 0;
 }
 
 .landing .muted {
@@ -1243,11 +1251,19 @@ main {
 
 @media (max-width: 640px) {
   .header-inner {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr auto;
   }
 
   .site-header--landing .nav {
     display: none;
+  }
+
+  .landing .container {
+    width: min(1200px, 100% - 1.25rem);
+  }
+
+  .landing-hero-copy h1 {
+    font-size: 1.65rem;
   }
 
   .landing-form-row {
@@ -1268,5 +1284,13 @@ main {
   .landing-bottom-cta-inner {
     flex-direction: column;
     text-align: center;
+  }
+
+  .landing-section-title {
+    font-size: 1.35rem;
+  }
+
+  .landing-uni-grid {
+    grid-template-columns: 1fr;
   }
 }

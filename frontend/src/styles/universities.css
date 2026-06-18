@@ -519,3 +519,30 @@
     align-items: stretch;
   }
 }
+
+@media (max-width: 480px) {
+  .universities-page {
+    overflow-x: hidden;
+  }
+
+  .universities-meta-row {
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .universities-popular p {
+    word-break: break-word;
+  }
+
+  .universities-toolbar {
+    flex-direction: column;
+  }
+
+  .universities-sort {
+    width: 100%;
+  }
+
+  .universities-select {
+    width: 100%;
+  }
+}

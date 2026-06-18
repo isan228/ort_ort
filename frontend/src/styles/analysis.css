@@ -710,3 +710,45 @@
     align-items: stretch;
   }
 }
+
+@media (max-width: 480px) {
+  .analysis-page {
+    overflow-x: hidden;
+  }
+
+  .analysis-params-wrap {
+    grid-template-columns: 1fr;
+  }
+
+  .analysis-params-grid {
+    grid-template-columns: 1fr;
+    padding-right: 3rem;
+  }
+
+  .analysis-meta-col {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .analysis-page-head {
+    flex-direction: column;
+  }
+
+  .analysis-save-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .analysis-table {
+    min-width: 480px;
+  }
+
+  .analysis-rec-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .analysis-summary-row {
+    grid-template-columns: 1fr;
+  }
+}

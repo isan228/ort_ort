@@ -749,6 +749,29 @@
   }
 }
 
+@media (max-width: 480px) {
+  .news-page {
+    overflow-x: hidden;
+  }
+
+  .news-featured-content h2 {
+    font-size: 1.1rem;
+  }
+
+  .news-sidebar-right {
+    grid-template-columns: 1fr !important;
+  }
+
+  .news-info-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .news-info-bar a {
+    white-space: normal;
+  }
+}
+
 .news-body p {
   margin: 0.75rem 0;
   line-height: 1.65;

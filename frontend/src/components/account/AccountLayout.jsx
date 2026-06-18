@@ -115,6 +115,16 @@ export default function AccountLayout() {
         </div>
       </header>
 
+      <nav className="account-mobile-nav" aria-label={t('account.nav.home')}>
+        {mainNav.map((item) => (
+          <NavLink key={item.to + item.label} to={item.to} end={item.end} className={navClass}>
+            <AccountIcon name={item.icon} size={16} />
+            <span>{item.label}</span>
+            {item.badge > 0 && <span className="account-nav-badge">{item.badge}</span>}
+          </NavLink>
+        ))}
+      </nav>
+
       <div className="account-body">
         <aside className="account-sidebar">
           <nav className="account-nav">

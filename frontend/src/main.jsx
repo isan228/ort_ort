@@ -10,6 +10,7 @@ import './styles/news.css';
 import './styles/tours.css';
 import './styles/analysis.css';
 import './styles/universities.css';
+import './styles/responsive.css';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

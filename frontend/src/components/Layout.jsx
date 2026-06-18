@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import NavNotifications from './NavNotifications.jsx';
 import { api, getStoredUser, isStaffRole } from '../api/client.js';
 import { useI18n } from '../i18n/I18nContext.jsx';
@@ -15,7 +15,12 @@ export default function Layout() {
   const isUniversities = location.pathname === '/universities';
   const { t, locale, setLocale } = useI18n();
   const [user, setUser] = useState(() => getStoredUser());
+  const [menuOpen, setMenuOpen] = useState(false);
   const staff = isStaffRole(user?.role?.code);
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname]);
 
   async function handleLogout() {
     await api.logout();
@@ -31,7 +36,18 @@ export default function Layout() {
             <Link to="/" className="logo">
               ORT.KG
             </Link>
-            <nav className="nav">
+            {!isLanding && (
+              <button
+                type="button"
+                className="nav-toggle"
+                aria-expanded={menuOpen}
+                aria-label="Меню"
+                onClick={() => setMenuOpen((v) => !v)}
+              >
+                {menuOpen ? '✕' : '☰'}
+              </button>
+            )}
+            <nav className={`nav${menuOpen ? ' nav--open' : ''}`}>
               <Link
                 to="/universities"
                 className={isUniversities || location.pathname.startsWith('/universities/') ? 'nav-link-active' : undefined}
