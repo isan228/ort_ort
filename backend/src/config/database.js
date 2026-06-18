@@ -19,7 +19,9 @@ export async function connectDatabase() {
 }
 
 export async function syncDatabase() {
-  const options = config.db.syncAlter ? { alter: true } : {};
+  // alter: true ломает ENUM+UNIQUE в PostgreSQL (Sequelize bug). В production — только create missing.
+  const useAlter = config.db.syncAlter && config.env !== 'production';
+  const options = useAlter ? { alter: true } : {};
   await sequelize.sync(options);
-  console.log('Database synced');
+  console.log(useAlter ? 'Database synced (alter)' : 'Database synced');
 }

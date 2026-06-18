@@ -2,6 +2,8 @@
 
 Базовый URL: `http://localhost:3001/api/v1`
 
+**Деплой на сервер:** см. [DEPLOY.md](./DEPLOY.md)
+
 ## Auth
 
 | ID | Method | Route | Доступ |
