@@ -11,6 +11,7 @@ export default function Layout() {
   const isAccount = location.pathname.startsWith('/account');
   const isNews = location.pathname.startsWith('/news');
   const isTours = location.pathname.startsWith('/tours');
+  const isAnalysis = location.pathname.startsWith('/analysis');
   const { t, locale, setLocale } = useI18n();
   const [user, setUser] = useState(() => getStoredUser());
   const staff = isStaffRole(user?.role?.code);
@@ -31,7 +32,7 @@ export default function Layout() {
             </Link>
             <nav className="nav">
               <Link to="/universities">{t('nav.universities')}</Link>
-              <Link to="/analysis">{t('nav.analysis')}</Link>
+              <Link to="/analysis" className={isAnalysis ? 'nav-link-active' : undefined}>{t('nav.analysis')}</Link>
               <Link to="/tours" className={isTours ? 'nav-link-active' : undefined}>{t('nav.tours')}</Link>
               <Link to="/rankings">{t('nav.rankings')}</Link>
               <Link to="/news" className={isNews ? 'nav-link-active' : undefined}>{t('nav.news')}</Link>
@@ -80,7 +81,7 @@ export default function Layout() {
           </div>
         </header>
       )}
-      <main className={isLanding ? 'main-landing' : isAccount ? 'main-account' : isNews ? 'main-news' : isTours ? 'main-tours' : 'container'}>
+      <main className={isLanding ? 'main-landing' : isAccount ? 'main-account' : isNews ? 'main-news' : isTours ? 'main-tours' : isAnalysis ? 'main-analysis' : 'container'}>
         <Outlet />
       </main>
       {!isLanding && !isAccount && (

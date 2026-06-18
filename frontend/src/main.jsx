@@ -8,6 +8,7 @@ import './index.css';
 import './styles/account.css';
 import './styles/news.css';
 import './styles/tours.css';
+import './styles/analysis.css';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
