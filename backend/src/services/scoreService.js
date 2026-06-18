@@ -13,17 +13,7 @@ import { writeAuditLog } from './auditService.js';
 import { createHttpError } from '../utils/errors.js';
 import { syncUserPhaseIfNeeded } from './phaseService.js';
 import { rebuildGlobalRanking } from './rankingService.js';
-
-const SCORE_MIN = 0;
-const SCORE_MAX = 300;
-
-function validateScoreValue(value, fieldName) {
-  const num = Number(value);
-  if (!Number.isFinite(num) || num < SCORE_MIN || num > SCORE_MAX) {
-    throw createHttpError(400, 'SCORE-001', `Некорректное значение: ${fieldName}`);
-  }
-  return Math.round(num);
-}
+import { validateMainScore, validateSubjectScore } from '../utils/validateScore.js';
 
 export async function getScoreState(userId) {
   const phase = await syncUserPhaseIfNeeded(userId);
@@ -65,10 +55,10 @@ export async function saveDraftScores(userId, { main_score, subject_scores_json 
     throw createHttpError(400, 'SCORE-002', 'Черновые баллы доступны только до публикации результатов');
   }
 
-  const mainScore = validateScoreValue(main_score, 'main_score');
+  const mainScore = validateMainScore(main_score, 'main_score');
   const subjectScores = {};
   for (const [key, value] of Object.entries(subject_scores_json)) {
-    subjectScores[key] = validateScoreValue(value, key);
+    subjectScores[key] = validateSubjectScore(value, key);
   }
 
   let draft = await ScoreProfile.findOne({
@@ -120,10 +110,10 @@ export async function finalizeScores(userId, { main_score, subject_scores_json =
     throw createHttpError(400, 'SCORE-002', 'Баллы уже зафиксированы');
   }
 
-  const mainScore = validateScoreValue(main_score, 'main_score');
+  const mainScore = validateMainScore(main_score, 'main_score');
   const subjectScores = {};
   for (const [key, value] of Object.entries(subject_scores_json)) {
-    subjectScores[key] = validateScoreValue(value, key);
+    subjectScores[key] = validateSubjectScore(value, key);
   }
 
   const profile = await sequelize.transaction(async (transaction) => {
@@ -282,10 +272,10 @@ export async function moderateCorrectionRequest(
       throw createHttpError(400, 'VALIDATION_ERROR', 'Укажите main_score для одобрения');
     }
 
-    const mainScore = validateScoreValue(main_score, 'main_score');
+    const mainScore = validateMainScore(main_score, 'main_score');
     const subjectScores = {};
     for (const [key, value] of Object.entries(subject_scores_json)) {
-      subjectScores[key] = validateScoreValue(value, key);
+      subjectScores[key] = validateSubjectScore(value, key);
     }
 
     await sequelize.transaction(async (transaction) => {

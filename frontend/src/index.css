@@ -841,6 +841,14 @@ main {
   color: #94a3b8;
 }
 
+.landing-form-score-error {
+  grid-column: 1 / -1;
+  margin: 0.35rem 0 0;
+  font-size: 0.82rem;
+  color: #fca5a5;
+  line-height: 1.4;
+}
+
 .landing-form-shield {
   color: #60a5fa;
 }

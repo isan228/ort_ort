@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client.js';
 import { AccountAlerts, AccountPageWrap, AccountPanel } from '../components/account/AccountSection.jsx';
+import {
+  ORT_MAIN_SCORE_MIN,
+  ORT_MAIN_SCORE_MAX,
+  validateOrtMainScore,
+  getOrtScoreErrorMessage,
+} from '../utils/ortScore.js';
 
 export default function ScoresPage() {
   const [state, setState] = useState(null);
@@ -33,8 +39,13 @@ export default function ScoresPage() {
   async function saveDraft() {
     setError('');
     setMessage('');
+    const check = validateOrtMainScore(mainScore);
+    if (!check.valid) {
+      setError(getOrtScoreErrorMessage(check.error));
+      return;
+    }
     try {
-      await api.saveDraftScores({ main_score: Number(mainScore), subject_scores_json: {} });
+      await api.saveDraftScores({ main_score: check.value, subject_scores_json: {} });
       setMessage('Черновые баллы сохранены');
       load();
     } catch (err) {
@@ -45,9 +56,14 @@ export default function ScoresPage() {
   async function finalize() {
     setError('');
     setMessage('');
+    const check = validateOrtMainScore(mainScore);
+    if (!check.valid) {
+      setError(getOrtScoreErrorMessage(check.error));
+      return;
+    }
     try {
       await api.finalizeScores({
-        main_score: Number(mainScore),
+        main_score: check.value,
         subject_scores_json: {},
         lock_acknowledged: lockAck,
       });
@@ -103,12 +119,18 @@ export default function ScoresPage() {
             <input
               type="number"
               className="account-input account-input--short"
+              min={ORT_MAIN_SCORE_MIN}
+              max={ORT_MAIN_SCORE_MAX}
               value={mainScore}
               onChange={(e) => setMainScore(e.target.value)}
               disabled={isLocked}
             />
           </label>
         </div>
+        <p className="account-muted-line">
+          Допустимый диапазон: от {ORT_MAIN_SCORE_MIN} до {ORT_MAIN_SCORE_MAX} (порог вступления в вуз — от 110
+          баллов).
+        </p>
 
         {isBeforeResults && (
           <button type="button" className="btn" onClick={saveDraft}>

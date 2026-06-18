@@ -12,6 +12,7 @@ import {
 } from '../models/index.js';
 import { SCORE_MODE, USER_PHASE, REDEMPTION_FEATURE, CATALOG_STATUS } from '../constants/index.js';
 import { getSetting } from './settingsService.js';
+import { validateMainScore } from '../utils/validateScore.js';
 import { userHasActiveSubscription } from './subscriptionService.js';
 import { userCanRunPremiumAnalysis, consumeUnlock } from './accessService.js';
 import { syncUserPhaseIfNeeded } from './phaseService.js';
@@ -194,6 +195,8 @@ export async function runAnalysis(userId, { program_ids = [], main_score }) {
     throw createHttpError(400, 'SCORE-001', 'Сначала введите баллы');
   }
 
+  const validatedMainScore = validateMainScore(effectiveMainScore, 'main_score');
+
   const specialties = await loadProgramsByIds(program_ids);
 
   if (specialties.length !== program_ids.length) {
@@ -205,7 +208,7 @@ export async function runAnalysis(userId, { program_ids = [], main_score }) {
   const weights = weightsSetting ? { ...DEFAULT_WEIGHTS, ...weightsSetting } : DEFAULT_WEIGHTS;
 
   const results = specialties.map((specialty) =>
-    evaluateSpecialtyProgram(specialty, Number(effectiveMainScore), subjectScores, weights)
+    evaluateSpecialtyProgram(specialty, validatedMainScore, subjectScores, weights)
   );
 
   const validResults = results.filter((r) => !r.error);
@@ -216,7 +219,7 @@ export async function runAnalysis(userId, { program_ids = [], main_score }) {
   let alternatives = [];
   if (lowestChance < 45) {
     alternatives = await findAlternatives({
-      mainScore: Number(effectiveMainScore),
+      mainScore: validatedMainScore,
       subjectScores,
       excludeIds: program_ids,
       weights,
@@ -231,7 +234,7 @@ export async function runAnalysis(userId, { program_ids = [], main_score }) {
         score_profile_id: scoreProfile?.id || null,
         input_json: {
           program_ids,
-          main_score: effectiveMainScore,
+          main_score: validatedMainScore,
           subject_scores_json: subjectScores,
         },
         result_json: { programs: results, alternatives },

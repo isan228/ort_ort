@@ -3,6 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../api/client.js';
 import { useI18n } from '../i18n/I18nContext.jsx';
 import {
+  ORT_MAIN_SCORE_MIN,
+  ORT_MAIN_SCORE_MAX,
+  validateOrtMainScore,
+  getOrtScoreErrorMessage,
+} from '../utils/ortScore.js';
+import {
   LandingIcon,
   DIRECTION_ICON_NAMES,
   STEP_ICON_NAMES,
@@ -54,6 +60,7 @@ export default function HomePage() {
   const [universities, setUniversities] = useState([]);
   const [news, setNews] = useState([]);
   const [programs, setPrograms] = useState([]);
+  const [scoreError, setScoreError] = useState('');
 
   const directionKeys = ['medicine', 'dentistry', 'it', 'economics', 'law'];
   const directions = directionKeys.map((key, i) => ({
@@ -93,8 +100,14 @@ export default function HomePage() {
 
   function handleStartAnalysis(e) {
     e.preventDefault();
+    setScoreError('');
+    const check = validateOrtMainScore(score);
+    if (!check.valid) {
+      setScoreError(getOrtScoreErrorMessage(check.error, t));
+      return;
+    }
     const params = new URLSearchParams();
-    if (score) params.set('score', score);
+    params.set('score', String(check.value));
     if (direction) params.set('program', direction);
     const q = params.toString();
     navigate(q ? `/analysis?${q}` : '/analysis');
@@ -119,13 +132,17 @@ export default function HomePage() {
                     <span>{t('home.scoreLabel')}</span>
                     <input
                       type="number"
-                      min="0"
-                      max="300"
+                      min={ORT_MAIN_SCORE_MIN}
+                      max={ORT_MAIN_SCORE_MAX}
                       value={score}
-                      onChange={(e) => setScore(e.target.value)}
+                      onChange={(e) => {
+                        setScore(e.target.value);
+                        setScoreError('');
+                      }}
                       placeholder="185"
                     />
                   </label>
+                  {scoreError && <p className="landing-form-score-error">{scoreError}</p>}
                   <label>
                     <span>{t('home.directionLabel')}</span>
                     <select value={direction} onChange={(e) => setDirection(e.target.value)}>

@@ -1,8 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { api } from '../api/client.js';
 import { useI18n } from '../i18n/I18nContext.jsx';
 import { AnalysisIcon } from '../components/icons/AnalysisIcons.jsx';
+import {
+  ORT_MAIN_SCORE_MIN,
+  ORT_MAIN_SCORE_MAX,
+  validateOrtMainScore,
+  getOrtScoreErrorMessage,
+} from '../utils/ortScore.js';
 
 const CHANCE_LABEL = {
   high: 'Высокий',
@@ -114,6 +120,7 @@ function LineChart({ score, avgCutoff }) {
 
 export default function AnalysisPage() {
   const { t } = useI18n();
+  const [searchParams] = useSearchParams();
   const [context, setContext] = useState(null);
   const [programs, setPrograms] = useState([]);
   const [apiResults, setApiResults] = useState([]);
@@ -243,7 +250,11 @@ export default function AnalysisPage() {
         setContext(ctx);
         setPrograms(programsData.programs || []);
 
-        if (ctx.scores?.main_score != null) {
+        const urlScore = searchParams.get('score');
+        if (urlScore) {
+          const check = validateOrtMainScore(urlScore);
+          if (check.valid) setMainScore(String(check.value));
+        } else if (ctx.scores?.main_score != null) {
           setMainScore(String(ctx.scores.main_score));
         }
 
@@ -264,11 +275,17 @@ export default function AnalysisPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [searchParams]);
 
   async function runAnalysis() {
     if (!scoreNum) {
       setError('Укажите балл ОРТ');
+      return;
+    }
+
+    const check = validateOrtMainScore(mainScore);
+    if (!check.valid) {
+      setError(getOrtScoreErrorMessage(check.error, t));
       return;
     }
 
@@ -285,7 +302,7 @@ export default function AnalysisPage() {
     try {
       const data = await api.runAnalysis({
         program_ids: ids,
-        main_score: scoreNum,
+        main_score: check.value,
       });
       setApiResults(data.results || []);
       setAlternatives(data.alternatives || []);
@@ -423,9 +440,12 @@ export default function AnalysisPage() {
                 <input
                   type="number"
                   className="analysis-input"
+                  min={ORT_MAIN_SCORE_MIN}
+                  max={ORT_MAIN_SCORE_MAX}
                   value={mainScore}
                   onChange={(e) => setMainScore(e.target.value)}
                 />
+                <span className="analysis-field-hint">{t('score.hint')}</span>
               </label>
               <label className="analysis-field">
                 <span>Направление (фильтр)</span>

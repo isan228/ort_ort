@@ -8,6 +8,7 @@ import AdminUsersTab from '../components/admin/AdminUsersTab.jsx';
 import AdminLegalTab from '../components/admin/AdminLegalTab.jsx';
 import AdminFaqTab from '../components/admin/AdminFaqTab.jsx';
 import AdminPaymentsTab from '../components/admin/AdminPaymentsTab.jsx';
+import { ORT_MAIN_SCORE_MIN, ORT_MAIN_SCORE_MAX, validateOrtMainScore, getOrtScoreErrorMessage } from '../utils/ortScore.js';
 
 function CertificateCard({ cert, onUpdated }) {
   const [rejectReason, setRejectReason] = useState('');
@@ -86,9 +87,15 @@ function CorrectionCard({ request, onUpdated }) {
   async function approve() {
     setBusy(true);
     setError('');
+    const check = validateOrtMainScore(mainScore);
+    if (!check.valid) {
+      setError(getOrtScoreErrorMessage(check.error));
+      setBusy(false);
+      return;
+    }
     try {
       await api.adminApproveCorrection(request.id, {
-        main_score: Number(mainScore),
+        main_score: check.value,
         admin_comment: adminComment || undefined,
       });
       onUpdated();
@@ -123,6 +130,8 @@ function CorrectionCard({ request, onUpdated }) {
         Новый основной балл
         <input
           type="number"
+          min={ORT_MAIN_SCORE_MIN}
+          max={ORT_MAIN_SCORE_MAX}
           value={mainScore}
           onChange={(e) => setMainScore(e.target.value)}
           style={{ display: 'block', width: 120, padding: 8, marginTop: 4, marginBottom: 8 }}
