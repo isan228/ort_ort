@@ -9,6 +9,7 @@ export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const isLanding = location.pathname === '/';
+  const isAccount = location.pathname.startsWith('/account');
   const { t, locale, setLocale } = useI18n();
   const { theme, toggleTheme } = useTheme();
   const [user, setUser] = useState(() => getStoredUser());
@@ -82,7 +83,7 @@ export default function Layout() {
           </div>
         </div>
       </header>
-      <main className={isLanding ? 'main-landing' : 'container'}>
+      <main className={isLanding ? 'main-landing' : isAccount ? 'main-account' : 'container'}>
         <Outlet />
       </main>
       {!isLanding && (

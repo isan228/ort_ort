@@ -26,6 +26,7 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage.jsx';
 import ResetPasswordPage from './pages/ResetPasswordPage.jsx';
 import FaqPage from './pages/FaqPage.jsx';
 import LegalPage from './pages/LegalPage.jsx';
+import AccountLayout from './components/account/AccountLayout.jsx';
 import AdminRoute from './components/AdminRoute.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import PlaceholderPage from './pages/PlaceholderPage.jsx';
@@ -53,15 +54,17 @@ export default function App() {
         <Route path="tours/:id" element={<TourDetailPage />} />
         <Route path="rankings" element={<RankingsPage />} />
         <Route element={<ProtectedRoute />}>
+          <Route element={<AccountLayout />}>
+            <Route path="account" element={<AccountPage />} />
+            <Route path="account/scores" element={<ScoresPage />} />
+            <Route path="account/wallet" element={<WalletPage />} />
+            <Route path="account/notifications" element={<NotificationsPage />} />
+            <Route path="account/collections" element={<CollectionsPage />} />
+            <Route path="account/support" element={<SupportPage />} />
+            <Route path="account/support/:id" element={<SupportTicketPage />} />
+          </Route>
           <Route path="analysis" element={<AnalysisPage />} />
           <Route path="subscription" element={<SubscriptionPage />} />
-          <Route path="account" element={<AccountPage />} />
-          <Route path="account/scores" element={<ScoresPage />} />
-          <Route path="account/wallet" element={<WalletPage />} />
-          <Route path="account/notifications" element={<NotificationsPage />} />
-          <Route path="account/collections" element={<CollectionsPage />} />
-          <Route path="account/support" element={<SupportPage />} />
-          <Route path="account/support/:id" element={<SupportTicketPage />} />
         </Route>
         <Route element={<AdminRoute />}>
           <Route path="admin" element={<AdminPage />} />

@@ -5,6 +5,7 @@ import App from './App.jsx';
 import { I18nProvider } from './i18n/I18nContext.jsx';
 import { ThemeProvider } from './theme/ThemeContext.jsx';
 import './index.css';
+import './styles/account.css';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
