@@ -17,23 +17,53 @@ export default function NewsDetailPage() {
       .finally(() => setLoading(false));
   }, [slug]);
 
-  if (loading) return <p>Загрузка...</p>;
-  if (error) return <div className="error">{error}</div>;
-  if (!article) return <p>Статья не найдена</p>;
+  if (loading) {
+    return (
+      <div className="news-page">
+        <div className="news-page-inner">
+          <p className="news-empty">Загрузка...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="news-page">
+        <div className="news-page-inner">
+          <div className="error">{error}</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!article) {
+    return (
+      <div className="news-page">
+        <div className="news-page-inner">
+          <p className="news-empty">Статья не найдена</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <>
-      <p className="muted">
-        <Link to="/news">← Все новости</Link>
-      </p>
+    <div className="news-page">
+      <div className="news-page-inner">
+        <p className="news-widget-link" style={{ marginBottom: '1rem' }}>
+          <Link to="/news">← Все новости</Link>
+        </p>
 
-      <article className="card news-article">
-        <h1>{article.title}</h1>
-        {article.published_at && (
-          <p className="muted">{new Date(article.published_at).toLocaleString('ru-RU')}</p>
-        )}
-        <div className="news-body" dangerouslySetInnerHTML={{ __html: article.body }} />
-      </article>
-    </>
+        <article className="news-main-card">
+          <h1 style={{ margin: '0 0 0.5rem', fontSize: '1.75rem' }}>{article.title}</h1>
+          {article.published_at && (
+            <p className="news-empty" style={{ textAlign: 'left', padding: '0 0 1rem' }}>
+              {new Date(article.published_at).toLocaleString('ru-RU')}
+            </p>
+          )}
+          <div className="news-body" dangerouslySetInnerHTML={{ __html: article.body }} />
+        </article>
+      </div>
+    </div>
   );
 }

@@ -9,6 +9,7 @@ export default function Layout() {
   const location = useLocation();
   const isLanding = location.pathname === '/';
   const isAccount = location.pathname.startsWith('/account');
+  const isNews = location.pathname.startsWith('/news');
   const { t, locale, setLocale } = useI18n();
   const [user, setUser] = useState(() => getStoredUser());
   const staff = isStaffRole(user?.role?.code);
@@ -32,7 +33,7 @@ export default function Layout() {
               <Link to="/analysis">{t('nav.analysis')}</Link>
               <Link to="/tours">{t('nav.tours')}</Link>
               <Link to="/rankings">{t('nav.rankings')}</Link>
-              <Link to="/news">{t('nav.news')}</Link>
+              <Link to="/news" className={isNews ? 'nav-link-active' : undefined}>{t('nav.news')}</Link>
               <Link to="/subscription">{t('nav.subscription')}</Link>
               <Link to="/account">{t('nav.account')}</Link>
               {!isLanding && <NavNotifications label={t('nav.notifications')} />}
@@ -78,7 +79,7 @@ export default function Layout() {
           </div>
         </header>
       )}
-      <main className={isLanding ? 'main-landing' : isAccount ? 'main-account' : 'container'}>
+      <main className={isLanding ? 'main-landing' : isAccount ? 'main-account' : isNews ? 'main-news' : 'container'}>
         <Outlet />
       </main>
       {!isLanding && !isAccount && (
