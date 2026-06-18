@@ -803,10 +803,26 @@ main {
   cursor: pointer;
   margin-top: 0.25rem;
   box-shadow: 0 4px 14px rgba(26, 86, 219, 0.45);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-landing--inline {
+  width: auto;
+  min-width: 220px;
 }
 
 .btn-landing:hover {
   background: var(--landing-accent-hover);
+}
+
+.landing-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .landing-form-note {
@@ -820,7 +836,7 @@ main {
 }
 
 .landing-form-shield {
-  font-size: 0.9rem;
+  color: #60a5fa;
 }
 
 .landing-example-card {
@@ -854,9 +870,11 @@ main {
 }
 
 .landing-edit-icon {
-  margin-left: 0.25rem;
-  font-size: 0.7rem;
-  opacity: 0.6;
+  display: inline-flex;
+  margin-left: 0.35rem;
+  vertical-align: middle;
+  color: #64748b;
+  opacity: 0.75;
 }
 
 .landing-example-table {
@@ -903,7 +921,19 @@ main {
 }
 
 .landing-chance-icon {
-  font-size: 0.55rem;
+  display: inline-flex;
+}
+
+.landing-chance--high .landing-chance-icon {
+  color: #4ade80;
+}
+
+.landing-chance--medium .landing-chance-icon {
+  color: #facc15;
+}
+
+.landing-chance--low .landing-chance-icon {
+  color: #f87171;
 }
 
 .landing-chance--high {
@@ -950,7 +980,7 @@ main {
 }
 
 .landing-stat-svg {
-  display: flex;
+  display: inline-flex;
   color: var(--landing-accent);
   flex-shrink: 0;
 }
@@ -1006,9 +1036,9 @@ main {
 }
 
 .landing-step-icon {
-  font-size: 2rem;
-  display: block;
-  margin-bottom: 0.5rem;
+  display: flex;
+  margin: 0 auto 0.5rem;
+  color: var(--landing-accent);
 }
 
 .landing-step h3 {
@@ -1051,7 +1081,9 @@ main {
 }
 
 .landing-direction-icon {
-  font-size: 1.75rem;
+  display: flex;
+  color: var(--landing-accent);
+  margin-bottom: 0.25rem;
 }
 
 .landing-best-chance {
@@ -1149,18 +1181,14 @@ main {
 }
 
 .landing-bottom-icon {
-  font-size: 2.5rem;
+  display: inline-flex;
+  color: #93c5fd;
 }
 
 .landing-bottom-cta-inner p {
   margin: 0;
   font-size: 1.35rem;
   font-weight: 600;
-}
-
-.landing-bottom-cta .btn-landing {
-  width: auto;
-  min-width: 220px;
 }
 
 .landing-footer {

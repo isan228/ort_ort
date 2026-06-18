@@ -2,6 +2,13 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../api/client.js';
 import { useI18n } from '../i18n/I18nContext.jsx';
+import {
+  LandingIcon,
+  DIRECTION_ICON_NAMES,
+  STEP_ICON_NAMES,
+  STAT_ICON_NAMES,
+  CHANCE_ICON_NAMES,
+} from '../components/icons/LandingIcons.jsx';
 
 const CATEGORY_LABELS = {
   announcement: 'home.news.announcement',
@@ -15,8 +22,6 @@ const DEMO_ROWS = [
   { uni: 'КГМИ', program: 'Лечебное дело', chance: 'low', pct: 35 },
   { uni: 'КГУ', program: 'Лечебное дело', chance: 'low', pct: 22 },
 ];
-
-const DIRECTION_ICONS = ['🩺', '🦷', '💻', '📊', '⚖️'];
 
 function getUniInitials(name = '') {
   return name
@@ -33,48 +38,12 @@ function ChanceBadge({ level, pct, t }) {
     medium: t('analysis.chance.medium'),
     low: t('analysis.chance.low'),
   };
-  const icons = { high: '▲', medium: '●', low: '▼' };
   return (
     <span className={`landing-chance landing-chance--${level}`}>
-      <span className="landing-chance-icon" aria-hidden>
-        {icons[level]}
-      </span>
+      <LandingIcon name={CHANCE_ICON_NAMES[level]} size={12} className="landing-chance-icon" />
       {labels[level]} {pct}%
     </span>
   );
-}
-
-function StatIcon({ type }) {
-  const icons = {
-    uni: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
-        <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6" />
-      </svg>
-    ),
-    cap: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
-        <path d="M12 3l9 5v2H3V8l9-5zM5 10v8M19 10v8M4 18h16" />
-      </svg>
-    ),
-    chart: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
-        <path d="M4 19V5M4 19h16M8 17V11M12 17V7M16 17v-4" />
-      </svg>
-    ),
-    users: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
-        <circle cx="9" cy="8" r="3" />
-        <circle cx="17" cy="9" r="2.5" />
-        <path d="M3 19c0-3 2.5-5 6-5s6 2 6 5M14 19c0-2 1.5-3.5 4-3.5" />
-      </svg>
-    ),
-    trophy: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
-        <path d="M8 4h8v3a4 4 0 01-8 0V4zM6 4H4v2a2 2 0 002 2M18 4h2v2a2 2 0 01-2 2M12 11v3M9 20h6M10 14h4v6h-4z" />
-      </svg>
-    ),
-  };
-  return <span className="landing-stat-svg">{icons[type]}</span>;
 }
 
 export default function HomePage() {
@@ -86,20 +55,19 @@ export default function HomePage() {
   const [news, setNews] = useState([]);
   const [programs, setPrograms] = useState([]);
 
-  const directions = [
-    { key: 'medicine', icon: DIRECTION_ICONS[0], chance: 78 },
-    { key: 'dentistry', icon: DIRECTION_ICONS[1], chance: 65 },
-    { key: 'it', icon: DIRECTION_ICONS[2], chance: 82 },
-    { key: 'economics', icon: DIRECTION_ICONS[3], chance: 71 },
-    { key: 'law', icon: DIRECTION_ICONS[4], chance: 58 },
-  ];
+  const directionKeys = ['medicine', 'dentistry', 'it', 'economics', 'law'];
+  const directions = directionKeys.map((key, i) => ({
+    key,
+    icon: DIRECTION_ICON_NAMES[i],
+    chance: [78, 65, 82, 71, 58][i],
+  }));
 
   const stats = [
-    { type: 'uni', value: '50+', label: t('home.stat.universities') },
-    { type: 'cap', value: '500+', label: t('home.stat.programs') },
-    { type: 'chart', value: '5', label: t('home.stat.years') },
-    { type: 'users', value: '200K+', label: t('home.stat.students') },
-    { type: 'trophy', value: '№1', label: t('home.stat.service') },
+    { icon: STAT_ICON_NAMES[0], value: '50+', label: t('home.stat.universities') },
+    { icon: STAT_ICON_NAMES[1], value: '500+', label: t('home.stat.programs') },
+    { icon: STAT_ICON_NAMES[2], value: '5', label: t('home.stat.years') },
+    { icon: STAT_ICON_NAMES[3], value: '200K+', label: t('home.stat.students') },
+    { icon: STAT_ICON_NAMES[4], value: '№1', label: t('home.stat.service') },
   ];
 
   function getDirectionLabel(value) {
@@ -111,10 +79,10 @@ export default function HomePage() {
   }
 
   const steps = [
-    { num: 1, icon: '📝', title: t('home.step1.title'), desc: t('home.step1.desc') },
-    { num: 2, icon: '📊', title: t('home.step2.title'), desc: t('home.step2.desc') },
-    { num: 3, icon: '⚖️', title: t('home.step3.title'), desc: t('home.step3.desc') },
-    { num: 4, icon: '🎓', title: t('home.step4.title'), desc: t('home.step4.desc') },
+    { num: 1, icon: STEP_ICON_NAMES[0], title: t('home.step1.title'), desc: t('home.step1.desc') },
+    { num: 2, icon: STEP_ICON_NAMES[1], title: t('home.step2.title'), desc: t('home.step2.desc') },
+    { num: 3, icon: STEP_ICON_NAMES[2], title: t('home.step3.title'), desc: t('home.step3.desc') },
+    { num: 4, icon: STEP_ICON_NAMES[3], title: t('home.step4.title'), desc: t('home.step4.desc') },
   ];
 
   useEffect(() => {
@@ -178,12 +146,11 @@ export default function HomePage() {
                   </label>
                 </div>
                 <button type="submit" className="btn btn-landing">
-                  {t('home.ctaFree')} →
+                  <span>{t('home.ctaFree')}</span>
+                  <LandingIcon name="arrowRight" size={18} className="btn-landing-arrow" />
                 </button>
                 <p className="landing-form-note">
-                  <span className="landing-form-shield" aria-hidden>
-                    🛡
-                  </span>
+                  <LandingIcon name="shield" size={16} className="landing-form-shield" />
                   {t('home.formNote')}
                 </p>
               </form>
@@ -194,15 +161,11 @@ export default function HomePage() {
               <div className="landing-example-meta">
                 <span>
                   {t('home.example.score')}: <strong>{score || '185'}</strong>
-                  <span className="landing-edit-icon" aria-hidden>
-                    ✎
-                  </span>
+                  <LandingIcon name="edit" size={12} className="landing-edit-icon" />
                 </span>
                 <span>
                   {t('home.example.direction')}: <strong>{getDirectionLabel(direction)}</strong>
-                  <span className="landing-edit-icon" aria-hidden>
-                    ✎
-                  </span>
+                  <LandingIcon name="edit" size={12} className="landing-edit-icon" />
                 </span>
               </div>
               <table className="landing-example-table">
@@ -234,7 +197,7 @@ export default function HomePage() {
           <div className="container landing-stats-grid">
             {stats.map((item) => (
               <div key={item.label} className="landing-stat">
-                <StatIcon type={item.type} />
+                <LandingIcon name={item.icon} size={22} className="landing-stat-svg" />
                 <span className="landing-stat-text">
                   <strong>{item.value}</strong> {item.label}
                 </span>
@@ -251,9 +214,7 @@ export default function HomePage() {
             {steps.map((step) => (
               <div key={step.num} className="landing-step">
                 <div className="landing-step-num">{step.num}</div>
-                <span className="landing-step-icon" aria-hidden>
-                  {step.icon}
-                </span>
+                <LandingIcon name={step.icon} size={28} className="landing-step-icon" />
                 <h3>{step.title}</h3>
                 <p>{step.desc}</p>
               </div>
@@ -268,9 +229,7 @@ export default function HomePage() {
           <div className="landing-cards-grid">
             {directions.map((dir) => (
               <Link key={dir.key} to="/analysis" className="landing-card landing-direction-card">
-                <span className="landing-direction-icon" aria-hidden>
-                  {dir.icon}
-                </span>
+                <LandingIcon name={dir.icon} size={28} className="landing-direction-icon" />
                 <h3>{t(`home.direction.${dir.key}`)}</h3>
                 <p className="muted">{t('home.avgScore')}: 165</p>
                 <p className="muted">{t('home.competition')}: 4.2 : 1</p>
@@ -328,9 +287,7 @@ export default function HomePage() {
                 </div>
               </Link>
             ))}
-            {!news.length && (
-              <p className="muted">{t('home.newsEmpty')}</p>
-            )}
+            {!news.length && <p className="muted">{t('home.newsEmpty')}</p>}
           </div>
           {news.length > 0 && (
             <p style={{ marginTop: '1.5rem', textAlign: 'center' }}>
@@ -344,12 +301,11 @@ export default function HomePage() {
 
       <section className="landing-bottom-cta">
         <div className="container landing-bottom-cta-inner">
-          <span className="landing-bottom-icon" aria-hidden>
-            🎓
-          </span>
+          <LandingIcon name="gradCap" size={36} className="landing-bottom-icon" />
           <p>{t('home.bottomCta')}</p>
-          <Link to="/register" className="btn btn-landing">
-            {t('home.ctaFree')}
+          <Link to="/register" className="btn btn-landing btn-landing--inline">
+            <span>{t('home.ctaFree')}</span>
+            <LandingIcon name="arrowRight" size={18} className="btn-landing-arrow" />
           </Link>
         </div>
       </section>
