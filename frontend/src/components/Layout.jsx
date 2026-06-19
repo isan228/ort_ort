@@ -5,22 +5,12 @@ import ScrollToTop from './ux/ScrollToTop.jsx';
 import BackToTop from './ux/BackToTop.jsx';
 import HelpFab from './ux/HelpFab.jsx';
 import BurgerButton from './ux/BurgerButton.jsx';
+import SiteNavLink from './nav/SiteNavLink.jsx';
+import SiteNavDrawer from './nav/SiteNavDrawer.jsx';
+import HeaderUserMenu from './nav/HeaderUserMenu.jsx';
+import { NAV_PRIMARY, NAV_SECONDARY } from '../config/siteNav.js';
 import { api, getStoredUser, isStaffRole } from '../api/client.js';
 import { useI18n } from '../i18n/I18nContext.jsx';
-
-const MAIN_LINKS = [
-  { to: '/universities', key: 'nav.universities', match: (p) => p === '/universities' || p.startsWith('/universities/') || p.startsWith('/programs/') },
-  { to: '/analysis', key: 'nav.analysis', match: (p) => p.startsWith('/analysis') },
-  { to: '/tours', key: 'nav.tours', match: (p) => p.startsWith('/tours') },
-  { to: '/rankings', key: 'nav.rankings', match: (p) => p === '/rankings' },
-  { to: '/news', key: 'nav.news', match: (p) => p.startsWith('/news') },
-];
-
-const MORE_LINKS = [
-  { to: '/subscription', key: 'nav.subscription', match: (p) => p === '/subscription' },
-  { to: '/account', key: 'nav.account', match: (p) => p.startsWith('/account') },
-  { to: '/faq', key: 'legal.faq', match: (p) => p === '/faq' },
-];
 
 export default function Layout() {
   const navigate = useNavigate();
@@ -29,7 +19,6 @@ export default function Layout() {
   const isLanding = pathname === '/';
   const isAccount = pathname.startsWith('/account');
   const isAuth = ['/login', '/register', '/forgot-password', '/reset-password'].includes(pathname);
-  const isAdmin = pathname.startsWith('/admin');
 
   function mainClassName() {
     if (isLanding) return 'main-landing';
@@ -41,7 +30,7 @@ export default function Layout() {
       return 'main-universities';
     }
     if (isAuth) return 'main-auth';
-    if (isAdmin) return 'main-admin';
+    if (pathname.startsWith('/admin')) return 'main-admin';
     return 'main-page';
   }
 
@@ -80,10 +69,6 @@ export default function Layout() {
     setMenuOpen(false);
   }
 
-  function navLinkClass(matchFn) {
-    return matchFn(pathname) ? 'nav-link-active' : undefined;
-  }
-
   return (
     <>
       <a href="#main-content" className="skip-link">
@@ -100,149 +85,16 @@ export default function Layout() {
             </Link>
 
             <nav className="header-nav-desktop" aria-label={t('ux.nav.main')}>
-              {MAIN_LINKS.map((item) => (
-                <Link key={item.to} to={item.to} className={navLinkClass(item.match)}>
-                  {t(item.key)}
-                </Link>
-              ))}
-              {MORE_LINKS.slice(0, 2).map((item) => (
-                <Link key={item.to} to={item.to} className={navLinkClass(item.match)}>
-                  {t(item.key)}
-                </Link>
-              ))}
-              {!isLanding && user && <NavNotifications label={t('nav.notifications')} />}
-              {staff && (
-                <Link to="/admin" className={navLinkClass((p) => p.startsWith('/admin'))}>
-                  {t('nav.admin')}
-                </Link>
-              )}
-              {user && !isLanding ? (
-                <>
-                  <Link to="/account/scores">{t('nav.scores')}</Link>
-                  <button type="button" className="btn-link" onClick={handleLogout}>
-                    {t('nav.logout')}
-                  </button>
-                </>
-              ) : null}
+              <div className="header-nav-primary">
+                {NAV_PRIMARY.map((item) => (
+                  <SiteNavLink key={item.to} item={item} pathname={pathname} />
+                ))}
+              </div>
             </nav>
 
-            <div className="header-mobile-actions">
-              {user ? (
-                <Link to="/account" className="header-mobile-auth" onClick={closeMenu}>
-                  {t('nav.account')}
-                </Link>
-              ) : (
-                <Link to="/login" className="header-mobile-auth header-mobile-auth--primary" onClick={closeMenu}>
-                  {t('nav.login')}
-                </Link>
-              )}
-            </div>
-
-            <div className="header-controls">
-              <div className="lang-switch" role="group" aria-label={t('account.language')}>
-                <button
-                  type="button"
-                  className={locale === 'ru' ? 'chip active' : 'chip'}
-                  onClick={() => setLocale('ru')}
-                >
-                  {t('lang.ru')}
-                </button>
-                <button
-                  type="button"
-                  className={locale === 'ky' ? 'chip active' : 'chip'}
-                  onClick={() => setLocale('ky')}
-                >
-                  {t('lang.ky')}
-                </button>
-              </div>
-              {user ? (
-                isLanding ? (
-                  <Link to="/account" className="btn btn-header-auth">
-                    {t('nav.account')}
-                  </Link>
-                ) : (
-                  <Link to="/account" className="btn btn-secondary btn-header-mini">
-                    {t('nav.account')}
-                  </Link>
-                )
-              ) : (
-                <Link
-                  to="/login"
-                  className={isLanding ? 'btn btn-header-auth' : 'btn btn-secondary btn-header-mini'}
-                >
-                  {isLanding ? t('nav.loginRegister') : t('nav.login')}
-                </Link>
-              )}
-            </div>
-
-            <BurgerButton
-              open={menuOpen}
-              onClick={() => setMenuOpen((v) => !v)}
-              label={t('ux.menu')}
-              controlsId="site-nav"
-            />
-          </div>
-
-          {menuOpen && (
-            <button
-              type="button"
-              className="header-backdrop"
-              aria-label={t('ux.menuClose')}
-              tabIndex={-1}
-              onClick={closeMenu}
-            />
-          )}
-
-          <nav id="site-nav" className={`site-nav-drawer${menuOpen ? ' is-open' : ''}`}>
-            <div className="container site-nav-drawer-inner">
-              <div className="nav-drawer-group">
-                <p className="nav-drawer-section">{t('ux.nav.sectionMain')}</p>
-                {MAIN_LINKS.map((item) => (
-                  <Link
-                    key={item.to}
-                    to={item.to}
-                    className={navLinkClass(item.match)}
-                    onClick={closeMenu}
-                  >
-                    {t(item.key)}
-                  </Link>
-                ))}
-              </div>
-
-              <div className="nav-drawer-group">
-                <p className="nav-drawer-section">{t('ux.nav.sectionMore')}</p>
-                {MORE_LINKS.map((item) => (
-                  <Link
-                    key={item.to}
-                    to={item.to}
-                    className={navLinkClass(item.match)}
-                    onClick={closeMenu}
-                  >
-                    {t(item.key)}
-                  </Link>
-                ))}
-                {!isLanding && user && (
-                  <NavNotifications label={t('nav.notifications')} />
-                )}
-                {staff && (
-                  <Link to="/admin" className={navLinkClass((p) => p.startsWith('/admin'))} onClick={closeMenu}>
-                    {t('nav.admin')}
-                  </Link>
-                )}
-                {user && !isLanding && (
-                  <>
-                    <Link to="/account/scores" onClick={closeMenu}>
-                      {t('nav.scores')}
-                    </Link>
-                    <button type="button" className="nav-drawer-logout" onClick={handleLogout}>
-                      {t('nav.logout')}
-                    </button>
-                  </>
-                )}
-              </div>
-
-              <div className="nav-mobile-extras">
-                <div className="lang-switch lang-switch--nav" role="group" aria-label={t('account.language')}>
+            <div className="header-actions">
+              <div className="header-controls">
+                <div className="lang-switch" role="group" aria-label={t('account.language')}>
                   <button
                     type="button"
                     className={locale === 'ru' ? 'chip active' : 'chip'}
@@ -258,14 +110,66 @@ export default function Layout() {
                     {t('lang.ky')}
                   </button>
                 </div>
-                {!user && (
-                  <Link to="/register" className="btn btn-secondary" onClick={closeMenu}>
-                    {t('nav.register')}
+
+                {user && !isLanding && <NavNotifications label={t('nav.notifications')} variant="icon" />}
+
+                {user ? (
+                  <HeaderUserMenu
+                    user={user}
+                    staff={staff}
+                    onLogout={() => {
+                      handleLogout();
+                    }}
+                  />
+                ) : (
+                  <Link
+                    to="/login"
+                    className={isLanding ? 'btn btn-header-auth' : 'btn btn-primary-soft btn-header-mini'}
+                  >
+                    {isLanding ? t('nav.loginRegister') : t('nav.login')}
                   </Link>
                 )}
               </div>
+
+              <div className="header-mobile-actions">
+                {user && <NavNotifications label={t('nav.notifications')} variant="icon" />}
+                {!user && (
+                  <Link to="/login" className="header-mobile-auth header-mobile-auth--primary" onClick={closeMenu}>
+                    {t('nav.login')}
+                  </Link>
+                )}
+              </div>
+
+              <BurgerButton
+                open={menuOpen}
+                onClick={() => setMenuOpen((v) => !v)}
+                label={t('ux.menu')}
+                controlsId="site-nav"
+              />
             </div>
-          </nav>
+          </div>
+
+          {menuOpen && (
+            <button
+              type="button"
+              className="header-backdrop"
+              aria-label={t('ux.menuClose')}
+              tabIndex={-1}
+              onClick={closeMenu}
+            />
+          )}
+
+          <SiteNavDrawer
+            open={menuOpen}
+            pathname={pathname}
+            onClose={closeMenu}
+            user={user}
+            staff={staff}
+            onLogout={handleLogout}
+            locale={locale}
+            setLocale={setLocale}
+            isLanding={isLanding}
+          />
         </header>
       )}
       <main id="main-content" className={mainClassName()} tabIndex={-1}>
