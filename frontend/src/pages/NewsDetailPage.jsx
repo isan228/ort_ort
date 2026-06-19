@@ -50,19 +50,25 @@ export default function NewsDetailPage() {
   return (
     <div className="news-page">
       <div className="news-page-inner">
-        <p className="news-widget-link" style={{ marginBottom: '1rem' }}>
-          <Link to="/news">← Все новости</Link>
+        <p className="news-breadcrumbs">
+          <Link to="/">Главная</Link> &gt; <Link to="/news">Новости</Link> &gt; {article.title}
         </p>
 
-        <article className="news-main-card">
-          <h1 style={{ margin: '0 0 0.5rem', fontSize: '1.75rem' }}>{article.title}</h1>
-          {article.published_at && (
-            <p className="news-empty" style={{ textAlign: 'left', padding: '0 0 1rem' }}>
-              {new Date(article.published_at).toLocaleString('ru-RU')}
-            </p>
-          )}
+        <article className="news-main-card news-detail-card">
+          <header className="news-detail-head">
+            <h1>{article.title}</h1>
+            {article.published_at && (
+              <time className="news-detail-date">
+                {new Date(article.published_at).toLocaleString('ru-RU')}
+              </time>
+            )}
+          </header>
           <div className="news-body" dangerouslySetInnerHTML={{ __html: article.body }} />
         </article>
+
+        <p className="news-breadcrumbs" style={{ marginTop: '1rem' }}>
+          <Link to="/news">← Все новости</Link>
+        </p>
       </div>
     </div>
   );

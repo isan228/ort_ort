@@ -1,16 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api/client.js';
-import { AccountAlerts, AccountPageWrap, AccountPanel } from '../components/account/AccountSection.jsx';
+import { AccountAlerts, AccountPageWrap, AccountPanel, AccountLoading } from '../components/account/AccountSection.jsx';
+import { useToast } from '../components/ux/ToastContext.jsx';
 
 export default function CollectionsPage() {
+  const toast = useToast();
   const [favorites, setFavorites] = useState([]);
   const [comparisons, setComparisons] = useState([]);
   const [programs, setPrograms] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
   const [compareName, setCompareName] = useState('Моё сравнение');
   const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
 
@@ -65,7 +66,6 @@ export default function CollectionsPage() {
 
     setCreating(true);
     setError('');
-    setMessage('');
     try {
       const items = selectedPrograms.map((p) => ({
         type: 'specialty',
@@ -76,7 +76,7 @@ export default function CollectionsPage() {
         main_score_min: p.main_score_min,
       }));
       await api.createComparison({ name: compareName, items });
-      setMessage('Сравнение сохранено');
+      toast.success('Сравнение сохранено');
       setSelectedIds([]);
       await load();
     } catch (err) {
@@ -86,11 +86,11 @@ export default function CollectionsPage() {
     }
   }
 
-  if (loading) return <p className="account-loading">Загрузка...</p>;
+  if (loading) return <AccountLoading />;
 
   return (
     <AccountPageWrap title="Избранное и сравнение" subtitle="Сохраняйте вузы и сравнивайте программы">
-      <AccountAlerts error={error} message={message} />
+      <AccountAlerts error={error} />
 
       <AccountPanel title="Избранное">
         {favorites.length === 0 ? (

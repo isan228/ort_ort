@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
 import { api } from '../api/client.js';
-import { AccountAlerts, AccountPageWrap, AccountPanel } from '../components/account/AccountSection.jsx';
+import { AccountAlerts, AccountPageWrap, AccountPanel, AccountLoading } from '../components/account/AccountSection.jsx';
 
 export default function SupportTicketPage() {
   const { id } = useParams();
@@ -44,7 +44,7 @@ export default function SupportTicketPage() {
     }
   }
 
-  if (loading) return <p className="account-loading">Загрузка...</p>;
+  if (loading) return <AccountLoading />;
   if (!ticket) return <div className="error account-alert">{error || 'Тикет не найден'}</div>;
 
   return (

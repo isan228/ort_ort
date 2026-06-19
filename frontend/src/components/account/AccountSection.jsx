@@ -1,3 +1,6 @@
+import { useEffect, useRef } from 'react';
+import { useToast } from '../ux/ToastContext.jsx';
+
 export function AccountPageWrap({ title, subtitle, children }) {
   return (
     <div className="account-page">
@@ -22,10 +25,19 @@ export function AccountPanel({ title, children, className = '' }) {
 }
 
 export function AccountAlerts({ error, message }) {
-  return (
-    <>
-      {error && <div className="error account-alert">{error}</div>}
-      {message && <div className="success account-alert">{message}</div>}
-    </>
-  );
+  const toast = useToast();
+  const lastMessage = useRef('');
+
+  useEffect(() => {
+    if (message && message !== lastMessage.current) {
+      lastMessage.current = message;
+      toast.success(message);
+    }
+    if (!message) lastMessage.current = '';
+  }, [message, toast]);
+
+  if (!error) return null;
+  return <div className="error account-alert">{error}</div>;
 }
+
+export { default as AccountLoading } from '../ux/PageLoader.jsx';

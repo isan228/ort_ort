@@ -553,3 +553,123 @@
     width: 100%;
   }
 }
+
+/* ——— Страница вуза / программы ——— */
+
+.uni-detail-hero {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.uni-detail-logo {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(135deg, #dbeafe, #93c5fd);
+  color: #1d4ed8;
+  font-size: 0.85rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.1;
+  flex-shrink: 0;
+}
+
+.uni-detail-head {
+  flex: 1;
+  min-width: 0;
+}
+
+.uni-detail-head h1 {
+  margin: 0 0 0.35rem;
+  font-size: clamp(1.35rem, 3vw, 1.85rem);
+  font-weight: 800;
+}
+
+.uni-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.65rem;
+}
+
+.uni-fav-btn.btn-secondary {
+  font-size: 0.82rem;
+  padding: 0.45rem 0.75rem;
+}
+
+.uni-faculty-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.85rem;
+}
+
+.uni-faculty-card {
+  background: var(--uni-card);
+  border: 1px solid var(--uni-border);
+  border-radius: 0.875rem;
+  padding: 1.1rem;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.uni-faculty-card h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.uni-program-list {
+  margin: 0.65rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.uni-program-list li {
+  padding: 0.4rem 0;
+  border-top: 1px solid var(--uni-border);
+  font-size: 0.875rem;
+}
+
+.uni-program-list a {
+  color: var(--uni-accent);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.uni-program-list a:hover {
+  text-decoration: underline;
+}
+
+.uni-rules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.75rem;
+  margin: 0.75rem 0;
+}
+
+.uni-rule-item span {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--uni-muted);
+  margin-bottom: 0.15rem;
+}
+
+.uni-rule-item strong {
+  font-size: 0.95rem;
+}
+
+@media (max-width: 768px) {
+  .uni-detail-hero {
+    flex-direction: column;
+  }
+
+  .uni-faculty-grid {
+    grid-template-columns: 1fr;
+  }
+}

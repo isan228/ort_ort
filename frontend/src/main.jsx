@@ -3,22 +3,28 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App.jsx';
 import { I18nProvider } from './i18n/I18nContext.jsx';
-import { ThemeProvider } from './theme/ThemeContext.jsx';
+import { ToastProvider } from './components/ux/ToastContext.jsx';
 import './index.css';
 import './styles/account.css';
 import './styles/news.css';
 import './styles/tours.css';
 import './styles/analysis.css';
 import './styles/universities.css';
+import './styles/page-shell.css';
+import './styles/auth.css';
+import './styles/admin.css';
+import './styles/ux.css';
 import './styles/responsive.css';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <I18nProvider>
       <ThemeProvider>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
+        <ToastProvider>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </ToastProvider>
       </ThemeProvider>
     </I18nProvider>
   </StrictMode>

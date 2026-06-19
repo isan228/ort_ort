@@ -18,36 +18,50 @@ export default function FaqPage() {
       .finally(() => setLoading(false));
   }, [locale]);
 
-  if (loading) return <p>{t('common.loading')}</p>;
+  if (loading) {
+    return (
+      <div className="page">
+        <div className="page-inner page-inner--narrow">
+          <p className="page-empty">{t('common.loading')}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <>
-      <h1>{t('faq.title')}</h1>
-      <p className="muted">{t('faq.subtitle')}</p>
-      {error && <div className="error">{error}</div>}
+    <div className="page">
+      <div className="page-inner page-inner--narrow">
+        <header className="page-head">
+          <h1>{t('faq.title')}</h1>
+          <p>{t('faq.subtitle')}</p>
+        </header>
 
-      {items.map((item) => (
-        <div key={item.id} className="card faq-item">
-          <button
-            type="button"
-            className="faq-question btn-link"
-            onClick={() => setOpenId(openId === item.id ? null : item.id)}
-          >
-            {openId === item.id ? '▼' : '▶'} {item.question}
-          </button>
-          {openId === item.id && (
-            <div
-              className="faq-answer muted"
-              dangerouslySetInnerHTML={{ __html: item.answer }}
-            />
-          )}
-          {item.category && (
-            <span className="faq-category muted">{item.category}</span>
-          )}
+        {error && <div className="error">{error}</div>}
+
+        <div className="page-faq-list">
+          {items.map((item) => (
+            <article key={item.id} className="page-faq-item">
+              <button
+                type="button"
+                className="page-faq-question"
+                onClick={() => setOpenId(openId === item.id ? null : item.id)}
+                aria-expanded={openId === item.id}
+              >
+                <span className="page-faq-chevron">{openId === item.id ? '▼' : '▶'}</span>
+                {item.question}
+              </button>
+              {openId === item.id && (
+                <div className="page-faq-answer" dangerouslySetInnerHTML={{ __html: item.answer }} />
+              )}
+              {item.category && openId === item.id && (
+                <span className="page-faq-category">{item.category}</span>
+              )}
+            </article>
+          ))}
         </div>
-      ))}
 
-      {!items.length && !error && <p className="muted">{t('faq.empty')}</p>}
-    </>
+        {!items.length && !error && <p className="page-empty">{t('faq.empty')}</p>}
+      </div>
+    </div>
   );
 }

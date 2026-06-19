@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../api/client.js';
 import { useI18n } from '../i18n/I18nContext.jsx';
 import { UniversityIcon } from '../components/icons/UniversityIcons.jsx';
+import PageHint from '../components/ux/PageHint.jsx';
 
 const PAGE_SIZE = 5;
 
@@ -264,6 +265,10 @@ export default function UniversitiesPage() {
         </header>
 
         {error && <div className="error">{error}</div>}
+
+        <PageHint hintId="universities" title={t('ux.hint.universities.title')}>
+          {t('ux.hint.universities.text')}
+        </PageHint>
 
         {!isPremium && (
           <div className="universities-premium-note">

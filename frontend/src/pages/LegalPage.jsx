@@ -25,18 +25,33 @@ export default function LegalPage({ type }) {
       .finally(() => setLoading(false));
   }, [type, locale]);
 
-  if (loading) return <p>{t('common.loading')}</p>;
+  if (loading) {
+    return (
+      <div className="page">
+        <div className="page-inner page-inner--narrow">
+          <p className="page-empty">{t('common.loading')}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <>
-      <p>
-        <Link to="/">{t('common.back')}</Link>
-      </p>
-      <h1>{document?.title || t(TYPE_LABELS[type] || type)}</h1>
-      {error && <div className="error">{error}</div>}
-      {document && (
-        <div className="card legal-body" dangerouslySetInnerHTML={{ __html: document.body }} />
-      )}
-    </>
+    <div className="page">
+      <div className="page-inner page-inner--narrow">
+        <p className="page-breadcrumbs">
+          <Link to="/">{t('common.back')}</Link> &gt; {document?.title || t(TYPE_LABELS[type] || type)}
+        </p>
+
+        <header className="page-head">
+          <h1>{document?.title || t(TYPE_LABELS[type] || type)}</h1>
+        </header>
+
+        {error && <div className="error">{error}</div>}
+
+        {document && (
+          <div className="page-prose" dangerouslySetInnerHTML={{ __html: document.body }} />
+        )}
+      </div>
+    </div>
   );
 }

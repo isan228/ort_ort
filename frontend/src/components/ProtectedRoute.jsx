@@ -1,10 +1,14 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { getStoredUser } from '../api/client.js';
 
 export default function ProtectedRoute() {
   const user = getStoredUser();
+  const location = useLocation();
+
   if (!user) {
-    return <Navigate to="/login" replace />;
+    const returnTo = encodeURIComponent(`${location.pathname}${location.search}`);
+    return <Navigate to={`/login?returnTo=${returnTo}`} replace state={{ from: location.pathname }} />;
   }
+
   return <Outlet />;
 }

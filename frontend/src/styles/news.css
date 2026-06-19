@@ -789,3 +789,32 @@
 .news-body a {
   color: var(--news-accent);
 }
+
+.news-breadcrumbs {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  color: var(--news-muted);
+}
+
+.news-breadcrumbs a {
+  color: var(--news-muted);
+  text-decoration: none;
+}
+
+.news-detail-card {
+  padding: 1.5rem;
+}
+
+.news-detail-head h1 {
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.35rem, 3vw, 1.75rem);
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.news-detail-date {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--news-muted);
+  margin-bottom: 1.25rem;
+}

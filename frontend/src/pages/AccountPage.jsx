@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api/client.js';
 import { useI18n } from '../i18n/I18nContext.jsx';
+import { AccountLoading } from '../components/account/AccountSection.jsx';
 import { AccountIcon } from '../components/icons/AccountIcons.jsx';
+import PageHint from '../components/ux/PageHint.jsx';
 
 const CHANCE_LABEL = {
   high: 'analysis.chance.high',
@@ -147,7 +149,7 @@ export default function AccountPage() {
   }, [plans, t]);
 
   if (loading) {
-    return <p className="account-loading">{t('common.loading')}</p>;
+    return <AccountLoading label={t('common.loading')} />;
   }
 
   return (
@@ -161,6 +163,10 @@ export default function AccountPage() {
           </h2>
           <p>{t('account.greetingSub')}</p>
         </header>
+
+        <PageHint hintId="account" title={t('ux.hint.account.title')}>
+          {t('ux.hint.account.text')}
+        </PageHint>
 
         <div className="account-stats-row">
           <StatCard

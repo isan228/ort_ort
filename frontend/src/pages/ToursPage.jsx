@@ -2,6 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, getStoredUser } from '../api/client.js';
 import { TourIcon } from '../components/icons/TourIcons.jsx';
+import PageHint from '../components/ux/PageHint.jsx';
+import { useToast } from '../components/ux/ToastContext.jsx';
+import { useI18n } from '../i18n/I18nContext.jsx';
 
 const MAX_APPLICATIONS = 10;
 const STORAGE_KEY = 'ort_tour_applications';
@@ -148,6 +151,8 @@ function buildStages(tours) {
 }
 
 export default function ToursPage() {
+  const { t } = useI18n();
+  const toast = useToast();
   const userId = getStoredUser()?.id ?? null;
   const isLoggedIn = Boolean(userId);
   const [tours, setTours] = useState([]);
@@ -158,7 +163,6 @@ export default function ToursPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [cityFilter, setCityFilter] = useState('');
   const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
 
   const currentTour = useMemo(
@@ -242,12 +246,16 @@ export default function ToursPage() {
 
   function handleSubmit(program) {
     if (!isLoggedIn) {
-      setError('Войдите в аккаунт, чтобы подать заявление');
+      const msg = 'Войдите в аккаунт, чтобы подать заявление';
+      toast.error(msg);
+      setError(msg);
       return;
     }
     if (!currentTour) return;
     if (applications.length >= MAX_APPLICATIONS) {
-      setError(`Максимум ${MAX_APPLICATIONS} заявлений в туре`);
+      const msg = `Максимум ${MAX_APPLICATIONS} заявлений в туре`;
+      toast.error(msg);
+      setError(msg);
       return;
     }
     if (appliedIds.has(program.id)) return;
@@ -265,7 +273,7 @@ export default function ToursPage() {
     const next = [...applications, item];
     setApplications(next);
     saveApplications(currentTour.id, next);
-    setMessage(`Заявление в «${program.university}» принято (симуляция)`);
+    toast.success(`Заявление в «${program.university}» принято (симуляция)`);
     setError('');
   }
 
@@ -306,7 +314,10 @@ export default function ToursPage() {
         )}
 
         {error && <div className="error">{error}</div>}
-        {message && <div className="success">{message}</div>}
+
+        <PageHint hintId="tours" title={t('ux.hint.tours.title')}>
+          {t('ux.hint.tours.text')}
+        </PageHint>
 
         <div className="tours-stats-row">
           <div className="tours-stat-card">

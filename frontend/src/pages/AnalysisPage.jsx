@@ -9,6 +9,8 @@ import {
   validateOrtMainScore,
   getOrtScoreErrorMessage,
 } from '../utils/ortScore.js';
+import PageHint from '../components/ux/PageHint.jsx';
+import { useToast } from '../components/ux/ToastContext.jsx';
 
 const CHANCE_LABEL = {
   high: 'Высокий',
@@ -120,6 +122,7 @@ function LineChart({ score, avgCutoff }) {
 
 export default function AnalysisPage() {
   const { t } = useI18n();
+  const toast = useToast();
   const [searchParams] = useSearchParams();
   const [context, setContext] = useState(null);
   const [programs, setPrograms] = useState([]);
@@ -138,7 +141,6 @@ export default function AnalysisPage() {
   const [loading, setLoading] = useState(true);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
 
   const scoreNum = mainScore ? Number(mainScore) : null;
 
@@ -297,7 +299,6 @@ export default function AnalysisPage() {
 
     setRunning(true);
     setError('');
-    setMessage('');
 
     try {
       const data = await api.runAnalysis({
@@ -307,10 +308,11 @@ export default function AnalysisPage() {
       setApiResults(data.results || []);
       setAlternatives(data.alternatives || []);
       setAnalysisDate(new Date().toISOString());
-      setMessage('Анализ сохранён');
+      toast.success(t('ux.toast.saved'));
       setShowEdit(false);
     } catch (err) {
       setError(err.message);
+      toast.error(err.message);
     } finally {
       setRunning(false);
     }
@@ -355,7 +357,10 @@ export default function AnalysisPage() {
         )}
 
         {error && <div className="error">{error}</div>}
-        {message && <div className="success">{message}</div>}
+
+        <PageHint hintId="analysis" title={t('ux.hint.analysis.title')}>
+          {t('ux.hint.analysis.text')}
+        </PageHint>
 
         <div className="analysis-params-wrap">
           <div className="analysis-params-card">

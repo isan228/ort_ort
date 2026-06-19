@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api/client.js';
-import { AccountAlerts, AccountPageWrap, AccountPanel } from '../components/account/AccountSection.jsx';
+import { AccountAlerts, AccountPageWrap, AccountPanel, AccountLoading } from '../components/account/AccountSection.jsx';
 
 const STATUS_LABELS = {
   open: 'Открыт',
@@ -86,7 +86,7 @@ export default function SupportPage() {
 
       <AccountPanel title="Мои обращения">
         {loading ? (
-          <p className="account-loading">Загрузка...</p>
+          <AccountLoading compact />
         ) : tickets.length === 0 ? (
           <p className="account-muted-line">Обращений пока нет.</p>
         ) : (

@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client.js';
-import { AccountAlerts, AccountPageWrap, AccountPanel } from '../components/account/AccountSection.jsx';
+import { AccountAlerts, AccountPageWrap, AccountPanel, AccountLoading } from '../components/account/AccountSection.jsx';
+import { useToast } from '../components/ux/ToastContext.jsx';
+import { useI18n } from '../i18n/I18nContext.jsx';
 
 export default function WalletPage() {
+  const { t } = useI18n();
+  const toast = useToast();
   const [wallet, setWallet] = useState(null);
   const [referral, setReferral] = useState(null);
   const [rules, setRules] = useState(null);
   const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -36,29 +39,29 @@ export default function WalletPage() {
   function copyLink() {
     if (!referral?.link) return;
     navigator.clipboard.writeText(referral.link);
-    setMessage('Ссылка скопирована');
+    toast.success(t('ux.toast.copied'));
   }
 
   async function redeem(feature) {
     setError('');
-    setMessage('');
     try {
       const result = await api.redeemBonus(feature);
-      setMessage(`Списано ${result.cost} бонусов`);
+      toast.success(`Списано ${result.cost} бонусов`);
       load();
     } catch (err) {
       setError(err.message);
+      toast.error(err.message);
     }
   }
 
-  if (loading) return <p className="account-loading">Загрузка...</p>;
+  if (loading) return <AccountLoading />;
 
   return (
     <AccountPageWrap
       title="Бонусы и рефералы"
       subtitle="Приглашайте друзей и тратьте бонусы на функции платформы"
     >
-      <AccountAlerts error={error} message={message} />
+      <AccountAlerts error={error} />
 
       <div className="account-stats-row account-stats-row--2">
         <div className="account-stat-card account-stat-card--blue">

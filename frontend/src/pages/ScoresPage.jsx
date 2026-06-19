@@ -1,20 +1,25 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { api } from '../api/client.js';
-import { AccountAlerts, AccountPageWrap, AccountPanel } from '../components/account/AccountSection.jsx';
+import { AccountAlerts, AccountPageWrap, AccountPanel, AccountLoading } from '../components/account/AccountSection.jsx';
+import PageHint from '../components/ux/PageHint.jsx';
+import { useToast } from '../components/ux/ToastContext.jsx';
 import {
   ORT_MAIN_SCORE_MIN,
   ORT_MAIN_SCORE_MAX,
   validateOrtMainScore,
   getOrtScoreErrorMessage,
 } from '../utils/ortScore.js';
+import { useI18n } from '../i18n/I18nContext.jsx';
 
 export default function ScoresPage() {
+  const { t } = useI18n();
+  const toast = useToast();
   const [state, setState] = useState(null);
   const [mainScore, setMainScore] = useState('');
   const [lockAck, setLockAck] = useState(false);
   const [correctionMessage, setCorrectionMessage] = useState('');
   const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
 
   async function load() {
@@ -38,7 +43,6 @@ export default function ScoresPage() {
 
   async function saveDraft() {
     setError('');
-    setMessage('');
     const check = validateOrtMainScore(mainScore);
     if (!check.valid) {
       setError(getOrtScoreErrorMessage(check.error));
@@ -46,7 +50,7 @@ export default function ScoresPage() {
     }
     try {
       await api.saveDraftScores({ main_score: check.value, subject_scores_json: {} });
-      setMessage('Черновые баллы сохранены');
+      toast.success('Черновые баллы сохранены');
       load();
     } catch (err) {
       setError(err.message);
@@ -55,7 +59,6 @@ export default function ScoresPage() {
 
   async function finalize() {
     setError('');
-    setMessage('');
     const check = validateOrtMainScore(mainScore);
     if (!check.valid) {
       setError(getOrtScoreErrorMessage(check.error));
@@ -67,7 +70,7 @@ export default function ScoresPage() {
         subject_scores_json: {},
         lock_acknowledged: lockAck,
       });
-      setMessage('Баллы зафиксированы');
+      toast.success('Баллы зафиксированы');
       load();
     } catch (err) {
       setError(err.message);
@@ -78,10 +81,9 @@ export default function ScoresPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     setError('');
-    setMessage('');
     try {
       await api.uploadCertificate(file);
-      setMessage('Сертификат отправлен на проверку');
+      toast.success('Сертификат отправлен на проверку');
       load();
     } catch (err) {
       setError(err.message);
@@ -90,17 +92,16 @@ export default function ScoresPage() {
 
   async function sendCorrection() {
     setError('');
-    setMessage('');
     try {
       await api.createCorrectionRequest(correctionMessage);
-      setMessage('Запрос на исправление отправлен');
+      toast.success('Запрос на исправление отправлен');
       setCorrectionMessage('');
     } catch (err) {
       setError(err.message);
     }
   }
 
-  if (loading) return <p className="account-loading">Загрузка...</p>;
+  if (loading) return <AccountLoading />;
 
   const isBeforeResults = state?.phase === 'before_results';
   const isLocked = state?.final?.is_locked;
@@ -110,7 +111,10 @@ export default function ScoresPage() {
       title="Баллы и сертификат"
       subtitle={`Фаза приёмной кампании: ${state?.phase || '—'}`}
     >
-      <AccountAlerts error={error} message={message} />
+      <PageHint hintId="scores" title={t('ux.hint.scores.title')}>
+        {t('ux.hint.scores.text')}
+      </PageHint>
+      <AccountAlerts error={error} />
 
       <AccountPanel title="Основной балл ОРТ">
         <div className="account-field-row">
@@ -130,6 +134,9 @@ export default function ScoresPage() {
         <p className="account-muted-line">
           Допустимый диапазон: от {ORT_MAIN_SCORE_MIN} до {ORT_MAIN_SCORE_MAX} (порог вступления в вуз — от 110
           баллов).
+        </p>
+        <p className="account-muted-line">
+          <Link to="/analysis">{t('account.runAnalysis')}</Link> — узнайте шансы поступления по вашему баллу.
         </p>
 
         {isBeforeResults && (

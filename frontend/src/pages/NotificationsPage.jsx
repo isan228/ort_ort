@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client.js';
-import { AccountAlerts, AccountPageWrap } from '../components/account/AccountSection.jsx';
+import { AccountAlerts, AccountPageWrap, AccountLoading } from '../components/account/AccountSection.jsx';
 
 export default function NotificationsPage() {
   const navigate = useNavigate();
@@ -38,7 +38,7 @@ export default function NotificationsPage() {
     }
   }
 
-  if (loading) return <p className="account-loading">Загрузка...</p>;
+  if (loading) return <AccountLoading />;
 
   return (
     <AccountPageWrap

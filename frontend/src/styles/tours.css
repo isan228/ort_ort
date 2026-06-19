@@ -635,3 +635,45 @@
     min-width: 420px;
   }
 }
+
+/* ——— Страница тура (деталь) ——— */
+
+.tours-detail-slots {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.tours-detail-slot {
+  padding: 0.85rem;
+  border: 1px solid var(--tours-border);
+  border-radius: 0.65rem;
+  background: #f8fafc;
+}
+
+.tours-detail-slot h3 {
+  margin: 0 0 0.35rem;
+  font-size: 0.9rem;
+}
+
+.tours-slot-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.tours-slot-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  .tours-detail-slots {
+    grid-template-columns: 1fr;
+  }
+}

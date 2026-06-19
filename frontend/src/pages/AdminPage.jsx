@@ -9,6 +9,8 @@ import AdminLegalTab from '../components/admin/AdminLegalTab.jsx';
 import AdminFaqTab from '../components/admin/AdminFaqTab.jsx';
 import AdminPaymentsTab from '../components/admin/AdminPaymentsTab.jsx';
 import { ORT_MAIN_SCORE_MIN, ORT_MAIN_SCORE_MAX, validateOrtMainScore, getOrtScoreErrorMessage } from '../utils/ortScore.js';
+import PageLoader from '../components/ux/PageLoader.jsx';
+import { useToast } from '../components/ux/ToastContext.jsx';
 
 function CertificateCard({ cert, onUpdated }) {
   const [rejectReason, setRejectReason] = useState('');
@@ -210,6 +212,7 @@ function SupportTicketCard({ ticket, onUpdated }) {
 }
 
 export default function AdminPage() {
+  const toast = useToast();
   const [tab, setTab] = useState('certificates');
   const [certificates, setCertificates] = useState([]);
   const [corrections, setCorrections] = useState([]);
@@ -226,7 +229,6 @@ export default function AdminPage() {
   const [paymentsTotal, setPaymentsTotal] = useState(0);
   const [paymentStatusFilter, setPaymentStatusFilter] = useState('');
   const [userSearch, setUserSearch] = useState('');
-  const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [publishing, setPublishing] = useState(false);
@@ -313,24 +315,27 @@ export default function AdminPage() {
 
   async function publishResults() {
     setPublishing(true);
-    setMessage('');
     setError('');
     try {
       await api.adminPublishResults(true);
-      setMessage('Результаты ОРТ опубликованы — пользователи переведены в фазу after_results');
+      toast.success('Результаты ОРТ опубликованы — пользователи переведены в фазу after_results');
     } catch (err) {
       setError(err.message);
+      toast.error(err.message);
     } finally {
       setPublishing(false);
     }
   }
 
   return (
-    <>
+    <div className="admin-page">
+      <div className="admin-page-inner">
+      <header className="admin-page-head">
       <h1>Админ-панель</h1>
       <p className="muted">
         Модерация, каталог вузов, туры, новости и системные настройки.
       </p>
+      </header>
 
       <div className="admin-tabs">
         <button
@@ -414,11 +419,10 @@ export default function AdminPage() {
         </button>
       </div>
 
-      {message && <div className="success">{message}</div>}
       {error && <div className="error">{error}</div>}
 
       {loading ? (
-        <p>Загрузка...</p>
+        <PageLoader compact />
       ) : (
         <>
           {tab === 'certificates' && (
@@ -495,9 +499,10 @@ export default function AdminPage() {
         </>
       )}
 
-      <p style={{ marginTop: 16 }}>
+      <p className="page-breadcrumbs" style={{ marginTop: '1rem' }}>
         <Link to="/account">← Кабинет</Link>
       </p>
-    </>
+      </div>
+    </div>
   );
 }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../api/client.js';
+import { useToast } from '../ux/ToastContext.jsx';
 
 const DOC_TYPES = [
   { type: 'privacy', label: 'Политика конфиденциальности' },
@@ -13,13 +14,13 @@ const LOCALES = [
 ];
 
 export default function AdminLegalTab({ documents, onUpdated }) {
+  const toast = useToast();
   const [docType, setDocType] = useState('privacy');
   const [locale, setLocale] = useState('ru');
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
 
   useEffect(() => {
     const doc = documents?.[docType]?.[locale];
@@ -30,10 +31,9 @@ export default function AdminLegalTab({ documents, onUpdated }) {
   async function save() {
     setBusy(true);
     setError('');
-    setMessage('');
     try {
       await api.adminUpdateLegal(docType, locale, { title, body });
-      setMessage('Документ сохранён');
+      toast.success('Документ сохранён');
       onUpdated();
     } catch (err) {
       setError(err.message);
@@ -44,7 +44,6 @@ export default function AdminLegalTab({ documents, onUpdated }) {
 
   return (
     <>
-      {message && <div className="success">{message}</div>}
       {error && <div className="error">{error}</div>}
 
       <div className="card">
