@@ -4,6 +4,7 @@ import { api } from '../api/client.js';
 import { useI18n } from '../i18n/I18nContext.jsx';
 import { UniversityIcon } from '../components/icons/UniversityIcons.jsx';
 import PageHint from '../components/ux/PageHint.jsx';
+import MobileFilterSheet, { CatalogMobileBar } from '../components/ux/MobileFilterSheet.jsx';
 
 const PAGE_SIZE = 5;
 
@@ -129,6 +130,7 @@ export default function UniversitiesPage() {
   const [sortBy, setSortBy] = useState('popular');
   const [page, setPage] = useState(1);
   const [showAllRegions, setShowAllRegions] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -218,6 +220,17 @@ export default function UniversitiesPage() {
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageItems = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (appliedSearch.trim()) count += 1;
+    if (regions.length) count += 1;
+    if (typeFilter) count += 1;
+    if (formFilter) count += 1;
+    if (levels.length !== 1 || levels[0] !== 'Бакалавриат') count += 1;
+    if (scoreMin !== 100 || scoreMax !== 250) count += 1;
+    return count;
+  }, [appliedSearch, regions, typeFilter, formFilter, levels, scoreMin, scoreMax]);
+
   function toggleRegion(city) {
     setRegions((prev) =>
       prev.includes(city) ? prev.filter((c) => c !== city) : [...prev, city]
@@ -241,6 +254,120 @@ export default function UniversitiesPage() {
     setAppliedSearch(search);
     setPage(1);
   }
+
+  const filtersPanel = (
+    <>
+      <div className="universities-filters-head">
+        <h2>Фильтры</h2>
+        <button type="button" className="universities-reset" onClick={resetFilters}>
+          Сбросить все
+        </button>
+      </div>
+
+      <div className="universities-filter-section">
+        <h3>Регион</h3>
+        <label className="universities-check">
+          <input
+            type="checkbox"
+            checked={regions.length === 0}
+            onChange={() => setRegions([])}
+          />
+          Все регионы
+        </label>
+        {visibleRegions.map((city) => (
+          <label key={city} className="universities-check">
+            <input
+              type="checkbox"
+              checked={regions.includes(city)}
+              onChange={() => toggleRegion(city)}
+            />
+            {formatCity(city)}
+          </label>
+        ))}
+        {availableRegions.length > 5 && (
+          <button
+            type="button"
+            className="universities-show-more"
+            onClick={() => setShowAllRegions((v) => !v)}
+          >
+            {showAllRegions ? 'Свернуть' : 'Показать ещё'}
+          </button>
+        )}
+      </div>
+
+      <div className="universities-filter-section">
+        <h3>Тип вуза</h3>
+        {TYPE_OPTIONS.map((opt) => (
+          <label key={opt.id || 'all'} className="universities-check">
+            <input
+              type="radio"
+              name="uni-type"
+              checked={typeFilter === opt.id}
+              onChange={() => setTypeFilter(opt.id)}
+            />
+            {opt.label}
+          </label>
+        ))}
+      </div>
+
+      <div className="universities-filter-section">
+        <h3>Форма обучения</h3>
+        {FORM_OPTIONS.map((opt) => (
+          <label key={opt.id || 'any'} className="universities-check">
+            <input
+              type="radio"
+              name="study-form"
+              checked={formFilter === opt.id}
+              onChange={() => setFormFilter(opt.id)}
+            />
+            {opt.label}
+          </label>
+        ))}
+      </div>
+
+      <div className="universities-filter-section">
+        <h3>Уровень образования</h3>
+        {LEVEL_OPTIONS.map((level) => (
+          <label key={level} className="universities-check">
+            <input
+              type="checkbox"
+              checked={levels.includes(level)}
+              onChange={() =>
+                setLevels((prev) =>
+                  prev.includes(level) ? prev.filter((l) => l !== level) : [...prev, level]
+                )
+              }
+            />
+            {level}
+          </label>
+        ))}
+      </div>
+
+      <div className="universities-filter-section">
+        <h3>Средний проходной балл</h3>
+        <input
+          type="range"
+          min={100}
+          max={250}
+          value={scoreMax}
+          className="universities-range"
+          onChange={(e) => setScoreMax(Number(e.target.value))}
+        />
+        <div className="universities-range-labels">
+          <span>{scoreMin}</span>
+          <span>до {scoreMax}</span>
+        </div>
+      </div>
+
+      <button type="button" className="btn universities-filter-btn" onClick={applyFilters}>
+        Показать результаты
+      </button>
+      <p className="universities-found">
+        Найдено: {filtered.length}{' '}
+        {filtered.length === 1 ? 'вуз' : filtered.length < 5 ? 'вуза' : 'вузов'}
+      </p>
+    </>
+  );
 
   if (loading) {
     return (
@@ -317,122 +444,42 @@ export default function UniversitiesPage() {
         </div>
 
         <div className="universities-layout">
-          <aside className="universities-filters">
-            <div className="universities-filters-head">
-              <h2>Фильтры</h2>
-              <button type="button" className="universities-reset" onClick={resetFilters}>
-                Сбросить все
-              </button>
-            </div>
+          <aside className="universities-filters universities-filters--desktop">{filtersPanel}</aside>
 
-            <div className="universities-filter-section">
-              <h3>Регион</h3>
-              <label className="universities-check">
-                <input
-                  type="checkbox"
-                  checked={regions.length === 0}
-                  onChange={() => setRegions([])}
-                />
-                Все регионы
-              </label>
-              {visibleRegions.map((city) => (
-                <label key={city} className="universities-check">
-                  <input
-                    type="checkbox"
-                    checked={regions.includes(city)}
-                    onChange={() => toggleRegion(city)}
-                  />
-                  {formatCity(city)}
-                </label>
-              ))}
-              {availableRegions.length > 5 && (
-                <button
-                  type="button"
-                  className="universities-show-more"
-                  onClick={() => setShowAllRegions((v) => !v)}
-                >
-                  {showAllRegions ? 'Свернуть' : 'Показать ещё'}
-                </button>
-              )}
-            </div>
-
-            <div className="universities-filter-section">
-              <h3>Тип вуза</h3>
-              {TYPE_OPTIONS.map((opt) => (
-                <label key={opt.id || 'all'} className="universities-check">
-                  <input
-                    type="radio"
-                    name="uni-type"
-                    checked={typeFilter === opt.id}
-                    onChange={() => setTypeFilter(opt.id)}
-                  />
-                  {opt.label}
-                </label>
-              ))}
-            </div>
-
-            <div className="universities-filter-section">
-              <h3>Форма обучения</h3>
-              {FORM_OPTIONS.map((opt) => (
-                <label key={opt.id || 'any'} className="universities-check">
-                  <input
-                    type="radio"
-                    name="study-form"
-                    checked={formFilter === opt.id}
-                    onChange={() => setFormFilter(opt.id)}
-                  />
-                  {opt.label}
-                </label>
-              ))}
-            </div>
-
-            <div className="universities-filter-section">
-              <h3>Уровень образования</h3>
-              {LEVEL_OPTIONS.map((level) => (
-                <label key={level} className="universities-check">
-                  <input
-                    type="checkbox"
-                    checked={levels.includes(level)}
-                    onChange={() =>
-                      setLevels((prev) =>
-                        prev.includes(level)
-                          ? prev.filter((l) => l !== level)
-                          : [...prev, level]
-                      )
-                    }
-                  />
-                  {level}
-                </label>
-              ))}
-            </div>
-
-            <div className="universities-filter-section">
-              <h3>Средний проходной балл</h3>
-              <input
-                type="range"
-                min={100}
-                max={250}
-                value={scoreMax}
-                className="universities-range"
-                onChange={(e) => setScoreMax(Number(e.target.value))}
-              />
-              <div className="universities-range-labels">
-                <span>{scoreMin}</span>
-                <span>до {scoreMax}</span>
-              </div>
-            </div>
-
-            <button type="button" className="btn universities-filter-btn" onClick={applyFilters}>
-              Показать результаты
-            </button>
-            <p className="universities-found">
-              Найдено: {filtered.length}{' '}
-              {filtered.length === 1 ? 'вуз' : filtered.length < 5 ? 'вуза' : 'вузов'}
-            </p>
-          </aside>
+          <MobileFilterSheet
+            open={filtersOpen}
+            onClose={() => setFiltersOpen(false)}
+            title={t('ux.filters.title')}
+            activeCount={activeFilterCount}
+            onReset={resetFilters}
+            onApply={applyFilters}
+          >
+            {filtersPanel}
+          </MobileFilterSheet>
 
           <section className="universities-main">
-            <div className="universities-toolbar">
+            <CatalogMobileBar
+              search={search}
+              onSearchChange={setSearch}
+              onSearchSubmit={applyFilters}
+              searchPlaceholder="Поиск вуза по названию..."
+              filterCount={activeFilterCount}
+              onOpenFilters={() => setFiltersOpen(true)}
+              sort={sortBy}
+              onSortChange={(value) => {
+                setSortBy(value);
+                setPage(1);
+              }}
+              sortLabel="Сортировать по"
+              sortOptions={[
+                { value: 'popular', label: 'Популярности' },
+                { value: 'score', label: 'Проходному баллу' },
+                { value: 'name', label: 'Названию' },
+                { value: 'directions', label: 'Направлениям' },
+              ]}
+            />
+
+            <div className="universities-toolbar catalog-desktop-only">
               <label className="universities-search">
                 <UniversityIcon name="search" size={16} />
                 <input

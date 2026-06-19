@@ -10,6 +10,7 @@ import {
   getOrtScoreErrorMessage,
 } from '../utils/ortScore.js';
 import PageHint from '../components/ux/PageHint.jsx';
+import MobileFilterSheet, { CatalogMobileBar } from '../components/ux/MobileFilterSheet.jsx';
 import { useToast } from '../components/ux/ToastContext.jsx';
 
 const CHANCE_LABEL = {
@@ -328,6 +329,66 @@ export default function AnalysisPage() {
     );
   }
 
+  const editForm = (
+    <>
+      <div className="analysis-edit-grid">
+        <label className="analysis-field">
+          <span>Балл ОРТ</span>
+          <input
+            type="number"
+            className="analysis-input"
+            min={ORT_MAIN_SCORE_MIN}
+            max={ORT_MAIN_SCORE_MAX}
+            value={mainScore}
+            onChange={(e) => setMainScore(e.target.value)}
+          />
+          <span className="analysis-field-hint">{t('score.hint')}</span>
+        </label>
+        <label className="analysis-field">
+          <span>Направление (фильтр)</span>
+          <input
+            type="text"
+            className="analysis-input"
+            placeholder="Например: Лечебное дело"
+            value={direction}
+            onChange={(e) => setDirection(e.target.value)}
+          />
+        </label>
+        <label className="analysis-field">
+          <span>Регион</span>
+          <select className="analysis-select" value={region} onChange={(e) => setRegion(e.target.value)}>
+            <option value="">Все регионы</option>
+            {cities.map((city) => (
+              <option key={city} value={city}>
+                {city}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="analysis-field">
+          <span>Форма обучения</span>
+          <select className="analysis-select" value={studyForm} onChange={(e) => setStudyForm(e.target.value)}>
+            <option value="Очная">Очная</option>
+            <option value="Заочная">Заочная</option>
+          </select>
+        </label>
+        <label className="analysis-field">
+          <span>Тип вуза</span>
+          <select className="analysis-select" value={uniType} onChange={(e) => setUniType(e.target.value)}>
+            <option value="Государственный и частный">Государственный и частный</option>
+            <option value="Государственный">Государственный</option>
+            <option value="Частный">Частный</option>
+          </select>
+        </label>
+      </div>
+      {!context?.scores && (
+        <p style={{ marginTop: '0.75rem', fontSize: '0.85rem' }}>
+          <Link to="/account/scores">Зафиксировать баллы в профиле</Link>
+        </p>
+      )}
+    </>
+  );
+
   return (
     <div className="analysis-page">
       <div className="analysis-page-inner">
@@ -437,68 +498,28 @@ export default function AnalysisPage() {
           </div>
         </div>
 
-        {showEdit && (
-          <div className="analysis-edit-panel">
-            <div className="analysis-edit-grid">
-              <label className="analysis-field">
-                <span>Балл ОРТ</span>
-                <input
-                  type="number"
-                  className="analysis-input"
-                  min={ORT_MAIN_SCORE_MIN}
-                  max={ORT_MAIN_SCORE_MAX}
-                  value={mainScore}
-                  onChange={(e) => setMainScore(e.target.value)}
-                />
-                <span className="analysis-field-hint">{t('score.hint')}</span>
-              </label>
-              <label className="analysis-field">
-                <span>Направление (фильтр)</span>
-                <input
-                  type="text"
-                  className="analysis-input"
-                  placeholder="Например: Лечебное дело"
-                  value={direction}
-                  onChange={(e) => setDirection(e.target.value)}
-                />
-              </label>
-              <label className="analysis-field">
-                <span>Регион</span>
-                <select className="analysis-select" value={region} onChange={(e) => setRegion(e.target.value)}>
-                  <option value="">Все регионы</option>
-                  {cities.map((city) => (
-                    <option key={city} value={city}>
-                      {city}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="analysis-field">
-                <span>Форма обучения</span>
-                <select className="analysis-select" value={studyForm} onChange={(e) => setStudyForm(e.target.value)}>
-                  <option value="Очная">Очная</option>
-                  <option value="Заочная">Заочная</option>
-                </select>
-              </label>
-              <label className="analysis-field">
-                <span>Тип вуза</span>
-                <select className="analysis-select" value={uniType} onChange={(e) => setUniType(e.target.value)}>
-                  <option value="Государственный и частный">Государственный и частный</option>
-                  <option value="Государственный">Государственный</option>
-                  <option value="Частный">Частный</option>
-                </select>
-              </label>
-            </div>
+        <CatalogMobileBar
+          hideSearch
+          search=""
+          onSearchChange={() => {}}
+          filterLabel={t('ux.filters.params')}
+          onOpenFilters={() => setShowEdit(true)}
+        />
+
+        <MobileFilterSheet
+          open={showEdit}
+          onClose={() => setShowEdit(false)}
+          title={t('ux.filters.params')}
+          onApply={runAnalysis}
+        >
+          {editForm}
+        </MobileFilterSheet>
+
+        {showEdit && <div className="analysis-edit-panel catalog-desktop-only">{editForm}
             <button type="button" className="btn" disabled={running} onClick={runAnalysis}>
               {running ? t('analysis.running') : t('analysis.run')}
             </button>
-            {!context?.scores && (
-              <p style={{ marginTop: '0.75rem', fontSize: '0.85rem' }}>
-                <Link to="/account/scores">Зафиксировать баллы в профиле</Link>
-              </p>
-            )}
-          </div>
-        )}
+          </div>}
 
         <div className="analysis-layout">
           <div className="analysis-main">

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api, getStoredUser } from '../api/client.js';
 import { TourIcon } from '../components/icons/TourIcons.jsx';
 import PageHint from '../components/ux/PageHint.jsx';
+import MobileFilterSheet, { CatalogMobileBar } from '../components/ux/MobileFilterSheet.jsx';
 import { useToast } from '../components/ux/ToastContext.jsx';
 import { useI18n } from '../i18n/I18nContext.jsx';
 
@@ -161,6 +162,7 @@ export default function ToursPage() {
   const [applications, setApplications] = useState([]);
   const [search, setSearch] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [cityFilter, setCityFilter] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -243,6 +245,25 @@ export default function ToursPage() {
 
   const daysLeft = daysUntil(currentTour?.ends_at);
   const appliedIds = new Set(applications.map((a) => a.programId));
+  const activeFilterCount = cityFilter ? 1 : 0;
+
+  const toursFilterPanel = (
+    <label className="tours-filter-field">
+      <span>Город</span>
+      <select
+        className="tours-filter-select"
+        value={cityFilter}
+        onChange={(e) => setCityFilter(e.target.value)}
+      >
+        <option value="">Все города</option>
+        {cities.filter(Boolean).map((city) => (
+          <option key={city} value={city}>
+            {city}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
 
   function handleSubmit(program) {
     if (!isLoggedIn) {
@@ -464,7 +485,26 @@ export default function ToursPage() {
         <section className="tours-card" id="tours-programs-table">
           <h2>Вузы и направления в текущем туре</h2>
 
-          <div className="tours-table-toolbar">
+          <CatalogMobileBar
+            search={search}
+            onSearchChange={setSearch}
+            searchPlaceholder="Поиск по вузу или направлению..."
+            filterCount={activeFilterCount}
+            onOpenFilters={() => setFiltersOpen(true)}
+          />
+
+          <MobileFilterSheet
+            open={filtersOpen}
+            onClose={() => setFiltersOpen(false)}
+            title={t('ux.filters.title')}
+            activeCount={activeFilterCount}
+            onReset={() => setCityFilter('')}
+            onApply={() => setFiltersOpen(false)}
+          >
+            {toursFilterPanel}
+          </MobileFilterSheet>
+
+          <div className="tours-table-toolbar catalog-desktop-only">
             <label className="tours-search">
               <TourIcon name="search" size={16} />
               <input
@@ -484,27 +524,65 @@ export default function ToursPage() {
             </button>
           </div>
 
-          {showFilters && (
-            <div style={{ marginBottom: '1rem' }}>
-              <label style={{ fontSize: '0.8rem', color: '#64748b' }}>
-                Город{' '}
-                <select
-                  className="tours-filter-select"
-                  value={cityFilter}
-                  onChange={(e) => setCityFilter(e.target.value)}
-                >
-                  <option value="">Все города</option>
-                  {cities.filter(Boolean).map((city) => (
-                    <option key={city} value={city}>
-                      {city}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-          )}
+          {showFilters && <div className="tours-filters-panel catalog-desktop-only">{toursFilterPanel}</div>}
 
-          <div className="tours-table-wrap">
+          <div className="catalog-mobile-cards">
+            {filteredPrograms.map((program) => {
+              const stats = pseudoStats(program.id);
+              const chance = calcChance(userScore, program.main_score_min);
+              const submitted = appliedIds.has(program.id);
+
+              return (
+                <article key={program.id} className="catalog-mobile-card">
+                  <div className="catalog-mobile-card-head">
+                    <div className="tours-uni-logo">{getInitials(program.university)}</div>
+                    <div>
+                      <strong>{program.university}</strong>
+                      <p className="catalog-mobile-card-sub">{program.name}</p>
+                    </div>
+                  </div>
+                  <div className="catalog-mobile-card-grid">
+                    <div className="catalog-mobile-card-field">
+                      <span>Проходной балл</span>
+                      <strong>{program.main_score_min ?? '—'}</strong>
+                    </div>
+                    <div className="catalog-mobile-card-field">
+                      <span>Мест</span>
+                      <strong>{stats.total}</strong>
+                    </div>
+                    <div className="catalog-mobile-card-field">
+                      <span>Заявлений</span>
+                      <strong>{stats.applicants.toLocaleString('ru-RU')}</strong>
+                    </div>
+                    <div className="catalog-mobile-card-field">
+                      <span>Ваш шанс</span>
+                      <strong>
+                        {chance ? (
+                          <span className={`tours-chance-pct tours-chance-pct--${chance.level}`}>
+                            {chance.pct}%
+                          </span>
+                        ) : (
+                          '—'
+                        )}
+                      </strong>
+                    </div>
+                  </div>
+                  <div className="catalog-mobile-card-actions">
+                    <button
+                      type="button"
+                      className={`btn tours-submit-btn${submitted ? ' submitted' : ''}`}
+                      disabled={submitted || currentTour?.status !== 'open'}
+                      onClick={() => handleSubmit(program)}
+                    >
+                      {submitted ? 'Подано' : 'Подать'}
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+
+          <div className="tours-table-wrap catalog-desktop-only">
             <table className="tours-table">
               <thead>
                 <tr>

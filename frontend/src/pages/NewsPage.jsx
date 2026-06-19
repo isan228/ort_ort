@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api/client.js';
 import { NewsIcon } from '../components/icons/NewsIcons.jsx';
+import MobileFilterSheet, { CatalogMobileBar, MobileChipRow } from '../components/ux/MobileFilterSheet.jsx';
+import { useI18n } from '../i18n/I18nContext.jsx';
 
 const PAGE_SIZE = 5;
 
@@ -79,6 +81,7 @@ function isImportant(article, index) {
 }
 
 export default function NewsPage() {
+  const { t } = useI18n();
   const [articles, setArticles] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -86,6 +89,7 @@ export default function NewsPage() {
   const [tab, setTab] = useState('all');
   const [sort, setSort] = useState('newest');
   const [importantOnly, setImportantOnly] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [heroIndex, setHeroIndex] = useState(0);
   const [saved, setSaved] = useState(() => new Set());
@@ -173,6 +177,27 @@ export default function NewsPage() {
   }
 
   const hero = featured[heroIndex];
+  const activeFilterCount = (importantOnly ? 1 : 0) + (sort !== 'newest' ? 1 : 0);
+
+  const newsFiltersPanel = (
+    <>
+      <label className="news-check">
+        <input
+          type="checkbox"
+          checked={importantOnly}
+          onChange={(e) => setImportantOnly(e.target.checked)}
+        />
+        Только важные
+      </label>
+      <label className="news-filter-field">
+        <span>Сортировка</span>
+        <select className="news-select" value={sort} onChange={(e) => setSort(e.target.value)}>
+          <option value="newest">Новые сверху</option>
+          <option value="oldest">Старые сверху</option>
+        </select>
+      </label>
+    </>
+  );
 
   return (
     <div className="news-page">
@@ -222,7 +247,7 @@ export default function NewsPage() {
         )}
 
         <div className="news-layout">
-          <aside className="news-sidebar-left">
+          <aside className="news-sidebar-left news-sidebar-left--desktop">
             <div className="news-sidebar-card">
               <h3>Категории</h3>
               <ul className="news-categories">
@@ -294,6 +319,41 @@ export default function NewsPage() {
           </aside>
 
           <section className="news-main">
+            <MobileChipRow
+              items={CATEGORIES}
+              value={category}
+              onChange={setCategory}
+            />
+
+            <CatalogMobileBar
+              hideSearch
+              search=""
+              onSearchChange={() => {}}
+              filterCount={activeFilterCount}
+              onOpenFilters={() => setFiltersOpen(true)}
+              sort={sort}
+              onSortChange={setSort}
+              sortLabel="Сортировка"
+              sortOptions={[
+                { value: 'newest', label: 'Новые' },
+                { value: 'oldest', label: 'Старые' },
+              ]}
+            />
+
+            <MobileFilterSheet
+              open={filtersOpen}
+              onClose={() => setFiltersOpen(false)}
+              title={t('ux.filters.title')}
+              activeCount={activeFilterCount}
+              onReset={() => {
+                setImportantOnly(false);
+                setSort('newest');
+              }}
+              onApply={() => setFiltersOpen(false)}
+            >
+              {newsFiltersPanel}
+            </MobileFilterSheet>
+
             <div className="news-main-card">
               <div className="news-tabs-row">
                 <div className="news-tabs">
