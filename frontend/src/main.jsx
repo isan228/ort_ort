@@ -14,6 +14,7 @@ import './styles/universities.css';
 import './styles/page-shell.css';
 import './styles/auth.css';
 import './styles/admin.css';
+import './styles/header.css';
 import './styles/ux.css';
 import './styles/responsive.css';
 

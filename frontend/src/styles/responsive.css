@@ -130,99 +130,7 @@ button,
   min-width: 0;
 }
 
-/* ——— Шапка сайта: sticky + мобильное бургер-меню ——— */
-
-.header-inner {
-  position: relative;
-  max-width: 100%;
-}
-
 @media (max-width: 900px) {
-  .header-inner {
-    grid-template-columns: 1fr auto auto;
-    grid-template-rows: auto auto;
-    gap: 0.65rem;
-  }
-
-  .logo {
-    grid-column: 1;
-    grid-row: 1;
-  }
-
-  .header-controls {
-    grid-column: 2;
-    grid-row: 1;
-    justify-self: end;
-  }
-
-  .header-controls .lang-switch {
-    display: none;
-  }
-
-  .header-controls .btn-header-mini,
-  .header-controls .btn-header-auth {
-    display: none;
-  }
-
-  .nav-toggle {
-    display: inline-flex;
-    grid-column: 3;
-    grid-row: 1;
-  }
-
-  .nav {
-    display: none;
-    grid-column: 1 / -1;
-    grid-row: 2;
-    flex-direction: column;
-    align-items: stretch;
-    justify-self: stretch;
-    gap: 0;
-    padding: 0.5rem 0 0.25rem;
-    border-top: 1px solid var(--border);
-    margin-top: 0.15rem;
-    max-height: min(70vh, 32rem);
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .nav.nav--open {
-    display: flex;
-  }
-
-  .nav-mobile-extras {
-    display: flex;
-  }
-
-  .nav a,
-  .nav .btn-link,
-  .nav .nav-notifications {
-    padding: 0.75rem 0.25rem;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .nav a:last-of-type,
-  .nav .btn-link:last-of-type {
-    border-bottom: none;
-  }
-
-  .site-header--landing .nav {
-    border-top-color: rgba(255, 255, 255, 0.12);
-  }
-
-  .site-header--landing .nav a,
-  .site-header--landing .nav .btn-link {
-    border-bottom-color: rgba(255, 255, 255, 0.1);
-  }
-
-  .site-header--landing .nav-mobile-extras {
-    border-top-color: rgba(255, 255, 255, 0.12);
-  }
-
-  .site-header--menu-open {
-    z-index: 301;
-  }
-
   .news-layout {
     grid-template-columns: 1fr !important;
   }
@@ -236,21 +144,6 @@ button,
 @media (max-width: 640px) {
   .container {
     width: min(1100px, 100% - 1.25rem);
-  }
-
-  .site-header {
-    padding: 0.75rem 0;
-    overflow-x: clip;
-  }
-
-  .site-header--landing .header-inner {
-    grid-template-columns: 1fr auto auto;
-    gap: 0.5rem;
-  }
-
-  .site-header:not(.site-header--landing) .header-inner {
-    grid-template-columns: 1fr auto auto;
-    gap: 0.5rem;
   }
 
   .footer-inner {
@@ -406,19 +299,6 @@ button,
   .analysis-gauge {
     max-width: 100%;
     overflow: hidden;
-  }
-
-  .account-topbar {
-    flex-wrap: wrap;
-    padding: 0.65rem 0.75rem;
-    overflow-x: clip;
-    gap: 0.5rem;
-  }
-
-  .account-topbar-actions {
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 0.35rem;
   }
 
   .account-ring {

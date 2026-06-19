@@ -172,6 +172,7 @@ export default {
   'ux.helpFab': 'Жardam жана FAQ',
   'ux.quickNav': 'Тез навигация',
   'ux.menu': 'Меню',
+  'ux.menuClose': 'Менюну жабуу',
   'ux.showPassword': 'Сырсөздү көрсөтүү',
   'ux.hidePassword': 'Сырсөздү жашыруу',
   'ux.loginToContinue': 'Токтогон жерден улантуу үчүн аккаунтка кириңиз.',

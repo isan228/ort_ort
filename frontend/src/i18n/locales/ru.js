@@ -172,6 +172,7 @@ export default {
   'ux.helpFab': 'Помощь и FAQ',
   'ux.quickNav': 'Быстрая навигация',
   'ux.menu': 'Меню',
+  'ux.menuClose': 'Закрыть меню',
   'ux.showPassword': 'Показать пароль',
   'ux.hidePassword': 'Скрыть пароль',
   'ux.loginToContinue': 'Войдите в аккаунт, чтобы продолжить с того места, где остановились.',

@@ -5,6 +5,7 @@ import ScrollToTop from './ux/ScrollToTop.jsx';
 import BackToTop from './ux/BackToTop.jsx';
 import HelpFab from './ux/HelpFab.jsx';
 import QuickNav from './ux/QuickNav.jsx';
+import BurgerButton from './ux/BurgerButton.jsx';
 import { api, getStoredUser, isStaffRole } from '../api/client.js';
 import { useI18n } from '../i18n/I18nContext.jsx';
 
@@ -65,7 +66,12 @@ export default function Layout() {
   async function handleLogout() {
     await api.logout();
     setUser(null);
+    setMenuOpen(false);
     navigate('/');
+  }
+
+  function closeMenu() {
+    setMenuOpen(false);
   }
 
   return (
@@ -75,103 +81,113 @@ export default function Layout() {
       </a>
       <ScrollToTop />
       {!isAccount && (
-        <header className={`site-header${isLanding ? ' site-header--landing' : ''}${menuOpen ? ' site-header--menu-open' : ''}`}>
+        <header
+          className={`site-header${isLanding ? ' site-header--landing' : ''}${menuOpen ? ' site-header--menu-open' : ''}`}
+        >
           <div className="container header-inner">
-            <Link to="/" className="logo">
+            <Link to="/" className="logo" onClick={closeMenu}>
               ORT.KG
             </Link>
-            <button
-              type="button"
-              className={`nav-toggle${menuOpen ? ' nav-toggle--open' : ''}`}
-              aria-expanded={menuOpen}
-              aria-controls="site-nav"
-              aria-label={t('ux.menu')}
-              onClick={() => setMenuOpen((v) => !v)}
-            >
-              <span className="nav-toggle-icon" aria-hidden="true">
-                <span />
-                <span />
-                <span />
-              </span>
-            </button>
-            {menuOpen && (
-              <button
-                type="button"
-                className="nav-backdrop"
-                aria-label={t('common.back')}
-                tabIndex={-1}
-                onClick={() => setMenuOpen(false)}
-              />
-            )}
+
             <nav id="site-nav" className={`nav${menuOpen ? ' nav--open' : ''}`}>
               <Link
                 to="/universities"
                 className={isUniversities || isPrograms ? 'nav-link-active' : undefined}
+                onClick={closeMenu}
               >
                 {t('nav.universities')}
               </Link>
-              <Link to="/analysis" className={isAnalysis ? 'nav-link-active' : undefined}>
+              <Link
+                to="/analysis"
+                className={isAnalysis ? 'nav-link-active' : undefined}
+                onClick={closeMenu}
+              >
                 {t('nav.analysis')}
               </Link>
-              <Link to="/tours" className={isTours ? 'nav-link-active' : undefined}>
+              <Link
+                to="/tours"
+                className={isTours ? 'nav-link-active' : undefined}
+                onClick={closeMenu}
+              >
                 {t('nav.tours')}
               </Link>
-              <Link to="/rankings" className={isRankings ? 'nav-link-active' : undefined}>
+              <Link
+                to="/rankings"
+                className={isRankings ? 'nav-link-active' : undefined}
+                onClick={closeMenu}
+              >
                 {t('nav.rankings')}
               </Link>
-              <Link to="/news" className={isNews ? 'nav-link-active' : undefined}>
+              <Link
+                to="/news"
+                className={isNews ? 'nav-link-active' : undefined}
+                onClick={closeMenu}
+              >
                 {t('nav.news')}
               </Link>
-              <Link to="/subscription" className={isSubscription ? 'nav-link-active' : undefined}>
+              <Link
+                to="/subscription"
+                className={isSubscription ? 'nav-link-active' : undefined}
+                onClick={closeMenu}
+              >
                 {t('nav.subscription')}
               </Link>
-              <Link to="/account" className={isAccount ? 'nav-link-active' : undefined}>
+              <Link
+                to="/account"
+                className={isAccount ? 'nav-link-active' : undefined}
+                onClick={closeMenu}
+              >
                 {t('nav.account')}
               </Link>
               {!isLanding && <NavNotifications label={t('nav.notifications')} />}
-              {menuOpen && (
-                <div className="nav-mobile-extras">
-                  <div className="lang-switch lang-switch--nav" role="group" aria-label={t('account.language')}>
-                    <button
-                      type="button"
-                      className={locale === 'ru' ? 'chip active' : 'chip'}
-                      onClick={() => setLocale('ru')}
-                    >
-                      {t('lang.ru')}
-                    </button>
-                    <button
-                      type="button"
-                      className={locale === 'ky' ? 'chip active' : 'chip'}
-                      onClick={() => setLocale('ky')}
-                    >
-                      {t('lang.ky')}
-                    </button>
-                  </div>
-                  {user ? (
-                    <Link to="/account" className="btn btn-secondary" onClick={() => setMenuOpen(false)}>
-                      {t('nav.account')}
-                    </Link>
-                  ) : (
-                    <Link to="/login" className="btn" onClick={() => setMenuOpen(false)}>
-                      {t('nav.login')}
-                    </Link>
-                  )}
-                </div>
-              )}
               {staff && (
-                <Link to="/admin" className={isAdmin ? 'nav-link-active' : undefined}>
+                <Link
+                  to="/admin"
+                  className={isAdmin ? 'nav-link-active' : undefined}
+                  onClick={closeMenu}
+                >
                   {t('nav.admin')}
                 </Link>
               )}
               {user && !isLanding ? (
                 <>
-                  <Link to="/account/scores">{t('nav.scores')}</Link>
+                  <Link to="/account/scores" onClick={closeMenu}>
+                    {t('nav.scores')}
+                  </Link>
                   <button type="button" className="btn-link" onClick={handleLogout}>
                     {t('nav.logout')}
                   </button>
                 </>
               ) : null}
+              <div className="nav-mobile-extras">
+                <div className="lang-switch lang-switch--nav" role="group" aria-label={t('account.language')}>
+                  <button
+                    type="button"
+                    className={locale === 'ru' ? 'chip active' : 'chip'}
+                    onClick={() => setLocale('ru')}
+                  >
+                    {t('lang.ru')}
+                  </button>
+                  <button
+                    type="button"
+                    className={locale === 'ky' ? 'chip active' : 'chip'}
+                    onClick={() => setLocale('ky')}
+                  >
+                    {t('lang.ky')}
+                  </button>
+                </div>
+                {user ? (
+                  <Link to="/account" className="btn btn-secondary" onClick={closeMenu}>
+                    {t('nav.account')}
+                  </Link>
+                ) : (
+                  <Link to="/login" className="btn" onClick={closeMenu}>
+                    {t('nav.login')}
+                  </Link>
+                )}
+              </div>
             </nav>
+
             <div className="header-controls">
               <div className="lang-switch" role="group" aria-label={t('account.language')}>
                 <button
@@ -200,12 +216,32 @@ export default function Layout() {
                   </Link>
                 )
               ) : (
-                <Link to="/login" className={isLanding ? 'btn btn-header-auth' : 'btn btn-secondary btn-header-mini'}>
+                <Link
+                  to="/login"
+                  className={isLanding ? 'btn btn-header-auth' : 'btn btn-secondary btn-header-mini'}
+                >
                   {isLanding ? t('nav.loginRegister') : t('nav.login')}
                 </Link>
               )}
             </div>
+
+            <BurgerButton
+              open={menuOpen}
+              onClick={() => setMenuOpen((v) => !v)}
+              label={t('ux.menu')}
+              controlsId="site-nav"
+            />
           </div>
+
+          {menuOpen && (
+            <button
+              type="button"
+              className="header-backdrop"
+              aria-label={t('ux.menuClose')}
+              tabIndex={-1}
+              onClick={closeMenu}
+            />
+          )}
         </header>
       )}
       <main id="main-content" className={mainClassName()} tabIndex={-1}>

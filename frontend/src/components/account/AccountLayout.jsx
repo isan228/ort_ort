@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-do
 import { api, getStoredUser } from '../../api/client.js';
 import { useI18n } from '../../i18n/I18nContext.jsx';
 import { AccountIcon } from '../icons/AccountIcons.jsx';
+import BurgerButton from '../ux/BurgerButton.jsx';
 
 function getInitials(user) {
   const name = user?.profile?.nickname || user?.email || user?.phone || 'U';
@@ -19,6 +20,10 @@ function getDisplayName(user) {
 }
 
 function navClass({ isActive }) {
+  return isActive ? 'account-drawer-link active' : 'account-drawer-link';
+}
+
+function sidebarClass({ isActive }) {
   return isActive ? 'account-nav-link active' : 'account-nav-link';
 }
 
@@ -28,18 +33,39 @@ export default function AccountLayout() {
   const location = useLocation();
   const stored = getStoredUser();
   const [unread, setUnread] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
   const isDashboard = location.pathname === '/account';
 
   useEffect(() => {
+    setMenuOpen(false);
     api
       .getNotifications()
       .then((data) => setUnread(data.unread_count ?? 0))
       .catch(() => setUnread(0));
   }, [location.pathname]);
 
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    function onKey(e) {
+      if (e.key === 'Escape') setMenuOpen(false);
+    }
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [menuOpen]);
+
   async function handleLogout() {
     await api.logout();
+    setMenuOpen(false);
     navigate('/login');
+  }
+
+  function closeMenu() {
+    setMenuOpen(false);
   }
 
   const mainNav = [
@@ -65,11 +91,27 @@ export default function AccountLayout() {
     { to: '/account/support', icon: 'mail', label: t('account.nav.contact') },
   ];
 
+  function renderDrawerLinks(items) {
+    return items.map((item) => (
+      <NavLink
+        key={item.to + item.label}
+        to={item.to}
+        end={item.end}
+        className={navClass}
+        onClick={closeMenu}
+      >
+        <AccountIcon name={item.icon} size={18} />
+        <span>{item.label}</span>
+        {item.badge > 0 && <span className="account-nav-badge">{item.badge}</span>}
+      </NavLink>
+    ));
+  }
+
   return (
     <div className="account-shell">
-      <header className="account-topbar">
+      <header className={`account-topbar${menuOpen ? ' account-topbar--menu-open' : ''}`}>
         <div className="account-topbar-left">
-          <Link to="/" className="account-logo">
+          <Link to="/" className="account-logo" onClick={closeMenu}>
             ORT.KG
           </Link>
           <span className="account-topbar-sep" aria-hidden />
@@ -94,7 +136,11 @@ export default function AccountLayout() {
             </button>
           </div>
 
-          <Link to="/account/notifications" className="account-bell-btn" aria-label={t('account.nav.notifications')}>
+          <Link
+            to="/account/notifications"
+            className="account-bell-btn"
+            aria-label={t('account.nav.notifications')}
+          >
             <AccountIcon name="bell" size={20} />
             {unread > 0 && <span className="account-bell-badge">{unread > 9 ? '9+' : unread}</span>}
           </Link>
@@ -112,24 +158,74 @@ export default function AccountLayout() {
           <button type="button" className="account-logout-btn" onClick={handleLogout}>
             {t('nav.logout')}
           </button>
+
+          <BurgerButton
+            open={menuOpen}
+            onClick={() => setMenuOpen((v) => !v)}
+            label={t('ux.menu')}
+            controlsId="account-nav-drawer"
+          />
         </div>
       </header>
 
-      <nav className="account-mobile-nav" aria-label={t('account.nav.home')}>
-        {mainNav.map((item) => (
-          <NavLink key={item.to + item.label} to={item.to} end={item.end} className={navClass}>
-            <AccountIcon name={item.icon} size={16} />
-            <span>{item.label}</span>
-            {item.badge > 0 && <span className="account-nav-badge">{item.badge}</span>}
-          </NavLink>
-        ))}
-      </nav>
+      {menuOpen && (
+        <button
+          type="button"
+          className="header-backdrop"
+          aria-label={t('ux.menuClose')}
+          tabIndex={-1}
+          onClick={closeMenu}
+        />
+      )}
+
+      <div id="account-nav-drawer" className={`account-header-drawer${menuOpen ? ' is-open' : ''}`}>
+        <div className="account-drawer-user">
+          <div className="account-avatar">{getInitials(stored)}</div>
+          <div>
+            <strong>{getDisplayName(stored)}</strong>
+            <span className="account-user-id">
+              ID: {stored?.id ? String(stored.id).slice(0, 8) : '—'}
+            </span>
+          </div>
+        </div>
+
+        <div className="lang-switch lang-switch--nav" role="group" aria-label={t('account.language')}>
+          <button
+            type="button"
+            className={locale === 'ru' ? 'chip active' : 'chip'}
+            onClick={() => setLocale('ru')}
+          >
+            {t('lang.ru')}
+          </button>
+          <button
+            type="button"
+            className={locale === 'ky' ? 'chip active' : 'chip'}
+            onClick={() => setLocale('ky')}
+          >
+            {t('lang.ky')}
+          </button>
+        </div>
+
+        <nav className="account-drawer-nav" aria-label={t('account.nav.home')}>
+          {renderDrawerLinks(mainNav)}
+        </nav>
+
+        <p className="nav-drawer-section">{t('account.nav.tools')}</p>
+        <nav className="account-drawer-nav">{renderDrawerLinks(toolsNav)}</nav>
+
+        <p className="nav-drawer-section">{t('account.nav.support')}</p>
+        <nav className="account-drawer-nav">{renderDrawerLinks(supportNav)}</nav>
+
+        <button type="button" className="account-drawer-link account-drawer-logout" onClick={handleLogout}>
+          {t('nav.logout')}
+        </button>
+      </div>
 
       <div className="account-body">
         <aside className="account-sidebar">
           <nav className="account-nav">
             {mainNav.map((item) => (
-              <NavLink key={item.to + item.label} to={item.to} end={item.end} className={navClass}>
+              <NavLink key={item.to + item.label} to={item.to} end={item.end} className={sidebarClass}>
                 <AccountIcon name={item.icon} size={18} />
                 <span>{item.label}</span>
                 {item.badge > 0 && <span className="account-nav-badge">{item.badge}</span>}
@@ -140,7 +236,7 @@ export default function AccountLayout() {
           <p className="account-nav-section">{t('account.nav.tools')}</p>
           <nav className="account-nav account-nav--tools">
             {toolsNav.map((item) => (
-              <NavLink key={item.label} to={item.to} className={navClass}>
+              <NavLink key={item.label} to={item.to} className={sidebarClass}>
                 <AccountIcon name={item.icon} size={18} />
                 <span>{item.label}</span>
               </NavLink>
@@ -150,7 +246,7 @@ export default function AccountLayout() {
           <p className="account-nav-section">{t('account.nav.support')}</p>
           <nav className="account-nav account-nav--tools">
             {supportNav.map((item) => (
-              <NavLink key={item.label} to={item.to} className={navClass}>
+              <NavLink key={item.label} to={item.to} className={sidebarClass}>
                 <AccountIcon name={item.icon} size={18} />
                 <span>{item.label}</span>
               </NavLink>
