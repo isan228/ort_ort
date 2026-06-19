@@ -196,8 +196,24 @@
   line-height: 1.45;
 }
 
-.quick-nav {
-  display: none;
+.guest-fav-hint a {
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .back-to-top {
+    bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .help-fab {
+    bottom: calc(4.25rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@media (min-width: 769px) {
+  .help-fab {
+    bottom: 4.25rem;
+  }
 }
 
 .footer-quick {
@@ -220,80 +236,6 @@
 .guest-fav-hint {
   font-size: 0.82rem;
   color: #64748b;
-}
-
-.guest-fav-hint a {
-  font-weight: 600;
-}
-
-@media (max-width: 768px) {
-  .quick-nav {
-    display: flex;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 35;
-    background: #fff;
-    border-top: 1px solid #e2e8f0;
-    box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.06);
-    padding: 0.35rem 0.25rem calc(0.35rem + env(safe-area-inset-bottom, 0px));
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .quick-nav-item {
-    flex: 1;
-    min-width: 3.5rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.15rem;
-    padding: 0.35rem 0.25rem;
-    font-size: 0.58rem;
-    color: #64748b;
-    text-decoration: none;
-    border-radius: 0.4rem;
-    white-space: nowrap;
-  }
-
-  .quick-nav-item.active {
-    color: #1a56db;
-    background: #eff6ff;
-    font-weight: 600;
-  }
-
-  .quick-nav-icon {
-    font-size: 1.1rem;
-    line-height: 1;
-  }
-
-  .quick-nav-label {
-    line-height: 1.15;
-    text-align: center;
-  }
-
-  .main-page,
-  .main-news,
-  .main-tours,
-  .main-analysis,
-  .main-universities {
-    padding-bottom: 4.5rem;
-  }
-
-  .back-to-top {
-    bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
-  }
-
-  .help-fab {
-    bottom: calc(7.75rem + env(safe-area-inset-bottom, 0px));
-  }
-}
-
-@media (min-width: 769px) {
-  .help-fab {
-    bottom: 4.25rem;
-  }
 }
 
 /* ——— Toast ——— */
@@ -436,7 +378,7 @@
 @media (max-width: 640px) {
   .toast-stack {
     top: auto;
-    bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+    bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
     left: 1rem;
     right: 1rem;
     max-width: none;

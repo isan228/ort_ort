@@ -4,36 +4,42 @@ import NavNotifications from './NavNotifications.jsx';
 import ScrollToTop from './ux/ScrollToTop.jsx';
 import BackToTop from './ux/BackToTop.jsx';
 import HelpFab from './ux/HelpFab.jsx';
-import QuickNav from './ux/QuickNav.jsx';
 import BurgerButton from './ux/BurgerButton.jsx';
 import { api, getStoredUser, isStaffRole } from '../api/client.js';
 import { useI18n } from '../i18n/I18nContext.jsx';
 
+const MAIN_LINKS = [
+  { to: '/universities', key: 'nav.universities', match: (p) => p === '/universities' || p.startsWith('/universities/') || p.startsWith('/programs/') },
+  { to: '/analysis', key: 'nav.analysis', match: (p) => p.startsWith('/analysis') },
+  { to: '/tours', key: 'nav.tours', match: (p) => p.startsWith('/tours') },
+  { to: '/rankings', key: 'nav.rankings', match: (p) => p === '/rankings' },
+  { to: '/news', key: 'nav.news', match: (p) => p.startsWith('/news') },
+];
+
+const MORE_LINKS = [
+  { to: '/subscription', key: 'nav.subscription', match: (p) => p === '/subscription' },
+  { to: '/account', key: 'nav.account', match: (p) => p.startsWith('/account') },
+  { to: '/faq', key: 'legal.faq', match: (p) => p === '/faq' },
+];
+
 export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const isLanding = location.pathname === '/';
-  const isAccount = location.pathname.startsWith('/account');
-  const isNews = location.pathname.startsWith('/news');
-  const isTours = location.pathname.startsWith('/tours');
-  const isAnalysis = location.pathname.startsWith('/analysis');
-  const isUniversities =
-    location.pathname === '/universities' || location.pathname.startsWith('/universities/');
-  const isPrograms = location.pathname.startsWith('/programs/');
-  const isAuth = ['/login', '/register', '/forgot-password', '/reset-password'].includes(
-    location.pathname
-  );
-  const isAdmin = location.pathname.startsWith('/admin');
-  const isRankings = location.pathname === '/rankings';
-  const isSubscription = location.pathname === '/subscription';
+  const pathname = location.pathname;
+  const isLanding = pathname === '/';
+  const isAccount = pathname.startsWith('/account');
+  const isAuth = ['/login', '/register', '/forgot-password', '/reset-password'].includes(pathname);
+  const isAdmin = pathname.startsWith('/admin');
 
   function mainClassName() {
     if (isLanding) return 'main-landing';
     if (isAccount) return 'main-account';
-    if (isNews) return 'main-news';
-    if (isTours) return 'main-tours';
-    if (isAnalysis) return 'main-analysis';
-    if (isUniversities || isPrograms) return 'main-universities';
+    if (pathname.startsWith('/news')) return 'main-news';
+    if (pathname.startsWith('/tours')) return 'main-tours';
+    if (pathname.startsWith('/analysis')) return 'main-analysis';
+    if (pathname === '/universities' || pathname.startsWith('/universities/') || pathname.startsWith('/programs/')) {
+      return 'main-universities';
+    }
     if (isAuth) return 'main-auth';
     if (isAdmin) return 'main-admin';
     return 'main-page';
@@ -47,7 +53,7 @@ export default function Layout() {
   useEffect(() => {
     setMenuOpen(false);
     setUser(getStoredUser());
-  }, [location.pathname]);
+  }, [pathname]);
 
   useEffect(() => {
     if (!menuOpen) return undefined;
@@ -74,6 +80,10 @@ export default function Layout() {
     setMenuOpen(false);
   }
 
+  function navLinkClass(matchFn) {
+    return matchFn(pathname) ? 'nav-link-active' : undefined;
+  }
+
   return (
     <>
       <a href="#main-content" className="skip-link">
@@ -89,104 +99,44 @@ export default function Layout() {
               ORT.KG
             </Link>
 
-            <nav id="site-nav" className={`nav${menuOpen ? ' nav--open' : ''}`}>
-              <Link
-                to="/universities"
-                className={isUniversities || isPrograms ? 'nav-link-active' : undefined}
-                onClick={closeMenu}
-              >
-                {t('nav.universities')}
-              </Link>
-              <Link
-                to="/analysis"
-                className={isAnalysis ? 'nav-link-active' : undefined}
-                onClick={closeMenu}
-              >
-                {t('nav.analysis')}
-              </Link>
-              <Link
-                to="/tours"
-                className={isTours ? 'nav-link-active' : undefined}
-                onClick={closeMenu}
-              >
-                {t('nav.tours')}
-              </Link>
-              <Link
-                to="/rankings"
-                className={isRankings ? 'nav-link-active' : undefined}
-                onClick={closeMenu}
-              >
-                {t('nav.rankings')}
-              </Link>
-              <Link
-                to="/news"
-                className={isNews ? 'nav-link-active' : undefined}
-                onClick={closeMenu}
-              >
-                {t('nav.news')}
-              </Link>
-              <Link
-                to="/subscription"
-                className={isSubscription ? 'nav-link-active' : undefined}
-                onClick={closeMenu}
-              >
-                {t('nav.subscription')}
-              </Link>
-              <Link
-                to="/account"
-                className={isAccount ? 'nav-link-active' : undefined}
-                onClick={closeMenu}
-              >
-                {t('nav.account')}
-              </Link>
-              {!isLanding && <NavNotifications label={t('nav.notifications')} />}
+            <nav className="header-nav-desktop" aria-label={t('ux.nav.main')}>
+              {MAIN_LINKS.map((item) => (
+                <Link key={item.to} to={item.to} className={navLinkClass(item.match)}>
+                  {t(item.key)}
+                </Link>
+              ))}
+              {MORE_LINKS.slice(0, 2).map((item) => (
+                <Link key={item.to} to={item.to} className={navLinkClass(item.match)}>
+                  {t(item.key)}
+                </Link>
+              ))}
+              {!isLanding && user && <NavNotifications label={t('nav.notifications')} />}
               {staff && (
-                <Link
-                  to="/admin"
-                  className={isAdmin ? 'nav-link-active' : undefined}
-                  onClick={closeMenu}
-                >
+                <Link to="/admin" className={navLinkClass((p) => p.startsWith('/admin'))}>
                   {t('nav.admin')}
                 </Link>
               )}
               {user && !isLanding ? (
                 <>
-                  <Link to="/account/scores" onClick={closeMenu}>
-                    {t('nav.scores')}
-                  </Link>
+                  <Link to="/account/scores">{t('nav.scores')}</Link>
                   <button type="button" className="btn-link" onClick={handleLogout}>
                     {t('nav.logout')}
                   </button>
                 </>
               ) : null}
-              <div className="nav-mobile-extras">
-                <div className="lang-switch lang-switch--nav" role="group" aria-label={t('account.language')}>
-                  <button
-                    type="button"
-                    className={locale === 'ru' ? 'chip active' : 'chip'}
-                    onClick={() => setLocale('ru')}
-                  >
-                    {t('lang.ru')}
-                  </button>
-                  <button
-                    type="button"
-                    className={locale === 'ky' ? 'chip active' : 'chip'}
-                    onClick={() => setLocale('ky')}
-                  >
-                    {t('lang.ky')}
-                  </button>
-                </div>
-                {user ? (
-                  <Link to="/account" className="btn btn-secondary" onClick={closeMenu}>
-                    {t('nav.account')}
-                  </Link>
-                ) : (
-                  <Link to="/login" className="btn" onClick={closeMenu}>
-                    {t('nav.login')}
-                  </Link>
-                )}
-              </div>
             </nav>
+
+            <div className="header-mobile-actions">
+              {user ? (
+                <Link to="/account" className="header-mobile-auth" onClick={closeMenu}>
+                  {t('nav.account')}
+                </Link>
+              ) : (
+                <Link to="/login" className="header-mobile-auth header-mobile-auth--primary" onClick={closeMenu}>
+                  {t('nav.login')}
+                </Link>
+              )}
+            </div>
 
             <div className="header-controls">
               <div className="lang-switch" role="group" aria-label={t('account.language')}>
@@ -242,6 +192,80 @@ export default function Layout() {
               onClick={closeMenu}
             />
           )}
+
+          <nav id="site-nav" className={`site-nav-drawer${menuOpen ? ' is-open' : ''}`}>
+            <div className="container site-nav-drawer-inner">
+              <div className="nav-drawer-group">
+                <p className="nav-drawer-section">{t('ux.nav.sectionMain')}</p>
+                {MAIN_LINKS.map((item) => (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    className={navLinkClass(item.match)}
+                    onClick={closeMenu}
+                  >
+                    {t(item.key)}
+                  </Link>
+                ))}
+              </div>
+
+              <div className="nav-drawer-group">
+                <p className="nav-drawer-section">{t('ux.nav.sectionMore')}</p>
+                {MORE_LINKS.map((item) => (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    className={navLinkClass(item.match)}
+                    onClick={closeMenu}
+                  >
+                    {t(item.key)}
+                  </Link>
+                ))}
+                {!isLanding && user && (
+                  <NavNotifications label={t('nav.notifications')} />
+                )}
+                {staff && (
+                  <Link to="/admin" className={navLinkClass((p) => p.startsWith('/admin'))} onClick={closeMenu}>
+                    {t('nav.admin')}
+                  </Link>
+                )}
+                {user && !isLanding && (
+                  <>
+                    <Link to="/account/scores" onClick={closeMenu}>
+                      {t('nav.scores')}
+                    </Link>
+                    <button type="button" className="nav-drawer-logout" onClick={handleLogout}>
+                      {t('nav.logout')}
+                    </button>
+                  </>
+                )}
+              </div>
+
+              <div className="nav-mobile-extras">
+                <div className="lang-switch lang-switch--nav" role="group" aria-label={t('account.language')}>
+                  <button
+                    type="button"
+                    className={locale === 'ru' ? 'chip active' : 'chip'}
+                    onClick={() => setLocale('ru')}
+                  >
+                    {t('lang.ru')}
+                  </button>
+                  <button
+                    type="button"
+                    className={locale === 'ky' ? 'chip active' : 'chip'}
+                    onClick={() => setLocale('ky')}
+                  >
+                    {t('lang.ky')}
+                  </button>
+                </div>
+                {!user && (
+                  <Link to="/register" className="btn btn-secondary" onClick={closeMenu}>
+                    {t('nav.register')}
+                  </Link>
+                )}
+              </div>
+            </div>
+          </nav>
         </header>
       )}
       <main id="main-content" className={mainClassName()} tabIndex={-1}>
@@ -269,7 +293,6 @@ export default function Layout() {
       )}
       {!isAuth && !isAccount && (
         <>
-          <QuickNav />
           <HelpFab />
           <BackToTop />
         </>
