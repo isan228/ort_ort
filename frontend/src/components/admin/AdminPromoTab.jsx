@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { api } from '../api/client.js';
-import { useToast } from '../components/ux/ToastContext.jsx';
+import { api } from '../../api/client.js';
+import { useToast } from '../ux/ToastContext.jsx';
 
 export default function AdminPromoTab({ promoCodes, onUpdated }) {
   const toast = useToast();
