@@ -107,6 +107,7 @@ export default {
   'register.referral': 'Реферал код (милдеттүү эмес)',
   'register.consentPrivacy': 'Купуялык саясатын кабыл алам',
   'register.consentOffer': 'Жарлык офертаны кабыл алам',
+  'register.consentRequired': 'Купуялык саясатын жана жарлык офертаны кабыл алыңыз',
   'register.submit': 'Катталуу',
   'register.submitting': 'Түзүлүүдө...',
   'register.hasAccount': 'Аккаунтуңуз барбы?',

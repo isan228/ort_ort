@@ -26,6 +26,28 @@ export async function setupRegistrationScores(userId, { main_score, subject_scor
     subjectScores[key] = validateSubjectScore(value, key);
   }
 
+  const certificate = await Certificate.create(
+    {
+      user_id: userId,
+      status: CERTIFICATE_STATUS.PENDING,
+    },
+    { transaction }
+  );
+
+  const fileAsset = await FileAsset.create(
+    {
+      storage_key: fileMeta.storageKey,
+      mime_type: fileMeta.mimeType,
+      size: fileMeta.size,
+      owner_type: 'certificate',
+      owner_id: certificate.id,
+      visibility: 'private',
+    },
+    { transaction }
+  );
+
+  await certificate.update({ file_id: fileAsset.id }, { transaction });
+
   const profile = await ScoreProfile.create(
     {
       user_id: userId,
@@ -38,29 +60,6 @@ export async function setupRegistrationScores(userId, { main_score, subject_scor
     },
     { transaction }
   );
-
-  const fileAsset = await FileAsset.create(
-    {
-      storage_key: fileMeta.storageKey,
-      mime_type: fileMeta.mimeType,
-      size: fileMeta.size,
-      owner_type: 'certificate',
-      owner_id: null,
-      visibility: 'private',
-    },
-    { transaction }
-  );
-
-  const certificate = await Certificate.create(
-    {
-      user_id: userId,
-      file_id: fileAsset.id,
-      status: CERTIFICATE_STATUS.PENDING,
-    },
-    { transaction }
-  );
-
-  await fileAsset.update({ owner_id: certificate.id }, { transaction });
 
   return { profile, certificate, fileAsset };
 }

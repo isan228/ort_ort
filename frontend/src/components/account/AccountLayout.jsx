@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { api, getStoredUser } from '../../api/client.js';
+import { api, getStoredUser, isAuthenticated } from '../../api/client.js';
 import { useI18n } from '../../i18n/I18nContext.jsx';
 import { AccountIcon } from '../icons/AccountIcons.jsx';
 import BurgerButton from '../ux/BurgerButton.jsx';
@@ -38,6 +38,10 @@ export default function AccountLayout() {
 
   useEffect(() => {
     setMenuOpen(false);
+    if (!isAuthenticated()) {
+      setUnread(0);
+      return;
+    }
     api
       .getNotifications()
       .then((data) => setUnread(data.unread_count ?? 0))

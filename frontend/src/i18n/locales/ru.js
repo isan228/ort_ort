@@ -131,6 +131,7 @@ export default {
   'register.certificateNote':
     'Можно загрузить фото сертификата ОРТ или скриншот ваших баллов из личного кабинета абитуриента.',
   'register.certificateRequired': 'Загрузите сертификат или скриншот результатов',
+  'register.consentRequired': 'Примите политику конфиденциальности и публичную оферту',
   'register.fileSelected': 'Выбран файл',
   'register.subjectIncomplete': 'Заполните предмет и балл или удалите пустую строку',
   'register.subjectDuplicate': 'Каждый предмет можно указать только один раз',

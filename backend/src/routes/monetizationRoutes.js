@@ -16,7 +16,7 @@ import { authenticate } from '../middleware/auth.js';
 
 const router = Router();
 
-router.get('/subscription/plans', authenticate, async (_req, res, next) => {
+router.get('/subscription/plans', async (_req, res, next) => {
   try {
     const plans = await getActivePlans();
     res.json({ plans });

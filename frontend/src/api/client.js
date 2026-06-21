@@ -25,6 +25,10 @@ export function getStoredUser() {
   return raw ? JSON.parse(raw) : null;
 }
 
+export function isAuthenticated() {
+  return Boolean(getToken() && getStoredUser());
+}
+
 export const STAFF_ROLES = ['manager', 'admin', 'superadmin'];
 
 export function isStaffRole(role) {

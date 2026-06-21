@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { api, getStoredUser } from '../api/client.js';
+import { api, isAuthenticated } from '../api/client.js';
 
 export default function NavNotifications({ label = 'Уведомления', variant = 'text' }) {
-  const userId = getStoredUser()?.id ?? null;
+  const authed = isAuthenticated();
   const [unread, setUnread] = useState(0);
 
   useEffect(() => {
-    if (!userId) {
+    if (!authed) {
       setUnread(0);
       return undefined;
     }
@@ -25,9 +25,9 @@ export default function NavNotifications({ label = 'Уведомления', var
     return () => {
       cancelled = true;
     };
-  }, [userId]);
+  }, [authed]);
 
-  if (!userId) return null;
+  if (!authed) return null;
 
   if (variant === 'icon') {
     return (
