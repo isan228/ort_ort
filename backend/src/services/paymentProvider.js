@@ -1,27 +1,30 @@
 import { v4 as uuidv4 } from 'uuid';
 import { PAYMENT_STATUS } from '../constants/index.js';
+import { config } from '../config/index.js';
+import { finikProvider } from './finikProvider.js';
 
 /**
- * Заглушка платёжного провайдера.
- * Позже заменяется на реальный адаптер без смены бизнес-логики.
+ * Заглушка платёжного провайдера (dev / тесты).
  */
 export class StubPaymentProvider {
   static providerName = 'stub';
 
-  async createPayment({ amountKgs, userId, planId, metadata = {} }) {
-    const providerPaymentId = `stub_${uuidv4()}`;
+  async createPayment({ amountKgs, userId, planId, paymentId, metadata = {} }) {
+    const providerPaymentId = paymentId || `stub_${uuidv4()}`;
 
     return {
       provider: StubPaymentProvider.providerName,
       providerPaymentId,
       status: PAYMENT_STATUS.PENDING,
       amountKgs,
+      paymentUrl: null,
       redirectUrl: null,
+      requiresRedirect: false,
       metadata: {
         ...metadata,
         userId,
         planId,
-        message: 'Stub provider: вызовите POST /api/payments/:id/confirm для имитации успешной оплаты',
+        message: 'Stub provider: вызовите POST /api/v1/payments/:id/confirm для имитации успешной оплаты',
       },
     };
   }
@@ -34,14 +37,13 @@ export class StubPaymentProvider {
       completedAt: new Date(),
     };
   }
-
-  async getPaymentStatus(providerPaymentId) {
-    return {
-      provider: StubPaymentProvider.providerName,
-      providerPaymentId,
-      status: PAYMENT_STATUS.PENDING,
-    };
-  }
 }
 
-export const paymentProvider = new StubPaymentProvider();
+function createPaymentProvider() {
+  if (config.payment.provider === 'finik') {
+    return finikProvider;
+  }
+  return new StubPaymentProvider();
+}
+
+export const paymentProvider = createPaymentProvider();

@@ -5,6 +5,8 @@ import {
   confirmStubPayment,
   getUserActiveSubscription,
   handlePaymentCallback,
+  handleFinikWebhook,
+  getPaymentForUser,
 } from '../services/subscriptionService.js';
 import { getWalletSummary } from '../services/walletService.js';
 import { getReferralStats } from '../services/referralService.js';
@@ -52,8 +54,12 @@ router.post('/payments', authenticate, async (req, res, next) => {
       payment: result.payment,
       plan: result.plan,
       provider: result.providerResult,
+      payment_url: result.payment_url || result.providerResult?.paymentUrl || null,
+      requires_redirect: result.requires_redirect ?? false,
+      subscription: result.subscription || null,
+      free_checkout: result.free_checkout ?? false,
       stub_confirm_url:
-        result.providerResult.provider === 'stub'
+        result.providerResult?.provider === 'stub'
           ? `/api/v1/payments/${result.payment.id}/confirm`
           : null,
     });
@@ -71,6 +77,24 @@ router.post('/payments/:id/confirm', authenticate, async (req, res, next) => {
       plan: result.plan,
       message: 'Stub-оплата подтверждена, подписка активирована',
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/payments/:id', authenticate, async (req, res, next) => {
+  try {
+    const payment = await getPaymentForUser(req.params.id, req.userId);
+    res.json({ payment });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/payments/finik/webhook', async (req, res, next) => {
+  try {
+    const result = await handleFinikWebhook(req);
+    res.json({ ok: true, ...result });
   } catch (err) {
     next(err);
   }
