@@ -383,7 +383,7 @@ export default function AnalysisPage() {
       </div>
       {!context?.scores && (
         <p style={{ marginTop: '0.75rem', fontSize: '0.85rem' }}>
-          <Link to="/account/scores">Зафиксировать баллы в профиле</Link>
+          <Link to="/account/scores">{t('account.page.scores')}</Link>
         </p>
       )}
     </>

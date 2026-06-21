@@ -46,6 +46,11 @@ import {
   adminCancelPayment,
   adminMarkPaymentFailed,
 } from '../services/adminPaymentService.js';
+import {
+  listPromoCodesAdmin,
+  createPromoCode,
+  updatePromoCode,
+} from '../services/promoService.js';
 
 const router = Router();
 const adminOnly = requireRoles(ROLES.ADMIN, ROLES.SUPERADMIN);
@@ -478,6 +483,33 @@ router.post('/payments/:id/fail', requireRoles(ROLES.ADMIN, ROLES.SUPERADMIN), a
   try {
     const payment = await adminMarkPaymentFailed(req.userId, req.params.id, req.body.reason);
     res.json({ payment });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/promo-codes', requireRoles(ROLES.ADMIN, ROLES.SUPERADMIN), async (_req, res, next) => {
+  try {
+    const promo_codes = await listPromoCodesAdmin();
+    res.json({ promo_codes });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/promo-codes', requireRoles(ROLES.ADMIN, ROLES.SUPERADMIN), async (req, res, next) => {
+  try {
+    const promo = await createPromoCode(req.userId, req.body);
+    res.status(201).json({ promo });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.patch('/promo-codes/:id', requireRoles(ROLES.ADMIN, ROLES.SUPERADMIN), async (req, res, next) => {
+  try {
+    const promo = await updatePromoCode(req.userId, req.params.id, req.body);
+    res.json({ promo });
   } catch (err) {
     next(err);
   }

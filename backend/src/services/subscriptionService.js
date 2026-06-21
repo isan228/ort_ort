@@ -7,6 +7,11 @@ import { notifyPaymentSuccess } from './notificationEvents.js';
 import { getWalletSummary, calculateBonusDiscount, debitWallet } from './walletService.js';
 import { getRedemptionRules } from './bonusService.js';
 import { BALANCE_TYPE } from '../constants/index.js';
+import {
+  validatePromoCodeForUser,
+  calculatePromoDiscount,
+  recordPromoUse,
+} from './promoService.js';
 
 export async function getActivePlans() {
   return SubscriptionPlan.findAll({
@@ -33,7 +38,7 @@ export async function userHasActiveSubscription(userId) {
   return Boolean(subscription);
 }
 
-export async function createPaymentIntent({ userId, planId, applyBalance = false }) {
+export async function createPaymentIntent({ userId, planId, applyBalance = false, promoCode = null }) {
   const plan = await SubscriptionPlan.findByPk(planId);
   if (!plan || !plan.is_active) {
     const error = new Error('План подписки не найден');
@@ -43,6 +48,16 @@ export async function createPaymentIntent({ userId, planId, applyBalance = false
 
   let amountKgs = Number(plan.price_kgs);
   let bonusApplied = 0;
+  let promoDiscount = 0;
+  let promoMeta = null;
+
+  if (promoCode) {
+    const promo = await validatePromoCodeForUser(promoCode, userId);
+    const promoCalc = calculatePromoDiscount(amountKgs, promo);
+    promoDiscount = promoCalc.discount_applied;
+    amountKgs = promoCalc.final_price;
+    promoMeta = { id: promo.id, code: promo.code };
+  }
 
   if (applyBalance) {
     const wallet = await getWalletSummary(userId);
@@ -70,10 +85,17 @@ export async function createPaymentIntent({ userId, planId, applyBalance = false
     status: providerResult.status,
     provider: providerResult.provider,
     provider_payment_id: providerResult.providerPaymentId,
-    metadata: { ...providerResult.metadata, bonus_applied: bonusApplied, original_price: plan.price_kgs },
+    metadata: {
+      ...providerResult.metadata,
+      bonus_applied: bonusApplied,
+      original_price: plan.price_kgs,
+      promo_discount: promoDiscount,
+      promo_code_id: promoMeta?.id || null,
+      promo_code: promoMeta?.code || null,
+    },
   });
 
-  return { payment, plan, providerResult, bonus_applied: bonusApplied };
+  return { payment, plan, providerResult, bonus_applied: bonusApplied, promo_discount: promoDiscount };
 }
 
 export async function confirmStubPayment(paymentId, userId = null) {
@@ -130,6 +152,18 @@ export async function confirmStubPayment(paymentId, userId = null) {
       },
       { transaction }
     );
+
+    if (payment.metadata?.promo_code_id) {
+      await recordPromoUse(
+        {
+          promoId: payment.metadata.promo_code_id,
+          userId: payment.user_id,
+          paymentId: payment.id,
+          discountAppliedKgs: Number(payment.metadata.promo_discount || 0),
+        },
+        transaction
+      );
+    }
 
     return { payment, subscription, plan };
   });

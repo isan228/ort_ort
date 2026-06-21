@@ -6,6 +6,8 @@ import { attributeReferral } from '../services/referralService.js';
 import { notifyRegistration } from '../services/notificationEvents.js';
 import { rateLimit } from '../middleware/rateLimit.js';
 import { authenticate } from '../middleware/auth.js';
+import { certificateUpload } from '../middleware/upload.js';
+import { createHttpError } from '../utils/errors.js';
 
 const router = Router();
 
@@ -22,9 +24,30 @@ router.get('/auth/config', async (_req, res, next) => {
   }
 });
 
-router.post('/auth/register', registerRateLimit, async (req, res, next) => {
+router.post('/auth/register', registerRateLimit, certificateUpload.single('certificate'), async (req, res, next) => {
   try {
-    const user = await registerUser(req.body, { ip: req.ip });
+    if (!req.file) {
+      throw createHttpError(400, 'CERT-001', 'Загрузите фото сертификата или скриншот результатов');
+    }
+
+    let consents = req.body.consents;
+    if (typeof consents === 'string') {
+      try {
+        consents = JSON.parse(consents);
+      } catch {
+        consents = { privacy: req.body['consents[privacy]'] === 'true', offer: req.body['consents[offer]'] === 'true' };
+      }
+    }
+
+    const user = await registerUser(
+      { ...req.body, consents },
+      { ip: req.ip },
+      {
+        storageKey: `certificates/${req.file.filename}`,
+        mimeType: req.file.mimetype,
+        size: req.file.size,
+      }
+    );
     if (req.body.referral_code) {
       await attributeReferral(req.body.referral_code, user.id, { ip: req.ip });
     }

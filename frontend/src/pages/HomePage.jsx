@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { api } from '../api/client.js';
+import { api, getStoredUser } from '../api/client.js';
 import { useI18n } from '../i18n/I18nContext.jsx';
 import {
   ORT_MAIN_SCORE_MIN,
@@ -110,6 +110,13 @@ export default function HomePage() {
     params.set('score', String(check.value));
     if (direction) params.set('program', direction);
     const q = params.toString();
+
+    const user = getStoredUser();
+    if (!user) {
+      navigate(`/register?${q}`);
+      return;
+    }
+
     navigate(q ? `/analysis?${q}` : '/analysis');
   }
 
@@ -245,7 +252,7 @@ export default function HomePage() {
           <h2 className="landing-section-title">{t('home.directionsTitle')}</h2>
           <div className="landing-cards-grid">
             {directions.map((dir) => (
-              <Link key={dir.key} to="/analysis" className="landing-card landing-direction-card">
+              <Link key={dir.key} to={getStoredUser() ? '/analysis' : '/register'} className="landing-card landing-direction-card">
                 <LandingIcon name={dir.icon} size={28} className="landing-direction-icon" />
                 <h3>{t(`home.direction.${dir.key}`)}</h3>
                 <p className="muted">{t('home.avgScore')}: 165</p>

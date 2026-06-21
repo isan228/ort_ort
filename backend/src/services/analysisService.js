@@ -10,7 +10,7 @@ import {
   Faculty,
   University,
 } from '../models/index.js';
-import { SCORE_MODE, USER_PHASE, REDEMPTION_FEATURE, CATALOG_STATUS } from '../constants/index.js';
+import { SCORE_MODE, REDEMPTION_FEATURE, CATALOG_STATUS, USER_PHASE } from '../constants/index.js';
 import { getSetting } from './settingsService.js';
 import { validateMainScore } from '../utils/validateScore.js';
 import { userHasActiveSubscription } from './subscriptionService.js';
@@ -25,17 +25,14 @@ import {
 import { createHttpError } from '../utils/errors.js';
 
 async function resolveScoreProfile(user) {
-  const phase = await syncUserPhaseIfNeeded(user.id);
-
-  if (phase === USER_PHASE.BEFORE_RESULTS) {
-    return ScoreProfile.findOne({
-      where: { user_id: user.id, mode: SCORE_MODE.DRAFT },
-      order: [['updated_at', 'DESC']],
-    });
-  }
+  const finalProfile = await ScoreProfile.findOne({
+    where: { user_id: user.id, mode: SCORE_MODE.FINAL, is_locked: true },
+    order: [['updated_at', 'DESC']],
+  });
+  if (finalProfile) return finalProfile;
 
   return ScoreProfile.findOne({
-    where: { user_id: user.id, mode: SCORE_MODE.FINAL, is_locked: true },
+    where: { user_id: user.id },
     order: [['updated_at', 'DESC']],
   });
 }
@@ -143,7 +140,7 @@ export async function getAnalysisContext(userId) {
   const scoreProfile = await resolveScoreProfile(user);
 
   return {
-    phase: user.phase,
+    phase: USER_PHASE.AFTER_RESULTS,
     premium,
     is_trial: !premium,
     trial: {

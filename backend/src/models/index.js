@@ -28,6 +28,7 @@ import { ReferralCode, ReferralEvent } from './Referral.js';
 import { TutorLink } from './TutorLink.js';
 import { FeatureUnlock } from './FeatureUnlock.js';
 import { FaqItem } from './FaqItem.js';
+import { PromoCode, PromoCodeUse } from './PromoCode.js';
 
 export {
   Role,
@@ -67,6 +68,8 @@ export {
   TutorLink,
   FeatureUnlock,
   FaqItem,
+  PromoCode,
+  PromoCodeUse,
 };
 
 export const models = {
@@ -107,4 +110,6 @@ export const models = {
   TutorLink,
   FeatureUnlock,
   FaqItem,
+  PromoCode,
+  PromoCodeUse,
 };

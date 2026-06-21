@@ -8,6 +8,7 @@ import AdminUsersTab from '../components/admin/AdminUsersTab.jsx';
 import AdminLegalTab from '../components/admin/AdminLegalTab.jsx';
 import AdminFaqTab from '../components/admin/AdminFaqTab.jsx';
 import AdminPaymentsTab from '../components/admin/AdminPaymentsTab.jsx';
+import AdminPromoTab from '../components/admin/AdminPromoTab.jsx';
 import { ORT_MAIN_SCORE_MIN, ORT_MAIN_SCORE_MAX, validateOrtMainScore, getOrtScoreErrorMessage } from '../utils/ortScore.js';
 import PageLoader from '../components/ux/PageLoader.jsx';
 import { useToast } from '../components/ux/ToastContext.jsx';
@@ -227,11 +228,11 @@ export default function AdminPage() {
   const [faqItems, setFaqItems] = useState([]);
   const [payments, setPayments] = useState([]);
   const [paymentsTotal, setPaymentsTotal] = useState(0);
+  const [promoCodes, setPromoCodes] = useState([]);
   const [paymentStatusFilter, setPaymentStatusFilter] = useState('');
   const [userSearch, setUserSearch] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
-  const [publishing, setPublishing] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -264,11 +265,13 @@ export default function AdminPage() {
 
       const role = getUserRole();
       if (role === 'admin' || role === 'superadmin') {
-        const paymentsRes = await api.adminGetPayments({
-          status: paymentStatusFilter || undefined,
-        });
+        const [paymentsRes, promoRes] = await Promise.all([
+          api.adminGetPayments({ status: paymentStatusFilter || undefined }),
+          api.adminGetPromoCodes(),
+        ]);
         setPayments(paymentsRes.payments || []);
         setPaymentsTotal(paymentsRes.total || 0);
+        setPromoCodes(promoRes.promo_codes || []);
       }
     } catch (err) {
       setError(err.message);
@@ -310,20 +313,6 @@ export default function AdminPage() {
       setError(err.message);
     } finally {
       setLoading(false);
-    }
-  }
-
-  async function publishResults() {
-    setPublishing(true);
-    setError('');
-    try {
-      await api.adminPublishResults(true);
-      toast.success('Результаты ОРТ опубликованы — пользователи переведены в фазу after_results');
-    } catch (err) {
-      setError(err.message);
-      toast.error(err.message);
-    } finally {
-      setPublishing(false);
     }
   }
 
@@ -410,13 +399,15 @@ export default function AdminPage() {
             Платежи ({paymentsTotal})
           </button>
         )}
-        <button
-          type="button"
-          className={tab === 'settings' ? 'btn' : 'btn btn-secondary'}
-          onClick={() => setTab('settings')}
-        >
-          Настройки
-        </button>
+        {canManagePayments && (
+          <button
+            type="button"
+            className={tab === 'promo' ? 'btn' : 'btn btn-secondary'}
+            onClick={() => setTab('promo')}
+          >
+            Промокоды
+          </button>
+        )}
       </div>
 
       {error && <div className="error">{error}</div>}
@@ -485,16 +476,8 @@ export default function AdminPage() {
             />
           )}
 
-          {tab === 'settings' && (
-            <div className="card">
-              <h2>Публикация результатов ОРТ</h2>
-              <p className="muted">
-                Переводит всех пользователей из фазы before_results в after_results.
-              </p>
-              <button type="button" className="btn" disabled={publishing} onClick={publishResults}>
-                {publishing ? 'Публикация...' : 'Опубликовать результаты ОРТ'}
-              </button>
-            </div>
+          {tab === 'promo' && canManagePayments && (
+            <AdminPromoTab promoCodes={promoCodes} onUpdated={load} />
           )}
         </>
       )}

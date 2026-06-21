@@ -18,6 +18,7 @@ import {
   LegalAcceptance,
   DeviceSession,
 } from '../models/index.js';
+import { setupRegistrationScores } from './scoreService.js';
 import { getAuthLoginMode } from './settingsService.js';
 import { writeAuditLog } from './auditService.js';
 import { detectDeviceType, parseUserAgent } from '../utils/device.js';
@@ -88,7 +89,7 @@ function sanitizeUser(user) {
   return json;
 }
 
-export async function registerUser(payload, meta = {}) {
+export async function registerUser(payload, meta = {}, certificateFile = null) {
   const authMode = await getAuthLoginMode();
   const {
     identifier,
@@ -100,10 +101,29 @@ export async function registerUser(payload, meta = {}) {
     public_display_mode,
     certificate_number,
     consents,
+    main_score,
+    subject_scores_json,
   } = payload;
 
   validatePassword(password);
   validateConsents(consents);
+
+  if (main_score == null || main_score === '') {
+    throw createHttpError(400, 'SCORE-001', 'Укажите основной балл ОРТ');
+  }
+
+  if (!certificateFile) {
+    throw createHttpError(400, 'CERT-001', 'Загрузите фото сертификата или скриншот результатов');
+  }
+
+  let parsedSubjects = subject_scores_json;
+  if (typeof parsedSubjects === 'string') {
+    try {
+      parsedSubjects = JSON.parse(parsedSubjects);
+    } catch {
+      throw createHttpError(400, 'SCORE-001', 'Некорректный формат предметных баллов');
+    }
+  }
 
   let credentials;
   if (identifier) {
@@ -141,7 +161,7 @@ export async function registerUser(payload, meta = {}) {
         phone: credentials.phone,
         password_hash: passwordHash,
         role_id: userRole.id,
-        phase: USER_PHASE.BEFORE_RESULTS,
+        phase: USER_PHASE.AFTER_RESULTS,
         status: USER_STATUS.ACTIVE,
       },
       { transaction }
@@ -177,12 +197,22 @@ export async function registerUser(payload, meta = {}) {
       );
     }
 
+    await setupRegistrationScores(
+      user.id,
+      { main_score, subject_scores_json: parsedSubjects || {} },
+      certificateFile,
+      transaction
+    );
+
     return user;
   });
 
   const user = await User.findByPk(result.id, {
     include: [{ model: Role, as: 'role' }, { model: Profile, as: 'profile' }],
   });
+
+  const { rebuildGlobalRanking } = await import('./rankingService.js');
+  await rebuildGlobalRanking();
 
   await writeAuditLog({
     actorId: user.id,

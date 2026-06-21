@@ -120,7 +120,27 @@ export const api = {
 
   // Auth API-001..004
   getAuthConfig: () => request('/api/v1/auth/config'),
-  register: (body) => request('/api/v1/auth/register', { method: 'POST', body: JSON.stringify(body) }),
+  register: async (body) => {
+    const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
+    const headers = {};
+    if (!isFormData) headers['Content-Type'] = 'application/json';
+
+    const response = await fetch(`${API_BASE}/api/v1/auth/register`, {
+      method: 'POST',
+      headers,
+      body: isFormData ? body : JSON.stringify(body),
+      credentials: 'include',
+    });
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const message = data?.error?.message || 'Ошибка запроса';
+      const error = new Error(message);
+      error.code = data?.error?.code;
+      throw error;
+    }
+    return data;
+  },
   login: async (body) => {
     const data = await request('/api/v1/auth/login', { method: 'POST', body: JSON.stringify(body) });
     setSession(data);
@@ -210,10 +230,19 @@ export const api = {
   // Monetization API-024..028
   getPlans: () => request('/api/v1/subscription/plans'),
   getSubscription: () => request('/api/v1/subscription'),
-  createPayment: (planId, applyBalance = false) =>
+  createPayment: (planId, applyBalance = false, promoCode = null) =>
     request('/api/v1/payments', {
       method: 'POST',
-      body: JSON.stringify({ plan_id: planId, apply_balance: applyBalance }),
+      body: JSON.stringify({
+        plan_id: planId,
+        apply_balance: applyBalance,
+        promo_code: promoCode || undefined,
+      }),
+    }),
+  previewPromoCode: (planId, promoCode) =>
+    request('/api/v1/promo/preview', {
+      method: 'POST',
+      body: JSON.stringify({ plan_id: planId, promo_code: promoCode }),
     }),
   confirmPayment: (paymentId) =>
     request(`/api/v1/payments/${paymentId}/confirm`, { method: 'POST' }),
@@ -328,6 +357,12 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ reason }),
     }),
+
+  adminGetPromoCodes: () => request('/api/v1/admin/promo-codes'),
+  adminCreatePromoCode: (body) =>
+    request('/api/v1/admin/promo-codes', { method: 'POST', body: JSON.stringify(body) }),
+  adminUpdatePromoCode: (id, body) =>
+    request(`/api/v1/admin/promo-codes/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
 
   getLegalDocument: (type, locale = 'ru') =>
     request(`/api/v1/legal/${type}?locale=${locale}`),

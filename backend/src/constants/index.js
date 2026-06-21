@@ -101,8 +101,17 @@ export const ALLOWED_CERT_MIME = [
 export const MAX_CERT_SIZE_BYTES = 10 * 1024 * 1024;
 
 /** Основной балл ОРТ: минимум для поступления и максимум по шкале */
-export const ORT_MAIN_SCORE_MIN = 110;
+export const ORT_MAIN_SCORE_MIN = 100;
 export const ORT_MAIN_SCORE_MAX = 250;
+
+/** Минимальный балл по предметным тестам ОРТ */
+export const ORT_SUBJECT_SCORE_MIN = 60;
+export const ORT_SUBJECT_SCORE_MAX = 300;
+
+export const PROMO_DISCOUNT_TYPE = {
+  PERCENT: 'percent',
+  FIXED: 'fixed',
+};
 
 export const TOUR_STATUS = {
   UPCOMING: 'upcoming',

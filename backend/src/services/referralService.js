@@ -148,12 +148,19 @@ export async function processReferralReward(eventId) {
   }
 
   const rules = await getRedemptionRules();
-  const rewardAmount = rules.referral_reward_bonus || 100;
+  const rewardAmount = rules.referral_reward_bonus || 50;
+  const referredBonus = rules.referred_user_bonus || 50;
 
   await creditWallet(event.referrer_user_id, {
     amount: rewardAmount,
     reason: 'referral_reward',
     metadata: { referral_event_id: event.id, referred_user_id: event.referred_user_id },
+  });
+
+  await creditWallet(event.referred_user_id, {
+    amount: referredBonus,
+    reason: 'referral_signup_bonus',
+    metadata: { referral_event_id: event.id, referrer_user_id: event.referrer_user_id },
   });
 
   await event.update({
@@ -166,6 +173,14 @@ export async function processReferralReward(eventId) {
     type: NOTIFICATION_TYPE.BONUS,
     title: 'Начислены бонусы',
     body: `+${rewardAmount} бонусов за приглашённого пользователя`,
+    actionUrl: '/account/wallet',
+  });
+
+  await createNotification({
+    userId: event.referred_user_id,
+    type: NOTIFICATION_TYPE.BONUS,
+    title: 'Добро пожаловать!',
+    body: `+${referredBonus} бонусов за регистрацию по реферальной ссылке`,
     actionUrl: '/account/wallet',
   });
 

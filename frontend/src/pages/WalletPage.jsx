@@ -80,7 +80,7 @@ export default function WalletPage() {
 
       <AccountPanel title="Реферальная ссылка">
         <p className="account-muted-line">
-          За каждого приглашённого: +{referral?.reward_per_referral ?? 100} бонусов
+          За каждого приглашённого: +{referral?.reward_per_referral ?? 50} бонусов вам и +50 новому пользователю
         </p>
         <p>
           Код: <strong>{referral?.code}</strong>

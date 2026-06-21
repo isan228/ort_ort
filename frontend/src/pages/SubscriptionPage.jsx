@@ -15,6 +15,8 @@ export default function SubscriptionPage() {
   const [error, setError] = useState('');
   const [payingPlanId, setPayingPlanId] = useState(null);
   const [applyBalance, setApplyBalance] = useState(false);
+  const [promoCode, setPromoCode] = useState('');
+  const [promoPreview, setPromoPreview] = useState(null);
   const [wallet, setWallet] = useState(null);
 
   useEffect(() => {
@@ -49,7 +51,7 @@ export default function SubscriptionPage() {
     setError('');
 
     try {
-      const result = await api.createPayment(planId, applyBalance);
+      const result = await api.createPayment(planId, applyBalance, promoCode.trim() || null);
       const paymentId = result.payment.id;
       const confirmed = await api.confirmPayment(paymentId);
       toast.success(confirmed.message || 'Подписка активирована');
@@ -59,6 +61,21 @@ export default function SubscriptionPage() {
       toast.error(err.message);
     } finally {
       setPayingPlanId(null);
+    }
+  }
+
+  async function handlePromoPreview(planId) {
+    if (!promoCode.trim()) {
+      setPromoPreview(null);
+      return;
+    }
+    try {
+      const preview = await api.previewPromoCode(planId, promoCode.trim());
+      setPromoPreview(preview);
+      setError('');
+    } catch (err) {
+      setPromoPreview(null);
+      setError(err.message);
     }
   }
 
@@ -101,6 +118,34 @@ export default function SubscriptionPage() {
 
         {error && <div className="error">{error}</div>}
 
+        {user && (
+          <div className="page-card" style={{ marginBottom: '1rem' }}>
+            <h2>Промокод</h2>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+              <input
+                type="text"
+                value={promoCode}
+                onChange={(e) => {
+                  setPromoCode(e.target.value.toUpperCase());
+                  setPromoPreview(null);
+                }}
+                placeholder="Введите промокод"
+                style={{ flex: 1, minWidth: 180, padding: '0.65rem 0.75rem' }}
+              />
+              {plans[0] && (
+                <button type="button" className="btn btn-secondary" onClick={() => handlePromoPreview(plans[0].id)}>
+                  Проверить
+                </button>
+              )}
+            </div>
+            {promoPreview && (
+              <p className="muted" style={{ marginTop: '0.75rem' }}>
+                Скидка: {promoPreview.discount_applied} сом · Итого: {promoPreview.final_price} сом
+              </p>
+            )}
+          </div>
+        )}
+
         {subscription && (
           <div className="page-card">
             <h2>Активная подписка</h2>
@@ -124,6 +169,34 @@ export default function SubscriptionPage() {
                 <span>Бонусный баланс</span>
               </div>
             </div>
+          </div>
+        )}
+
+        {user && (
+          <div className="page-card" style={{ marginBottom: '1rem' }}>
+            <h2>Промокод</h2>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+              <input
+                type="text"
+                value={promoCode}
+                onChange={(e) => {
+                  setPromoCode(e.target.value.toUpperCase());
+                  setPromoPreview(null);
+                }}
+                placeholder="Введите промокод"
+                style={{ flex: 1, minWidth: 180, padding: '0.65rem 0.75rem' }}
+              />
+              {plans[0] && (
+                <button type="button" className="btn btn-secondary" onClick={() => handlePromoPreview(plans[0].id)}>
+                  Проверить
+                </button>
+              )}
+            </div>
+            {promoPreview && (
+              <p className="muted" style={{ marginTop: '0.75rem' }}>
+                Скидка: {promoPreview.discount_applied} сом · Итого: {promoPreview.final_price} сом
+              </p>
+            )}
           </div>
         )}
 

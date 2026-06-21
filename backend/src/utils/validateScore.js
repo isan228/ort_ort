@@ -1,4 +1,9 @@
-import { ORT_MAIN_SCORE_MIN, ORT_MAIN_SCORE_MAX } from '../constants/index.js';
+import {
+  ORT_MAIN_SCORE_MIN,
+  ORT_MAIN_SCORE_MAX,
+  ORT_SUBJECT_SCORE_MIN,
+  ORT_SUBJECT_SCORE_MAX,
+} from '../constants/index.js';
 import { createHttpError } from './errors.js';
 
 export function validateMainScore(value, fieldName = 'main_score') {
@@ -13,7 +18,7 @@ export function validateMainScore(value, fieldName = 'main_score') {
     throw createHttpError(
       400,
       'SCORE-001',
-      'Порог вступления в вуз — от 110 баллов. Укажите балл не ниже 110.'
+      `Минимальный балл основного теста — ${ORT_MAIN_SCORE_MIN}. Укажите балл не ниже ${ORT_MAIN_SCORE_MIN}.`
     );
   }
 
@@ -24,13 +29,25 @@ export function validateMainScore(value, fieldName = 'main_score') {
   return rounded;
 }
 
-const SUBJECT_SCORE_MIN = 0;
-const SUBJECT_SCORE_MAX = 300;
-
 export function validateSubjectScore(value, fieldName) {
   const num = Number(value);
-  if (!Number.isFinite(num) || num < SUBJECT_SCORE_MIN || num > SUBJECT_SCORE_MAX) {
+  if (!Number.isFinite(num)) {
     throw createHttpError(400, 'SCORE-001', `Некорректное значение: ${fieldName}`);
   }
-  return Math.round(num);
+
+  const rounded = Math.round(num);
+
+  if (rounded < ORT_SUBJECT_SCORE_MIN) {
+    throw createHttpError(
+      400,
+      'SCORE-001',
+      `Минимальный балл по предмету — ${ORT_SUBJECT_SCORE_MIN}. Укажите балл не ниже ${ORT_SUBJECT_SCORE_MIN}.`
+    );
+  }
+
+  if (rounded > ORT_SUBJECT_SCORE_MAX) {
+    throw createHttpError(400, 'SCORE-001', `Некорректное значение: ${fieldName}`);
+  }
+
+  return rounded;
 }

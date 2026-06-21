@@ -59,6 +59,11 @@ const DEFAULT_SETTINGS = [
     description: 'Режим входа: phone | email | phone_or_email',
   },
   {
+    key: 'ort_results_published',
+    value: true,
+    description: 'Результаты ОРТ опубликованы (сайт в полном режиме)',
+  },
+  {
     key: 'trial_analyses_limit',
     value: 3,
     description: 'Количество бесплатных анализов на пользователя',
@@ -88,7 +93,8 @@ const DEFAULT_SETTINGS = [
   {
     key: 'redemption_rules',
     value: {
-      referral_reward_bonus: 100,
+      referral_reward_bonus: 50,
+      referred_user_bonus: 50,
       subscription_discount_max_percent: 50,
       costs: {
         extra_analysis: 50,

@@ -17,7 +17,7 @@ const UPCOMING_EVENTS = [
   { date: '15 июн', titleKey: 'account.event.deadline', icon: 'clock', tone: 'red' },
   { date: '20 июн', titleKey: 'account.event.tour', icon: 'calendar', tone: 'blue' },
   { date: '25 июн', titleKey: 'account.event.webinar', icon: 'chart', tone: 'purple' },
-  { date: '1 июл', titleKey: 'account.event.results', icon: 'trophy', tone: 'green' },
+  { date: '1 июл', titleKey: 'account.event.enrollment', icon: 'trophy', tone: 'green' },
 ];
 
 const TOOL_TILES = [

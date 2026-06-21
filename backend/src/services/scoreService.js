@@ -6,7 +6,6 @@ import {
   SCORE_MODE,
   CERTIFICATE_STATUS,
   CORRECTION_STATUS,
-  USER_PHASE,
 } from '../constants/index.js';
 import { Certificate, FileAsset, User, Profile, ScoreProfile, ScoreCorrectionRequest } from '../models/index.js';
 import { writeAuditLog } from './auditService.js';
@@ -15,13 +14,59 @@ import { syncUserPhaseIfNeeded } from './phaseService.js';
 import { rebuildGlobalRanking } from './rankingService.js';
 import { validateMainScore, validateSubjectScore } from '../utils/validateScore.js';
 
+export async function setupRegistrationScores(userId, { main_score, subject_scores_json = {} }, fileMeta, transaction) {
+  if (!fileMeta?.storageKey) {
+    throw createHttpError(400, 'CERT-001', 'Загрузите фото сертификата или скриншот результатов');
+  }
+
+  const mainScore = validateMainScore(main_score, 'main_score');
+  const subjectScores = {};
+  for (const [key, value] of Object.entries(subject_scores_json || {})) {
+    if (value === '' || value == null) continue;
+    subjectScores[key] = validateSubjectScore(value, key);
+  }
+
+  const profile = await ScoreProfile.create(
+    {
+      user_id: userId,
+      mode: SCORE_MODE.FINAL,
+      main_score: mainScore,
+      subject_scores_json: subjectScores,
+      is_locked: true,
+      locked_at: new Date(),
+      lock_acknowledged_at: new Date(),
+    },
+    { transaction }
+  );
+
+  const fileAsset = await FileAsset.create(
+    {
+      storage_key: fileMeta.storageKey,
+      mime_type: fileMeta.mimeType,
+      size: fileMeta.size,
+      owner_type: 'certificate',
+      owner_id: null,
+      visibility: 'private',
+    },
+    { transaction }
+  );
+
+  const certificate = await Certificate.create(
+    {
+      user_id: userId,
+      file_id: fileAsset.id,
+      status: CERTIFICATE_STATUS.PENDING,
+    },
+    { transaction }
+  );
+
+  await fileAsset.update({ owner_id: certificate.id }, { transaction });
+
+  return { profile, certificate, fileAsset };
+}
+
 export async function getScoreState(userId) {
-  const phase = await syncUserPhaseIfNeeded(userId);
-  const user = await User.findByPk(userId);
-  const draft = await ScoreProfile.findOne({
-    where: { user_id: userId, mode: SCORE_MODE.DRAFT, is_locked: false },
-    order: [['updated_at', 'DESC']],
-  });
+  await syncUserPhaseIfNeeded(userId);
   const finalProfile = await ScoreProfile.findOne({
     where: { user_id: userId, mode: SCORE_MODE.FINAL },
     order: [['updated_at', 'DESC']],
@@ -37,12 +82,10 @@ export async function getScoreState(userId) {
   });
 
   return {
-    phase: phase ?? user?.phase,
-    draft,
     final: finalProfile,
     certificate,
     correction_request: correctionRequest,
-    lock_warning_required: (phase ?? user?.phase) === USER_PHASE.AFTER_RESULTS && !finalProfile?.is_locked,
+    is_locked: Boolean(finalProfile?.is_locked),
   };
 }
 
@@ -50,9 +93,11 @@ export async function saveDraftScores(userId, { main_score, subject_scores_json 
   const user = await User.findByPk(userId);
   if (!user) throw createHttpError(404, 'NOT_FOUND', 'Пользователь не найден');
 
-  const phase = await syncUserPhaseIfNeeded(userId);
-  if (phase !== USER_PHASE.BEFORE_RESULTS) {
-    throw createHttpError(400, 'SCORE-002', 'Черновые баллы доступны только до публикации результатов');
+  const existingFinal = await ScoreProfile.findOne({
+    where: { user_id: userId, mode: SCORE_MODE.FINAL, is_locked: true },
+  });
+  if (existingFinal) {
+    throw createHttpError(400, 'SCORE-002', 'Баллы уже зафиксированы. Используйте запрос на исправление.');
   }
 
   const mainScore = validateMainScore(main_score, 'main_score');
@@ -94,20 +139,15 @@ export async function finalizeScores(userId, { main_score, subject_scores_json =
   const user = await User.findByPk(userId);
   if (!user) throw createHttpError(404, 'NOT_FOUND', 'Пользователь не найден');
 
-  const phase = await syncUserPhaseIfNeeded(userId);
-  if (phase !== USER_PHASE.AFTER_RESULTS) {
-    throw createHttpError(400, 'SCORE-002', 'Фиксация реальных баллов доступна после публикации результатов');
-  }
-
-  if (!lock_acknowledged) {
-    throw createHttpError(400, 'SCORE-003', 'Необходимо подтвердить предупреждение о блокировке баллов');
-  }
-
   const existingFinal = await ScoreProfile.findOne({
     where: { user_id: userId, mode: SCORE_MODE.FINAL, is_locked: true },
   });
   if (existingFinal) {
     throw createHttpError(400, 'SCORE-002', 'Баллы уже зафиксированы');
+  }
+
+  if (!lock_acknowledged) {
+    throw createHttpError(400, 'SCORE-003', 'Необходимо подтвердить предупреждение о блокировке баллов');
   }
 
   const mainScore = validateMainScore(main_score, 'main_score');
@@ -157,11 +197,19 @@ export async function finalizeScores(userId, { main_score, subject_scores_json =
 export async function uploadCertificate(userId, fileMeta) {
   const certificate = await Certificate.findOne({ where: { user_id: userId } });
   if (!certificate) {
-    throw createHttpError(400, 'CERT-001', 'Сначала зафиксируйте реальные баллы');
+    throw createHttpError(400, 'CERT-001', 'Сертификат не найден');
   }
 
   if (certificate.status === CERTIFICATE_STATUS.VERIFIED) {
     throw createHttpError(400, 'CERT-002', 'Сертификат уже подтверждён');
+  }
+
+  if (certificate.status === CERTIFICATE_STATUS.PENDING) {
+    throw createHttpError(400, 'CERT-002', 'Сертификат уже на проверке');
+  }
+
+  if (certificate.status !== CERTIFICATE_STATUS.REJECTED && certificate.status !== CERTIFICATE_STATUS.NOT_UPLOADED) {
+    throw createHttpError(400, 'CERT-002', 'Повторная загрузка доступна только после отклонения документа');
   }
 
   const fileAsset = await FileAsset.create({

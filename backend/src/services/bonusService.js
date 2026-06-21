@@ -5,7 +5,8 @@ import { grantFeatureUnlock } from './accessService.js';
 import { createHttpError } from '../utils/errors.js';
 
 const DEFAULT_REDEMPTION_RULES = {
-  referral_reward_bonus: 100,
+  referral_reward_bonus: 50,
+  referred_user_bonus: 50,
   subscription_discount_max_percent: 50,
   costs: {
     [REDEMPTION_FEATURE.EXTRA_ANALYSIS]: 50,

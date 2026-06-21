@@ -41,7 +41,7 @@ const User = sequelize.define(
     phase: {
       type: DataTypes.ENUM(...Object.values(USER_PHASE)),
       allowNull: false,
-      defaultValue: USER_PHASE.BEFORE_RESULTS,
+      defaultValue: USER_PHASE.AFTER_RESULTS,
     },
     admitted_flag: {
       type: DataTypes.BOOLEAN,

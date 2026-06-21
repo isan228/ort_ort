@@ -9,6 +9,7 @@ import {
 import { getWalletSummary } from '../services/walletService.js';
 import { getReferralStats } from '../services/referralService.js';
 import { getRedemptionRules, redeemFeature } from '../services/bonusService.js';
+import { previewPromoCode } from '../services/promoService.js';
 import { authenticate } from '../middleware/auth.js';
 
 const router = Router();
@@ -44,6 +45,7 @@ router.post('/payments', authenticate, async (req, res, next) => {
       userId: req.userId,
       planId,
       applyBalance: req.body.apply_balance,
+      promoCode: req.body.promo_code || req.body.promoCode,
     });
 
     res.status(201).json({
@@ -115,6 +117,29 @@ router.post('/wallet/redeem', authenticate, async (req, res, next) => {
   try {
     const result = await redeemFeature(req.userId, req.body.feature);
     res.json(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/promo/preview', authenticate, async (req, res, next) => {
+  try {
+    const planId = req.body.plan_id || req.body.planId;
+    const code = req.body.promo_code || req.body.promoCode;
+    if (!planId || !code) {
+      return res.status(400).json({
+        error: { code: 'VALIDATION_ERROR', message: 'plan_id и promo_code обязательны' },
+      });
+    }
+
+    const { SubscriptionPlan } = await import('../models/index.js');
+    const plan = await SubscriptionPlan.findByPk(planId);
+    if (!plan) {
+      return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'План не найден' } });
+    }
+
+    const preview = await previewPromoCode(code, req.userId, plan.price_kgs);
+    res.json(preview);
   } catch (err) {
     next(err);
   }
