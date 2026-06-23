@@ -89,6 +89,27 @@ function sanitizeUser(user) {
   return json;
 }
 
+function deriveDefaultNickname(credentials) {
+  if (credentials.email) {
+    let base = credentials.email
+      .split('@')[0]
+      .replace(/[^a-zA-Z0-9_]/g, '')
+      .toLowerCase()
+      .slice(0, 24);
+    if (base.length < 3) {
+      base = `user${Date.now().toString().slice(-6)}`;
+    }
+    return base.slice(0, 30);
+  }
+
+  if (credentials.phone) {
+    const digits = credentials.phone.replace(/\D/g, '').slice(-8);
+    return `u${digits}`.slice(0, 30);
+  }
+
+  return `user${Math.random().toString(36).slice(2, 10)}`;
+}
+
 export async function registerUser(payload, meta = {}, certificateFile = null) {
   const authMode = await getAuthLoginMode();
   const {
@@ -171,9 +192,9 @@ export async function registerUser(payload, meta = {}, certificateFile = null) {
       {
         user_id: user.id,
         full_name,
-        nickname,
+        nickname: nickname?.trim() || deriveDefaultNickname(credentials),
         certificate_number: certificate_number || null,
-        public_display_mode: public_display_mode || 'nickname',
+        public_display_mode: public_display_mode || 'certificate_number',
       },
       { transaction }
     );

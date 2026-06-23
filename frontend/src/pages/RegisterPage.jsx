@@ -6,6 +6,7 @@ import PasswordInput from '../components/ux/PasswordInput.jsx';
 import {
   ORT_MAIN_SCORE_MIN,
   ORT_MAIN_SCORE_MAX,
+  ORT_SUBJECT_SCORE_MIN,
   ORT_SUBJECT_OPTIONS,
   validateOrtMainScore,
   validateOrtSubjectScore,
@@ -25,19 +26,17 @@ export default function RegisterPage() {
     identifier: '',
     password: '',
     full_name: '',
-    nickname: '',
-    public_display_mode: 'nickname',
     main_score: '',
   });
   const [subjects, setSubjects] = useState([]);
   const [certificateFile, setCertificateFile] = useState(null);
   const [consents, setConsents] = useState({ privacy: false, offer: false });
-  const [referralCode, setReferralCode] = useState(refFromUrl);
+  const [promoCode, setPromoCode] = useState(refFromUrl);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (refFromUrl) setReferralCode(refFromUrl);
+    if (refFromUrl) setPromoCode(refFromUrl);
   }, [refFromUrl]);
 
   function updateField(key, value) {
@@ -107,12 +106,10 @@ export default function RegisterPage() {
       payload.append('identifier', form.identifier);
       payload.append('password', form.password);
       payload.append('full_name', form.full_name);
-      payload.append('nickname', form.nickname);
-      payload.append('public_display_mode', form.public_display_mode);
       payload.append('main_score', String(mainCheck.value));
       payload.append('subject_scores_json', JSON.stringify(subjectScores));
       payload.append('consents', JSON.stringify(consents));
-      if (referralCode) payload.append('referral_code', referralCode);
+      if (promoCode.trim()) payload.append('referral_code', promoCode.trim());
       payload.append('certificate', certificateFile);
 
       await api.register(payload);
@@ -134,7 +131,6 @@ export default function RegisterPage() {
           ORT.KG
         </Link>
         <h1>{t('register.title')}</h1>
-        <p className="auth-subtitle">{t('register.subtitle')}</p>
         <form className="auth-form" onSubmit={handleSubmit}>
           <label className="auth-field">
             <span>{t('login.identifier')}</span>
@@ -162,28 +158,6 @@ export default function RegisterPage() {
               onChange={(e) => updateField('full_name', e.target.value)}
               required
             />
-          </label>
-          <label className="auth-field">
-            <span>{t('register.nickname')}</span>
-            <input
-              className="auth-input"
-              value={form.nickname}
-              onChange={(e) => updateField('nickname', e.target.value)}
-              required
-              minLength={3}
-              maxLength={30}
-            />
-          </label>
-          <label className="auth-field">
-            <span>{t('register.publicName')}</span>
-            <select
-              className="auth-select"
-              value={form.public_display_mode}
-              onChange={(e) => updateField('public_display_mode', e.target.value)}
-            >
-              <option value="nickname">{t('register.publicNickname')}</option>
-              <option value="certificate_number">{t('register.publicCert')}</option>
-            </select>
           </label>
 
           <div className="auth-section">
@@ -223,7 +197,7 @@ export default function RegisterPage() {
                 <input
                   className="auth-input"
                   type="number"
-                  min={60}
+                  min={ORT_SUBJECT_SCORE_MIN}
                   max={300}
                   placeholder={t('register.subjectScore')}
                   value={row.score}
@@ -243,11 +217,12 @@ export default function RegisterPage() {
 
           <div className="auth-section">
             <label className="auth-file-label">
-              <span className="btn btn-secondary">{t('register.uploadCertificate')}</span>
+              <span className="btn btn-secondary">{t('register.uploadCertificate')} *</span>
               <input
                 type="file"
                 accept="image/jpeg,image/png,application/pdf,image/*,.pdf"
                 onChange={(e) => setCertificateFile(e.target.files?.[0] || null)}
+                required
               />
             </label>
             {certificateFile && (
@@ -259,13 +234,14 @@ export default function RegisterPage() {
           </div>
 
           <label className="auth-field">
-            <span>{t('register.referral')}</span>
+            <span>{t('register.promoCode')}</span>
             <input
               className="auth-input"
-              value={referralCode}
-              onChange={(e) => setReferralCode(e.target.value)}
+              value={promoCode}
+              onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
             />
           </label>
+
           <label className="auth-check">
             <input
               type="checkbox"
