@@ -1,6 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useI18n } from '../../i18n/I18nContext.jsx';
+import { AccountIcon } from '../icons/AccountIcons.jsx';
+
+const MENU_ITEMS = [
+  { to: '/account', key: 'nav.account', icon: 'user' },
+  { to: '/account/scores', key: 'nav.scores', icon: 'calc' },
+  { to: '/account/notifications', key: 'nav.notifications', icon: 'bell' },
+];
 
 export default function HeaderUserMenu({ user, staff, onLogout }) {
   const { t } = useI18n();
@@ -43,22 +50,29 @@ export default function HeaderUserMenu({ user, staff, onLogout }) {
       </button>
       {open && (
         <div className="header-user-dropdown" role="menu">
-          <Link to="/account" role="menuitem" onClick={() => setOpen(false)}>
-            {t('nav.account')}
-          </Link>
-          <Link to="/account/scores" role="menuitem" onClick={() => setOpen(false)}>
-            {t('nav.scores')}
-          </Link>
-          <Link to="/account/notifications" role="menuitem" onClick={() => setOpen(false)}>
-            {t('nav.notifications')}
-          </Link>
+          {MENU_ITEMS.map((item) => (
+            <Link key={item.to} to={item.to} role="menuitem" className="header-user-dropdown-link" onClick={() => setOpen(false)}>
+              <AccountIcon name={item.icon} size={18} />
+              <span>{t(item.key)}</span>
+            </Link>
+          ))}
           {staff && (
-            <Link to="/admin" role="menuitem" onClick={() => setOpen(false)}>
-              {t('nav.admin')}
+            <Link to="/admin" role="menuitem" className="header-user-dropdown-link" onClick={() => setOpen(false)}>
+              <AccountIcon name="admin" size={18} />
+              <span>{t('nav.admin')}</span>
             </Link>
           )}
-          <button type="button" className="header-user-logout" role="menuitem" onClick={() => { setOpen(false); onLogout(); }}>
-            {t('nav.logout')}
+          <button
+            type="button"
+            className="header-user-dropdown-link header-user-logout"
+            role="menuitem"
+            onClick={() => {
+              setOpen(false);
+              onLogout();
+            }}
+          >
+            <AccountIcon name="logout" size={18} />
+            <span>{t('nav.logout')}</span>
           </button>
         </div>
       )}

@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import SiteNavLink from './SiteNavLink.jsx';
 import { NAV_PRIMARY, NAV_SECONDARY } from '../../config/siteNav.js';
 import { useI18n } from '../../i18n/I18nContext.jsx';
+import { AccountIcon } from '../icons/AccountIcons.jsx';
 
 export default function SiteNavDrawer({
   open,
@@ -36,7 +37,7 @@ export default function SiteNavDrawer({
               item={{
                 to: '/admin',
                 key: 'nav.admin',
-                icon: '⚙️',
+                icon: 'admin',
                 match: (p) => p.startsWith('/admin'),
               }}
               pathname={pathname}
@@ -50,7 +51,7 @@ export default function SiteNavDrawer({
                 item={{
                   to: '/account/scores',
                   key: 'nav.scores',
-                  icon: '📝',
+                  icon: 'calc',
                   match: (p) => p === '/account/scores',
                 }}
                 pathname={pathname}
@@ -61,7 +62,7 @@ export default function SiteNavDrawer({
                 item={{
                   to: '/account/notifications',
                   key: 'nav.notifications',
-                  icon: '🔔',
+                  icon: 'bell',
                   match: (p) => p.startsWith('/account/notifications'),
                 }}
                 pathname={pathname}
@@ -91,8 +92,9 @@ export default function SiteNavDrawer({
           </div>
           <div className="nav-drawer-auth">
             {user ? (
-              <button type="button" className="nav-drawer-logout" onClick={onLogout}>
-                {t('nav.logout')}
+              <button type="button" className="nav-drawer-logout site-nav-link site-nav-link--row" onClick={onLogout}>
+                <AccountIcon name="logout" size={18} className="site-nav-link-icon" />
+                <span className="site-nav-link-label">{t('nav.logout')}</span>
               </button>
             ) : (
               <>

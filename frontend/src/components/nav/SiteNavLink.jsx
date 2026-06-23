@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useI18n } from '../../i18n/I18nContext.jsx';
+import { AccountIcon } from '../icons/AccountIcons.jsx';
 
 export default function SiteNavLink({ item, pathname, onClick, showIcon = false, className = '' }) {
   const { t } = useI18n();
@@ -12,11 +13,7 @@ export default function SiteNavLink({ item, pathname, onClick, showIcon = false,
       onClick={onClick}
       aria-current={active ? 'page' : undefined}
     >
-      {showIcon && (
-        <span className="site-nav-link-icon" aria-hidden="true">
-          {item.icon}
-        </span>
-      )}
+      {showIcon && item.icon && <AccountIcon name={item.icon} size={18} className="site-nav-link-icon" />}
       <span className="site-nav-link-label">{t(item.key)}</span>
     </Link>
   );

@@ -121,11 +121,13 @@
 }
 
 .site-nav-link-icon {
-  width: 1.35rem;
-  text-align: center;
-  font-size: 1rem;
-  line-height: 1;
   flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.site-nav-link:hover .site-nav-link-icon,
+.site-nav-link.is-active .site-nav-link-icon {
+  color: var(--link);
 }
 
 .site-nav-link-label {
@@ -156,15 +158,19 @@
   border-radius: 0.55rem;
   border: 1px solid var(--border);
   background: var(--surface);
-  color: var(--text);
+  color: var(--text-muted);
   text-decoration: none;
-  font-size: 1rem;
   flex-shrink: 0;
+}
+
+.header-bell .account-icon {
+  color: inherit;
 }
 
 .header-bell:hover {
   border-color: var(--accent-border);
   background: var(--accent-soft);
+  color: var(--link);
   text-decoration: none;
 }
 
@@ -263,8 +269,11 @@
 }
 
 .header-user-dropdown a,
+.header-user-dropdown-link,
 .header-user-logout {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
   width: 100%;
   padding: 0.55rem 0.65rem;
   border: none;
@@ -279,11 +288,23 @@
   cursor: pointer;
 }
 
+.header-user-dropdown-link .account-icon,
+.header-user-logout .account-icon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
 .header-user-dropdown a:hover,
+.header-user-dropdown-link:hover,
 .header-user-logout:hover {
   background: var(--accent-soft);
   color: var(--link);
   text-decoration: none;
+}
+
+.header-user-dropdown a:hover .account-icon,
+.header-user-dropdown-link:hover .account-icon {
+  color: var(--link);
 }
 
 .header-user-logout {
@@ -295,6 +316,10 @@
 
 .header-user-logout:hover {
   background: var(--error-bg);
+  color: var(--error-text);
+}
+
+.header-user-logout:hover .account-icon {
   color: var(--error-text);
 }
 
@@ -388,20 +413,26 @@
 
 .nav-drawer-logout {
   width: 100%;
-  text-align: center;
-  padding: 0.65rem;
-  border: 1px solid #fecaca;
-  border-radius: 0.5rem;
-  background: var(--error-bg);
+  justify-content: flex-start;
+  margin-top: 0.25rem;
+  padding: 0.75rem 0.65rem;
+  border: none;
+  border-radius: 0.55rem;
+  background: none;
   font: inherit;
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: 0.95rem;
+  font-weight: 500;
   color: #b91c1c;
   cursor: pointer;
 }
 
+.nav-drawer-logout .site-nav-link-icon {
+  color: #b91c1c;
+}
+
 .nav-drawer-logout:hover {
-  background: #fee2e2;
+  background: var(--error-bg);
+  color: #b91c1c;
 }
 
 .lang-switch--nav {

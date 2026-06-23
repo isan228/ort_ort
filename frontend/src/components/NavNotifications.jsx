@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, isAuthenticated } from '../api/client.js';
+import { AccountIcon } from './icons/AccountIcons.jsx';
 
 export default function NavNotifications({ label = 'Уведомления', variant = 'text' }) {
   const authed = isAuthenticated();
@@ -36,7 +37,7 @@ export default function NavNotifications({ label = 'Уведомления', var
         className="header-bell"
         aria-label={unread > 0 ? `${label}: ${unread}` : label}
       >
-        <span aria-hidden="true">🔔</span>
+        <AccountIcon name="bell" size={20} />
         {unread > 0 && <span className="header-bell-badge">{unread > 9 ? '9+' : unread}</span>}
       </Link>
     );
@@ -44,9 +45,7 @@ export default function NavNotifications({ label = 'Уведомления', var
 
   return (
     <Link to="/account/notifications" className="nav-notifications site-nav-link site-nav-link--row">
-      <span className="site-nav-link-icon" aria-hidden="true">
-        🔔
-      </span>
+      <AccountIcon name="bell" size={18} className="site-nav-link-icon" />
       <span className="site-nav-link-label">{label}</span>
       {unread > 0 && <span className="nav-badge">{unread}</span>}
     </Link>

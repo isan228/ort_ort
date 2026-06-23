@@ -127,6 +127,24 @@ const ICONS = {
       <path d="M3 10h18M16 14h2" />
     </>
   ),
+  news: (
+    <>
+      <path d="M4 5h16a1 1 0 011 1v14l-4-2-4 2-4-2-4 2V6a1 1 0 011-1z" />
+      <path d="M8 9h8M8 13h5" />
+    </>
+  ),
+  admin: (
+    <>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 2v2M12 20v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4" />
+    </>
+  ),
+  logout: (
+    <>
+      <path d="M10 4H6a2 2 0 00-2 2v12a2 2 0 002 2h4" />
+      <path d="M15 12H8M18 9l3 3-3 3" />
+    </>
+  ),
 };
 
 export function AccountIcon({ name, size = DEFAULT_SIZE, className = '' }) {
