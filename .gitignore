@@ -5,6 +5,7 @@ build/
 .env.local
 backend/.env
 frontend/.env
+*.pem
 *.log
 .DS_Store
 uploads/*

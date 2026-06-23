@@ -1,9 +1,22 @@
 import dotenv from 'dotenv';
+import fs from 'node:fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+
+/** Корень монорепо (ort/), не backend/ */
+export const projectRoot = path.resolve(__dirname, '../../..');
+
+function resolveKeyFile(envPath, defaultNames) {
+  if (envPath) return envPath;
+  for (const name of defaultNames) {
+    const candidate = path.join(projectRoot, name);
+    if (fs.existsSync(candidate)) return candidate;
+  }
+  return path.join(projectRoot, defaultNames[0]);
+}
 
 export const config = {
   env: process.env.NODE_ENV || 'development',
@@ -32,9 +45,17 @@ export const config = {
     qrNameEn: process.env.FINIK_QR_NAME_EN || 'ort-kg-premium',
     baseUrl: process.env.FINIK_BASE_URL || 'https://api.acquiring.averspay.kg',
     privateKeyPem: process.env.FINIK_PRIVATE_PEM || '',
-    privateKeyPath: process.env.FINIK_PRIVATE_KEY_PATH || '',
+    privateKeyPath: resolveKeyFile(process.env.FINIK_PRIVATE_KEY_PATH, [
+      'finik_private.pem',
+      'private.pem',
+      'finik-private.pem',
+    ]),
     publicKeyPem: process.env.FINIK_PUBLIC_PEM || '',
-    publicKeyPath: process.env.FINIK_PUBLIC_KEY_PATH || '',
+    publicKeyPath: resolveKeyFile(process.env.FINIK_PUBLIC_KEY_PATH, [
+      'finik_public.pem',
+      'public.pem',
+      'finik-public.pem',
+    ]),
     webhookPath: process.env.FINIK_WEBHOOK_PATH || '/api/v1/payments/finik/webhook',
     timestampSkewMs: Number(process.env.FINIK_TIMESTAMP_SKEW_MS || 5 * 60 * 1000),
   },

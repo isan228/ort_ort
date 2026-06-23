@@ -1,6 +1,6 @@
 import { createRequire } from 'node:module';
 import fs from 'node:fs';
-import { config } from '../config/index.js';
+import { config, projectRoot } from '../config/index.js';
 import { PAYMENT_STATUS } from '../constants/index.js';
 
 const require = createRequire(import.meta.url);
@@ -30,7 +30,9 @@ export class FinikPaymentProvider {
   getPrivateKey() {
     const key = readPem(config.finik.privateKeyPem, config.finik.privateKeyPath);
     if (!key) {
-      throw new Error('FINIK private key not configured (FINIK_PRIVATE_PEM or FINIK_PRIVATE_KEY_PATH)');
+      throw new Error(
+        `FINIK private key not found. Place finik_private.pem in project root (${projectRoot}) or set FINIK_PRIVATE_KEY_PATH`
+      );
     }
     return key;
   }
@@ -38,7 +40,9 @@ export class FinikPaymentProvider {
   getPublicKey() {
     const key = readPem(config.finik.publicKeyPem, config.finik.publicKeyPath);
     if (!key) {
-      throw new Error('FINIK public key not configured (FINIK_PUBLIC_PEM or FINIK_PUBLIC_KEY_PATH)');
+      throw new Error(
+        `FINIK public key not found. Place finik_public.pem in project root (${projectRoot}) or set FINIK_PUBLIC_KEY_PATH`
+      );
     }
     return key;
   }
