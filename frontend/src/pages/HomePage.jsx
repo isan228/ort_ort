@@ -138,7 +138,7 @@ export default function HomePage() {
 
     try {
       const ctx = await api.getAnalysisContext();
-      const hasAccess = ctx.premium || (ctx.trial?.remaining ?? 0) > 0;
+      const hasAccess = Boolean(ctx.premium);
       navigate(hasAccess ? target : '/subscription');
     } catch {
       navigate('/subscription');

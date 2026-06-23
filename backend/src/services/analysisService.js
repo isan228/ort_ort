@@ -142,11 +142,11 @@ export async function getAnalysisContext(userId) {
   return {
     phase: USER_PHASE.AFTER_RESULTS,
     premium,
-    is_trial: !premium,
+    is_trial: false,
     trial: {
-      used: user.trial_analyses_used,
-      limit: user.trial_analyses_limit,
-      remaining: Math.max(0, user.trial_analyses_limit - user.trial_analyses_used),
+      used: 0,
+      limit: 0,
+      remaining: 0,
     },
     scores: scoreProfile
       ? {
@@ -169,15 +169,9 @@ export async function runAnalysis(userId, { program_ids = [], main_score }) {
   const subscribed = await userHasActiveSubscription(userId);
   const unlockAvailable = await userCanRunPremiumAnalysis(userId);
   const premium = subscribed || unlockAvailable;
-  const isTrial = !premium;
 
-  if (isTrial) {
-    if (user.trial_analyses_used >= user.trial_analyses_limit) {
-      throw createHttpError(402, 'ANL-001', 'Бесплатные попытки закончились');
-    }
-    if (program_ids.length > 1) {
-      throw createHttpError(402, 'ANL-002', 'Функция доступна по подписке');
-    }
+  if (!premium) {
+    throw createHttpError(402, 'ANL-001', 'Анализ доступен по подписке Premium');
   }
 
   if (!program_ids.length) {
@@ -236,14 +230,10 @@ export async function runAnalysis(userId, { program_ids = [], main_score }) {
         },
         result_json: { programs: results, alternatives },
         algorithm_version: algorithmVersion,
-        is_trial: isTrial,
+        is_trial: false,
       },
       { transaction }
     );
-
-    if (isTrial) {
-      await user.increment('trial_analyses_used', { transaction });
-    }
 
     return created;
   });
@@ -256,7 +246,7 @@ export async function runAnalysis(userId, { program_ids = [], main_score }) {
     analysis,
     results,
     alternatives,
-    is_trial: isTrial,
+    is_trial: false,
     algorithm_version: algorithmVersion,
     show_low_chance_flow: lowestChance < 45,
   };

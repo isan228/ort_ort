@@ -83,7 +83,6 @@ export default function AccountPage() {
   const [ortScore, setOrtScore] = useState(null);
   const [subscription, setSubscription] = useState(null);
   const [plans, setPlans] = useState([]);
-  const [billingYearly, setBillingYearly] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -126,26 +125,15 @@ export default function AccountPage() {
   const bestChance = useMemo(() => getBestChance(lastResults), [lastResults]);
   const isPremium = account?.premium?.active;
   const displayPlans = useMemo(() => {
-    const apiPlans = plans.map((p) => ({
+    return plans.map((p) => ({
       id: p.id,
       code: p.code,
-      title: p.title?.includes('сезон') ? 'Premium' : p.title?.replace(/Premium\s*—?\s*/i, 'Premium ') || p.title,
+      title: p.title || 'Premium',
       price: p.price_kgs,
       period: p.duration_days >= 90 ? t('account.plan.year') : t('account.plan.month'),
-      featured: p.code === 'premium_month',
+      featured: true,
       features: p.features || [],
     }));
-    return [
-      {
-        id: 'free',
-        code: 'free',
-        title: 'Free',
-        price: 0,
-        period: t('account.plan.forever'),
-        features: [t('account.plan.free1'), t('account.plan.free2')],
-      },
-      ...apiPlans,
-    ];
   }, [plans, t]);
 
   if (loading) {
@@ -326,27 +314,11 @@ export default function AccountPage() {
         <section className="account-panel account-sub-card">
           <div className="account-plans-head">
             <h3>{t('account.plans')}</h3>
-            <div className="account-billing-toggle">
-              <button
-                type="button"
-                className={!billingYearly ? 'active' : ''}
-                onClick={() => setBillingYearly(false)}
-              >
-                {t('account.plan.month')}
-              </button>
-              <button
-                type="button"
-                className={billingYearly ? 'active' : ''}
-                onClick={() => setBillingYearly(true)}
-              >
-                {t('account.plan.year')}
-              </button>
-            </div>
           </div>
 
           <div className="account-plans-list">
             {displayPlans.map((plan) => {
-              const isCurrent = plan.code !== 'free' && subscription?.plan_id === plan.id;
+              const isCurrent = subscription?.plan_id === plan.id;
               const isFeatured = plan.featured;
               return (
                 <div

@@ -11,7 +11,9 @@ import {
   NewsArticle,
   TutorLink,
   FaqItem,
+  User,
 } from '../models/index.js';
+import { Op } from 'sequelize';
 import { ROLES, TRUST_LEVEL, TOUR_STATUS, TIMER_MODE, NEWS_STATUS, TUTOR_LINK_PLATFORM, TUTOR_LINK_STATUS } from '../constants/index.js';
 import { DEFAULT_LEGAL, LEGAL_SETTING_KEY } from '../services/legalService.js';
 
@@ -25,30 +27,19 @@ const DEFAULT_ROLES = [
 
 const DEFAULT_PLANS = [
   {
-    code: 'premium_month',
-    title: 'Premium — 1 месяц',
-    description: 'Полный анализ, сравнение, туры, расширенный каталог',
-    price_kgs: 299,
-    duration_days: 30,
-    features: [
-      'Мультипрограммный анализ',
-      'Сравнение вариантов',
-      'Участие в турах',
-      'Расширенный каталог',
-    ],
-    sort_order: 1,
-  },
-  {
-    code: 'premium_season',
-    title: 'Premium — сезон',
-    description: 'Доступ до конца приёмной кампании',
-    price_kgs: 799,
+    code: 'premium',
+    title: 'Premium',
+    description: 'Полный доступ к анализу шансов, сравнению, турам и расширенному каталогу',
+    price_kgs: 950,
     duration_days: 180,
     features: [
-      'Все функции Premium',
-      'Приоритет на весь сезон',
+      'Мультипрограммный анализ шансов',
+      'Сравнение вариантов поступления',
+      'Участие в турах',
+      'Расширенный каталог вузов',
     ],
-    sort_order: 2,
+    sort_order: 1,
+    is_active: true,
   },
 ];
 
@@ -65,8 +56,8 @@ const DEFAULT_SETTINGS = [
   },
   {
     key: 'trial_analyses_limit',
-    value: 3,
-    description: 'Количество бесплатных анализов на пользователя',
+    value: 0,
+    description: 'Количество бесплатных анализов на пользователя (0 — отключено)',
   },
   {
     key: 'timezone',
@@ -207,18 +198,29 @@ export async function seedDefaults() {
   }
 
   for (const plan of DEFAULT_PLANS) {
-    await SubscriptionPlan.findOrCreate({
+    const [row] = await SubscriptionPlan.findOrCreate({
       where: { code: plan.code },
       defaults: plan,
     });
+    await row.update(plan);
   }
 
+  await SubscriptionPlan.update(
+    { is_active: false },
+    { where: { code: { [Op.notIn]: DEFAULT_PLANS.map((p) => p.code) } } }
+  );
+
   for (const setting of DEFAULT_SETTINGS) {
-    await Setting.findOrCreate({
+    const [row] = await Setting.findOrCreate({
       where: { key: setting.key },
       defaults: setting,
     });
+    if (setting.key === 'trial_analyses_limit') {
+      await row.update({ value: 0 });
+    }
   }
+
+  await User.update({ trial_analyses_limit: 0 });
 
   await seedCatalog();
   await seedTour();
@@ -322,9 +324,9 @@ async function seedFaq() {
     {
       category: 'general',
       locale: 'ru',
-      question: 'Сколько бесплатных анализов доступно?',
+      question: 'Сколько стоит Premium?',
       answer:
-        '<p>После регистрации доступно несколько пробных анализов (см. лимит в личном кабинете). Для расширенного доступа оформите Premium или используйте бонусы.</p>',
+        '<p>На платформе один тариф Premium — 950 сом. Он открывает полный анализ шансов, сравнение программ, туры и расширенный каталог.</p>',
       sort_order: 2,
     },
     {

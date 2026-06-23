@@ -292,7 +292,7 @@ export default function AnalysisPage() {
       return;
     }
 
-    const ids = filteredRows.slice(0, context?.is_trial ? 1 : 5).map((r) => r.id);
+    const ids = filteredRows.slice(0, 5).map((r) => r.id);
     if (!ids.length) {
       setError('Нет программ для анализа');
       return;
@@ -410,10 +410,10 @@ export default function AnalysisPage() {
           </button>
         </header>
 
-        {context?.is_trial && (
+        {!context?.premium && (
           <div className="tours-disclaimer" style={{ marginBottom: '1rem' }}>
-            Бесплатный режим: осталось {context.trial.remaining} из {context.trial.limit} анализов.{' '}
-            <Link to="/subscription">Premium</Link>
+            Анализ доступен по подписке Premium (950 сом).{' '}
+            <Link to="/subscription">Оформить подписку</Link>
           </div>
         )}
 

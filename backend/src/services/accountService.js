@@ -36,9 +36,9 @@ export async function getAccountSummary(userId) {
       feature_unlocks: featureUnlocks,
     },
     trial: {
-      used: user.trial_analyses_used,
-      limit: user.trial_analyses_limit,
-      remaining: Math.max(0, user.trial_analyses_limit - user.trial_analyses_used),
+      used: 0,
+      limit: 0,
+      remaining: 0,
     },
     wallet: user.wallet,
   };

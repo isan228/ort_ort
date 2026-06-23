@@ -60,7 +60,7 @@ const User = sequelize.define(
     trial_analyses_limit: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue: 3,
+      defaultValue: 0,
     },
   },
   { tableName: 'users' }

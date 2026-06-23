@@ -230,8 +230,8 @@ export default function SubscriptionPage() {
         )}
 
         <div className="page-plan-grid">
-          {plans.map((plan, idx) => (
-            <article key={plan.id} className={`page-plan-card${idx === 1 ? ' featured' : ''}`}>
+          {plans.map((plan) => (
+            <article key={plan.id} className="page-plan-card featured">
               <h3>{plan.title}</h3>
               <p className="muted">{plan.description}</p>
               <div className="page-plan-price">
