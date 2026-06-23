@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
-    "db:sync": "node src/scripts/syncDb.js"
+    "db:sync": "node src/scripts/syncDb.js",
+    "admin:create-test": "node src/scripts/createTestAdmin.js"
   },
   "dependencies": {
     "@mancho.devs/authorizer": "^2.12.8",
