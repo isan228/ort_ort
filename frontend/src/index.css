@@ -917,6 +917,11 @@ main {
   font-weight: 700;
 }
 
+.landing-stat-soon {
+  color: #94a3b8 !important;
+  font-weight: 600 !important;
+}
+
 .landing-section {
   padding: 3rem 0;
   background: #fff;

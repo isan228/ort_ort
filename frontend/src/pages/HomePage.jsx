@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { api, getStoredUser } from '../api/client.js';
+import { api, isAuthenticated } from '../api/client.js';
 import { useI18n } from '../i18n/I18nContext.jsx';
 import {
   ORT_MAIN_SCORE_MIN,
@@ -38,6 +38,13 @@ function getUniInitials(name = '') {
     .toUpperCase();
 }
 
+function formatStatValue(count) {
+  if (count == null || count <= 0) return null;
+  if (count >= 1000) return `${Math.floor(count / 100) * 100}+`;
+  if (count >= 10) return `${Math.floor(count / 10) * 10}+`;
+  return String(count);
+}
+
 function ChanceBadge({ level, pct, t }) {
   const labels = {
     high: t('analysis.chance.high'),
@@ -61,6 +68,8 @@ export default function HomePage() {
   const [news, setNews] = useState([]);
   const [programs, setPrograms] = useState([]);
   const [scoreError, setScoreError] = useState('');
+  const [ctaLoading, setCtaLoading] = useState(false);
+  const [platformStats, setPlatformStats] = useState(null);
 
   const directionKeys = ['medicine', 'dentistry', 'it', 'economics', 'law'];
   const directions = directionKeys.map((key, i) => ({
@@ -69,13 +78,33 @@ export default function HomePage() {
     chance: [78, 65, 82, 71, 58][i],
   }));
 
-  const stats = [
-    { icon: STAT_ICON_NAMES[0], value: '50+', label: t('home.stat.universities') },
-    { icon: STAT_ICON_NAMES[1], value: '500+', label: t('home.stat.programs') },
-    { icon: STAT_ICON_NAMES[2], value: '5', label: t('home.stat.years') },
-    { icon: STAT_ICON_NAMES[3], value: '200K+', label: t('home.stat.students') },
-    { icon: STAT_ICON_NAMES[4], value: '№1', label: t('home.stat.service') },
-  ];
+  const stats = useMemo(() => {
+    const usersCount = platformStats?.users_count ?? 0;
+    const uniCount = platformStats?.universities_count ?? 0;
+    const programCount = platformStats?.programs_count ?? 0;
+
+    return [
+      {
+        icon: STAT_ICON_NAMES[3],
+        value: usersCount > 0 ? String(usersCount) : '—',
+        label: t('home.stat.users'),
+      },
+      {
+        icon: STAT_ICON_NAMES[0],
+        value: formatStatValue(uniCount) || t('home.stat.soon'),
+        label: t('home.stat.universities'),
+        muted: !formatStatValue(uniCount),
+      },
+      {
+        icon: STAT_ICON_NAMES[1],
+        value: formatStatValue(programCount) || t('home.stat.soon'),
+        label: t('home.stat.programs'),
+        muted: !formatStatValue(programCount),
+      },
+      { icon: STAT_ICON_NAMES[2], value: '5', label: t('home.stat.years') },
+      { icon: STAT_ICON_NAMES[4], value: '№1', label: t('home.stat.service') },
+    ];
+  }, [platformStats, t]);
 
   function getDirectionLabel(value) {
     if (!value) return t('home.direction.medicineFull');
@@ -96,28 +125,55 @@ export default function HomePage() {
     api.getUniversities().then((data) => setUniversities((data.universities || []).slice(0, 5))).catch(() => {});
     api.getNews({ limit: 4 }).then((data) => setNews(data.articles || [])).catch(() => {});
     api.listPrograms().then((data) => setPrograms((data.programs || []).slice(0, 20))).catch(() => {});
+    api.getPublicStats().then(setPlatformStats).catch(() => {});
   }, []);
 
-  function handleStartAnalysis(e) {
-    e.preventDefault();
+  async function goToAnalysis(searchQuery = '') {
+    const target = searchQuery ? `/analysis?${searchQuery}` : '/analysis';
+
+    if (!isAuthenticated()) {
+      navigate('/subscription');
+      return;
+    }
+
+    try {
+      const ctx = await api.getAnalysisContext();
+      const hasAccess = ctx.premium || (ctx.trial?.remaining ?? 0) > 0;
+      navigate(hasAccess ? target : '/subscription');
+    } catch {
+      navigate('/subscription');
+    }
+  }
+
+  async function handleStartAnalysis(e) {
+    e?.preventDefault?.();
     setScoreError('');
     const check = validateOrtMainScore(score);
     if (!check.valid) {
       setScoreError(getOrtScoreErrorMessage(check.error, t));
       return;
     }
+
     const params = new URLSearchParams();
     params.set('score', String(check.value));
     if (direction) params.set('program', direction);
-    const q = params.toString();
 
-    const user = getStoredUser();
-    if (!user) {
-      navigate(`/register?${q}`);
-      return;
+    setCtaLoading(true);
+    try {
+      await goToAnalysis(params.toString());
+    } finally {
+      setCtaLoading(false);
     }
+  }
 
-    navigate(q ? `/analysis?${q}` : '/analysis');
+  async function handleDirectionClick(e) {
+    e.preventDefault();
+    setCtaLoading(true);
+    try {
+      await goToAnalysis('');
+    } finally {
+      setCtaLoading(false);
+    }
   }
 
   return (
@@ -169,8 +225,8 @@ export default function HomePage() {
                     </select>
                   </label>
                 </div>
-                <button type="submit" className="btn btn-landing">
-                  <span>{t('home.ctaFree')}</span>
+                <button type="submit" className="btn btn-landing" disabled={ctaLoading}>
+                  <span>{ctaLoading ? t('home.ctaLoading') : t('home.ctaAnalysis')}</span>
                   <LandingIcon name="arrowRight" size={18} className="btn-landing-arrow" />
                 </button>
                 <p className="landing-form-note">
@@ -223,7 +279,7 @@ export default function HomePage() {
               <div key={item.label} className="landing-stat">
                 <LandingIcon name={item.icon} size={22} className="landing-stat-svg" />
                 <span className="landing-stat-text">
-                  <strong>{item.value}</strong> {item.label}
+                  <strong className={item.muted ? 'landing-stat-soon' : undefined}>{item.value}</strong> {item.label}
                 </span>
               </div>
             ))}
@@ -252,7 +308,12 @@ export default function HomePage() {
           <h2 className="landing-section-title">{t('home.directionsTitle')}</h2>
           <div className="landing-cards-grid">
             {directions.map((dir) => (
-              <Link key={dir.key} to={getStoredUser() ? '/analysis' : '/register'} className="landing-card landing-direction-card">
+              <a
+                key={dir.key}
+                href="/analysis"
+                className="landing-card landing-direction-card"
+                onClick={handleDirectionClick}
+              >
                 <LandingIcon name={dir.icon} size={28} className="landing-direction-icon" />
                 <h3>{t(`home.direction.${dir.key}`)}</h3>
                 <p className="muted">{t('home.avgScore')}: 165</p>
@@ -260,7 +321,7 @@ export default function HomePage() {
                 <span className="landing-best-chance">
                   {t('home.bestChance')}: {dir.chance}%
                 </span>
-              </Link>
+              </a>
             ))}
           </div>
         </div>
@@ -327,10 +388,10 @@ export default function HomePage() {
         <div className="container landing-bottom-cta-inner">
           <LandingIcon name="gradCap" size={36} className="landing-bottom-icon" />
           <p>{t('home.bottomCta')}</p>
-          <Link to="/register" className="btn btn-landing btn-landing--inline">
-            <span>{t('home.ctaFree')}</span>
+          <button type="button" className="btn btn-landing btn-landing--inline" disabled={ctaLoading} onClick={handleStartAnalysis}>
+            <span>{ctaLoading ? t('home.ctaLoading') : t('home.ctaAnalysis')}</span>
             <LandingIcon name="arrowRight" size={18} className="btn-landing-arrow" />
-          </Link>
+          </button>
         </div>
       </section>
 

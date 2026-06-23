@@ -121,6 +121,7 @@ async function request(path, options = {}, retried = false) {
 
 export const api = {
   health: () => request('/api/health'),
+  getPublicStats: () => request('/api/public/stats'),
 
   // Auth API-001..004
   getAuthConfig: () => request('/api/v1/auth/config'),
