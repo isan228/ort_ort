@@ -220,7 +220,10 @@ export async function seedDefaults() {
     }
   }
 
-  await User.update({ trial_analyses_limit: 0 });
+  await User.update(
+    { trial_analyses_limit: 0 },
+    { where: { trial_analyses_limit: { [Op.ne]: 0 } } }
+  );
 
   await seedCatalog();
   await seedTour();
