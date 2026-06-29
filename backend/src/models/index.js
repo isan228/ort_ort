@@ -29,6 +29,7 @@ import { TutorLink } from './TutorLink.js';
 import { FeatureUnlock } from './FeatureUnlock.js';
 import { FaqItem } from './FaqItem.js';
 import { PromoCode, PromoCodeUse } from './PromoCode.js';
+import { PendingRegistration } from './PendingRegistration.js';
 
 export {
   Role,
@@ -70,6 +71,7 @@ export {
   FaqItem,
   PromoCode,
   PromoCodeUse,
+  PendingRegistration,
 };
 
 export const models = {
@@ -112,4 +114,5 @@ export const models = {
   FaqItem,
   PromoCode,
   PromoCodeUse,
+  PendingRegistration,
 };

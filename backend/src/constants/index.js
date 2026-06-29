@@ -53,6 +53,13 @@ export const SUBSCRIPTION_STATUS = {
   CANCELLED: 'cancelled',
 };
 
+export const PENDING_REGISTRATION_STATUS = {
+  PENDING: 'pending',
+  COMPLETED: 'completed',
+  FAILED: 'failed',
+  EXPIRED: 'expired',
+};
+
 export const PAYMENT_STATUS = {
   PENDING: 'pending',
   COMPLETED: 'completed',

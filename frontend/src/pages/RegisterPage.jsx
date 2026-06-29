@@ -20,7 +20,7 @@ function emptySubjectRow() {
 export default function RegisterPage() {
   const { t } = useI18n();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const refFromUrl = searchParams.get('ref') || '';
   const [form, setForm] = useState({
     identifier: '',
@@ -32,12 +32,68 @@ export default function RegisterPage() {
   const [certificateFile, setCertificateFile] = useState(null);
   const [consents, setConsents] = useState({ privacy: false, offer: false });
   const [promoCode, setPromoCode] = useState(refFromUrl);
+  const [plans, setPlans] = useState([]);
+  const [selectedPlanId, setSelectedPlanId] = useState('');
+  const [returnPending, setReturnPending] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (refFromUrl) setPromoCode(refFromUrl);
   }, [refFromUrl]);
+
+  useEffect(() => {
+    api
+      .getPlans()
+      .then((data) => {
+        const list = data.plans || [];
+        setPlans(list);
+        if (list.length === 1) setSelectedPlanId(list[0].id);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const paymentId = searchParams.get('payment_id');
+    if (searchParams.get('payment') === 'return' && paymentId) {
+      pollRegistrationAfterPayment(paymentId);
+    }
+  }, [searchParams]);
+
+  async function pollRegistrationAfterPayment(paymentId) {
+    setReturnPending(true);
+    setError('');
+    const delays = [0, 2000, 4000, 8000, 12000];
+
+    for (const delay of delays) {
+      if (delay) await new Promise((r) => setTimeout(r, delay));
+      try {
+        const status = await api.getRegisterCheckoutStatus(paymentId);
+        if (status.status === 'completed') {
+          setReturnPending(false);
+          searchParams.delete('payment');
+          searchParams.delete('payment_id');
+          setSearchParams(searchParams, { replace: true });
+          if (status.access_token || status.session_already_issued) {
+            navigate(status.access_token ? '/analysis' : '/login');
+          } else {
+            navigate('/analysis');
+          }
+          return;
+        }
+        if (status.status === 'failed') {
+          setReturnPending(false);
+          setError(t('register.paymentFailed'));
+          return;
+        }
+      } catch {
+        // keep polling
+      }
+    }
+
+    setReturnPending(false);
+    setError(t('register.paymentPending'));
+  }
 
   function updateField(key, value) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -59,6 +115,12 @@ export default function RegisterPage() {
     e.preventDefault();
     setLoading(true);
     setError('');
+
+    if (!selectedPlanId) {
+      setError(t('register.planRequired'));
+      setLoading(false);
+      return;
+    }
 
     const mainCheck = validateOrtMainScore(form.main_score);
     if (!mainCheck.valid) {
@@ -109,12 +171,24 @@ export default function RegisterPage() {
       payload.append('main_score', String(mainCheck.value));
       payload.append('subject_scores_json', JSON.stringify(subjectScores));
       payload.append('consents', JSON.stringify(consents));
+      payload.append('plan_id', selectedPlanId);
       if (promoCode.trim()) payload.append('referral_code', promoCode.trim());
       payload.append('certificate', certificateFile);
 
-      await api.register(payload);
-      await api.login({ identifier: form.identifier, password: form.password });
-      navigate('/analysis');
+      const result = await api.register(payload);
+
+      if (result.payment_url) {
+        window.location.href = result.payment_url;
+        return;
+      }
+
+      if (result.stub_confirm_url || result.provider === 'stub') {
+        await api.confirmRegisterStubPayment(result.payment_id);
+        navigate('/analysis');
+        return;
+      }
+
+      throw new Error(t('register.paymentUrlMissing'));
     } catch (err) {
       setError(err.message);
     } finally {
@@ -131,6 +205,7 @@ export default function RegisterPage() {
           ORT.KG
         </Link>
         <h1>{t('register.title')}</h1>
+        {returnPending && <div className="auth-hint">{t('register.processingPayment')}</div>}
         <form className="auth-form" onSubmit={handleSubmit}>
           <label className="auth-field">
             <span>{t('login.identifier')}</span>
@@ -242,6 +317,27 @@ export default function RegisterPage() {
             />
           </label>
 
+          <div className="auth-section">
+            <h2 className="auth-section-title">{t('register.planTitle')}</h2>
+            {plans.map((plan) => (
+              <label key={plan.id} className="auth-check auth-plan-option">
+                <input
+                  type="radio"
+                  name="plan"
+                  value={plan.id}
+                  checked={selectedPlanId === plan.id}
+                  onChange={() => setSelectedPlanId(plan.id)}
+                  required={plans.length > 0}
+                />
+                <span>
+                  <strong>{plan.title}</strong> — {plan.price_kgs} сом / {plan.duration_days} {t('register.days')}
+                  {plan.description ? ` · ${plan.description}` : ''}
+                </span>
+              </label>
+            ))}
+            {plans.length === 0 && <p className="auth-hint">{t('register.plansLoading')}</p>}
+          </div>
+
           <label className="auth-check">
             <input
               type="checkbox"
@@ -269,8 +365,8 @@ export default function RegisterPage() {
             </span>
           </label>
           {error && <div className="error">{error}</div>}
-          <button type="submit" className="btn auth-submit" disabled={loading}>
-            {loading ? t('register.submitting') : t('register.submit')}
+          <button type="submit" className="btn auth-submit" disabled={loading || returnPending || plans.length === 0}>
+            {loading ? t('register.submitting') : t('register.payAndRegister')}
           </button>
         </form>
         <p className="auth-footer">

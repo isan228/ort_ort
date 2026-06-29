@@ -1,9 +1,12 @@
 import { Router } from 'express';
-import { registerUser, loginUser, refreshAccessToken, logoutUser } from '../services/authService.js';
+import { loginUser, refreshAccessToken, logoutUser } from '../services/authService.js';
+import {
+  createRegistrationCheckout,
+  getRegistrationCheckoutStatus,
+  confirmRegistrationStubPayment,
+} from '../services/registrationCheckoutService.js';
 import { requestPasswordReset, resetPassword } from '../services/passwordResetService.js';
 import { getAuthLoginMode } from '../services/settingsService.js';
-import { attributeReferral } from '../services/referralService.js';
-import { notifyRegistration } from '../services/notificationEvents.js';
 import { rateLimit } from '../middleware/rateLimit.js';
 import { authenticate } from '../middleware/auth.js';
 import { certificateUpload } from '../middleware/upload.js';
@@ -24,7 +27,7 @@ router.get('/auth/config', async (_req, res, next) => {
   }
 });
 
-router.post('/auth/register', registerRateLimit, certificateUpload.single('certificate'), async (req, res, next) => {
+router.post('/auth/register/checkout', registerRateLimit, certificateUpload.single('certificate'), async (req, res, next) => {
   try {
     if (!req.file) {
       throw createHttpError(400, 'CERT-001', 'Загрузите фото сертификата или скриншот результатов');
@@ -39,27 +42,61 @@ router.post('/auth/register', registerRateLimit, certificateUpload.single('certi
       }
     }
 
-    const user = await registerUser(
+    const result = await createRegistrationCheckout(
       { ...req.body, consents },
-      { ip: req.ip },
       {
         storageKey: `certificates/${req.file.filename}`,
         mimeType: req.file.mimetype,
         size: req.file.size,
-      }
+      },
+      { ip: req.ip }
     );
-    if (req.body.referral_code) {
-      await attributeReferral(req.body.referral_code, user.id, { ip: req.ip });
-    }
-    await notifyRegistration(user.id);
+
     res.status(201).json({
-      user_id: user.id,
-      state: user.phase,
-      user,
+      payment_id: result.payment_id,
+      plan: result.plan,
+      payment_url: result.payment_url,
+      requires_redirect: result.requires_redirect,
+      provider: result.provider,
+      stub_confirm_url: result.stub_confirm_url,
     });
   } catch (err) {
     next(err);
   }
+});
+
+router.get('/auth/register/status/:paymentId', async (req, res, next) => {
+  try {
+    const status = await getRegistrationCheckoutStatus(req.params.paymentId, {
+      ip: req.ip,
+      userAgent: req.headers['user-agent'],
+    });
+    res.json(status);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/auth/register/checkout/:paymentId/confirm-stub', registerRateLimit, async (req, res, next) => {
+  try {
+    await confirmRegistrationStubPayment(req.params.paymentId);
+    const status = await getRegistrationCheckoutStatus(req.params.paymentId, {
+      ip: req.ip,
+      userAgent: req.headers['user-agent'],
+    });
+    res.json(status);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/auth/register', registerRateLimit, async (_req, res) => {
+  res.status(410).json({
+    error: {
+      code: 'REGISTER_REQUIRES_PAYMENT',
+      message: 'Регистрация доступна только после оплаты подписки. Используйте POST /auth/register/checkout',
+    },
+  });
 });
 
 router.post('/auth/login', authRateLimit, async (req, res, next) => {

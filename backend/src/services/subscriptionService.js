@@ -15,6 +15,7 @@ import {
   calculatePromoDiscount,
   recordPromoUse,
 } from './promoService.js';
+import { finalizeRegistrationFromPayment, afterRegistrationPaymentCompleted, markRegistrationCheckoutFailed } from './registrationCheckoutService.js';
 import { createHttpError } from '../utils/errors.js';
 
 export async function getActivePlans() {
@@ -58,7 +59,7 @@ export async function completePayment(paymentId, { finikTransactionId = null, we
     if (payment.status === PAYMENT_STATUS.COMPLETED) {
       return {
         payment,
-        subscription: await getUserActiveSubscription(payment.user_id),
+        subscription: payment.user_id ? await getUserActiveSubscription(payment.user_id) : null,
         alreadyCompleted: true,
       };
     }
@@ -67,6 +68,16 @@ export async function completePayment(paymentId, { finikTransactionId = null, we
       const error = new Error('Платёж уже отклонён');
       error.status = 400;
       throw error;
+    }
+
+    if (!payment.user_id) {
+      if (payment.metadata?.checkout_type !== 'registration') {
+        const error = new Error('Платёж не привязан к пользователю');
+        error.status = 400;
+        throw error;
+      }
+      await finalizeRegistrationFromPayment(paymentId, transaction);
+      await payment.reload({ transaction });
     }
 
     const plan = await SubscriptionPlan.findByPk(payment.plan_id, { transaction });
@@ -116,7 +127,7 @@ export async function completePayment(paymentId, { finikTransactionId = null, we
 
   if (result.subscription && !result.alreadyCompleted) {
     const bonusApplied = Number(result.payment.metadata?.bonus_applied || 0);
-    if (bonusApplied > 0) {
+    if (bonusApplied > 0 && result.payment.user_id) {
       await debitWallet(result.payment.user_id, {
         balanceType: BALANCE_TYPE.BONUS,
         amount: bonusApplied,
@@ -124,7 +135,10 @@ export async function completePayment(paymentId, { finikTransactionId = null, we
         metadata: { payment_id: result.payment.id },
       });
     }
-    await notifyPaymentSuccess(result.payment.user_id);
+    if (result.payment.user_id) {
+      await notifyPaymentSuccess(result.payment.user_id);
+    }
+    await afterRegistrationPaymentCompleted(result.payment);
   }
 
   return result;
@@ -143,6 +157,8 @@ export async function failPayment(paymentId, reason, webhookPayload = null) {
       finik_webhook: webhookPayload || payment.metadata?.finik_webhook,
     },
   });
+
+  await markRegistrationCheckoutFailed(paymentId);
 
   return payment;
 }
@@ -245,7 +261,7 @@ export async function confirmStubPayment(paymentId, userId = null) {
     throw error;
   }
 
-  if (userId && payment.user_id !== userId) {
+  if (userId && payment.user_id && payment.user_id !== userId) {
     const error = new Error('Нет доступа к этому платежу');
     error.status = 403;
     throw error;

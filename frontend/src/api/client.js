@@ -99,6 +99,7 @@ async function request(path, options = {}, retried = false) {
       getRefreshToken() &&
       !path.startsWith('/api/v1/auth/login') &&
       !path.startsWith('/api/v1/auth/register') &&
+      !path.startsWith('/api/v1/auth/register/checkout') &&
       !path.startsWith('/api/v1/auth/refresh');
 
     if (canRetry) {
@@ -130,7 +131,7 @@ export const api = {
     const headers = {};
     if (!isFormData) headers['Content-Type'] = 'application/json';
 
-    const response = await fetch(`${API_BASE}/api/v1/auth/register`, {
+    const response = await fetch(`${API_BASE}/api/v1/auth/register/checkout`, {
       method: 'POST',
       headers,
       body: isFormData ? body : JSON.stringify(body),
@@ -144,6 +145,35 @@ export const api = {
       error.code = data?.error?.code;
       throw error;
     }
+    return data;
+  },
+  getRegisterCheckoutStatus: async (paymentId) => {
+    const response = await fetch(`${API_BASE}/api/v1/auth/register/status/${paymentId}`, {
+      credentials: 'include',
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const message = data?.error?.message || 'Ошибка запроса';
+      const error = new Error(message);
+      error.code = data?.error?.code;
+      throw error;
+    }
+    if (data.access_token) setSession(data);
+    return data;
+  },
+  confirmRegisterStubPayment: async (paymentId) => {
+    const response = await fetch(`${API_BASE}/api/v1/auth/register/checkout/${paymentId}/confirm-stub`, {
+      method: 'POST',
+      credentials: 'include',
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const message = data?.error?.message || 'Ошибка запроса';
+      const error = new Error(message);
+      error.code = data?.error?.code;
+      throw error;
+    }
+    if (data.access_token) setSession(data);
     return data;
   },
   login: async (body) => {

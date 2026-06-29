@@ -43,7 +43,7 @@ function signRefreshToken(user, sessionId) {
   );
 }
 
-function validateIdentifier(identifier, mode) {
+export function validateIdentifier(identifier, mode) {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const phoneRegex = /^\+?[0-9]{10,15}$/;
 
@@ -71,13 +71,13 @@ function validateIdentifier(identifier, mode) {
   throw createHttpError(400, 'AUTH-102', 'Некорректный идентификатор');
 }
 
-function validatePassword(password) {
+export function validatePassword(password) {
   if (!password || password.length < 8) {
     throw createHttpError(400, 'AUTH-102', 'Пароль должен быть не короче 8 символов');
   }
 }
 
-function validateConsents(consents) {
+export function validateConsents(consents) {
   if (!consents?.privacy || !consents?.offer) {
     throw createHttpError(400, 'AUTH-103', 'Необходимо принять юридические соглашения');
   }
@@ -89,7 +89,7 @@ function sanitizeUser(user) {
   return json;
 }
 
-function deriveDefaultNickname(credentials) {
+export function deriveDefaultNickname(credentials) {
   if (credentials.email) {
     let base = credentials.email
       .split('@')[0]
@@ -347,6 +347,59 @@ export async function loginUser({ identifier, password }, meta = {}) {
     after: { device_type: deviceType, ip: meta.ip },
     ip: meta.ip,
   });
+
+  return {
+    accessToken,
+    refreshToken,
+    user: sanitizeUser(user),
+    session: {
+      id: session.id,
+      device_type: session.device_type,
+      is_suspicious: session.is_suspicious,
+    },
+  };
+}
+
+export async function createSessionForUser(userId, meta = {}) {
+  const user = await User.findByPk(userId, {
+    include: [{ model: Role, as: 'role' }, { model: Profile, as: 'profile' }],
+  });
+
+  if (!user) {
+    throw createHttpError(404, 'NOT_FOUND', 'Пользователь не найден');
+  }
+
+  if (user.status === USER_STATUS.BLOCKED) {
+    throw createHttpError(403, 'AUTH-002', 'Аккаунт заблокирован');
+  }
+
+  const deviceType = detectDeviceType(meta.userAgent);
+  const { browser, os } = parseUserAgent(meta.userAgent);
+
+  const session = await sequelize.transaction(async (transaction) => {
+    await enforceDeviceLimit(user.id, deviceType, transaction);
+
+    return DeviceSession.create(
+      {
+        user_id: user.id,
+        device_type: deviceType,
+        user_agent: meta.userAgent,
+        ip: meta.ip,
+        os,
+        browser,
+        is_active: true,
+        is_suspicious: false,
+        last_seen_at: new Date(),
+      },
+      { transaction }
+    );
+  });
+
+  const accessToken = signAccessToken(user, session.id);
+  const refreshToken = signRefreshToken(user, session.id);
+  const refreshHash = await bcrypt.hash(refreshToken, 10);
+  await session.update({ refresh_token_hash: refreshHash });
+  await user.update({ last_login_at: new Date() });
 
   return {
     accessToken,

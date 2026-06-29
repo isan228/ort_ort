@@ -14,7 +14,7 @@ const Payment = sequelize.define(
     },
     user_id: {
       type: DataTypes.UUID,
-      allowNull: false,
+      allowNull: true,
     },
     plan_id: {
       type: DataTypes.UUID,
