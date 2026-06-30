@@ -29,6 +29,7 @@ import LegalPage from './pages/LegalPage.jsx';
 import AccountLayout from './components/account/AccountLayout.jsx';
 import AdminRoute from './components/AdminRoute.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
+import PaymentReturnRedirect from './components/PaymentReturnRedirect.jsx';
 import PlaceholderPage from './pages/PlaceholderPage.jsx';
 
 export default function App() {
@@ -38,7 +39,8 @@ export default function App() {
         <Route index element={<HomePage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
-        <Route path="register/payment-return" element={<RegisterPage />} />
+        <Route path="register/payment-return" element={<PaymentReturnRedirect to="/register" />} />
+        <Route path="subscription/payment-return" element={<PaymentReturnRedirect to="/account" />} />
         <Route path="forgot-password" element={<ForgotPasswordPage />} />
         <Route path="reset-password" element={<ResetPasswordPage />} />
         <Route path="universities" element={<UniversitiesPage />} />
@@ -66,7 +68,6 @@ export default function App() {
           </Route>
           <Route path="analysis" element={<AnalysisPage />} />
           <Route path="subscription" element={<SubscriptionPage />} />
-          <Route path="subscription/payment-return" element={<SubscriptionPage />} />
         </Route>
         <Route element={<AdminRoute />}>
           <Route path="admin" element={<AdminPage />} />

@@ -6,6 +6,7 @@ import PageHint from '../components/ux/PageHint.jsx';
 import MobileFilterSheet, { CatalogMobileBar } from '../components/ux/MobileFilterSheet.jsx';
 import { useToast } from '../components/ux/ToastContext.jsx';
 import { useI18n } from '../i18n/I18nContext.jsx';
+import { useFeatureAccess } from '../hooks/useFeatureAccess.js';
 
 const MAX_APPLICATIONS = 10;
 const STORAGE_KEY = 'ort_tour_applications';
@@ -154,6 +155,7 @@ function buildStages(tours) {
 export default function ToursPage() {
   const { t } = useI18n();
   const toast = useToast();
+  const { can_use_tours, analysis_blocked_reason, loggedIn } = useFeatureAccess();
   const userId = getStoredUser()?.id ?? null;
   const isLoggedIn = Boolean(userId);
   const [tours, setTours] = useState([]);
@@ -267,7 +269,14 @@ export default function ToursPage() {
 
   function handleSubmit(program) {
     if (!isLoggedIn) {
-      const msg = 'Войдите в аккаунт, чтобы подать заявление';
+      const msg = t('tours.blocked.auth');
+      toast.error(msg);
+      setError(msg);
+      return;
+    }
+    if (!can_use_tours) {
+      const msg =
+        analysis_blocked_reason === 'scores' ? t('tours.blocked.scores') : t('tours.blocked.subscription');
       toast.error(msg);
       setError(msg);
       return;
@@ -339,6 +348,28 @@ export default function ToursPage() {
         <PageHint hintId="tours" title={t('ux.hint.tours.title')}>
           {t('ux.hint.tours.text')}
         </PageHint>
+
+        {!loggedIn && (
+          <div className="page-callout">
+            <Link to="/register">{t('nav.register')}</Link> — {t('tours.blocked.registerHint')}
+          </div>
+        )}
+
+        {loggedIn && !can_use_tours && (
+          <div className="page-callout">
+            {analysis_blocked_reason === 'scores' ? (
+              <>
+                {t('tours.blocked.scores')}{' '}
+                <Link to="/account/scores">{t('ux.empty.toScores')}</Link>
+              </>
+            ) : (
+              <>
+                {t('tours.blocked.subscription')}{' '}
+                <Link to="/subscription">{t('analysis.blocked.subscriptionLink')}</Link>
+              </>
+            )}
+          </div>
+        )}
 
         <div className="tours-stats-row">
           <div className="tours-stat-card">

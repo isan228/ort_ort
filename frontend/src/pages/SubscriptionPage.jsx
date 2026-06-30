@@ -39,7 +39,7 @@ export default function SubscriptionPage() {
         try {
           await api.getRegisterCheckoutStatus(paymentId);
           if (!cancelled) {
-            navigate(`/register/payment-return?paymentId=${paymentId}&status=succeeded`, { replace: true });
+            navigate(`/register?paymentId=${paymentId}&status=succeeded`, { replace: true });
           }
           return;
         } catch {
@@ -62,9 +62,7 @@ export default function SubscriptionPage() {
   function finishSubscriptionReturn() {
     setReturnPending(false);
     setSearchParams(clearPaymentReturnParams(searchParams), { replace: true });
-    if (location.pathname.includes('payment-return')) {
-      navigate('/subscription', { replace: true });
-    }
+    navigate('/account', { replace: true });
   }
 
   async function loadData() {

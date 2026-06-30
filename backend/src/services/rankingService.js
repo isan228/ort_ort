@@ -1,4 +1,5 @@
 import { RankingEntry, ScoreProfile, User, Profile } from '../models/index.js';
+import { Op } from 'sequelize';
 import { SCORE_MODE, PUBLIC_DISPLAY_MODE } from '../constants/index.js';
 
 function getPublicLabel(profile) {
@@ -33,7 +34,10 @@ export async function getKyrgyzstanRanking({ limit = 50, offset = 0, userId = nu
 
 export async function rebuildGlobalRanking() {
   const finals = await ScoreProfile.findAll({
-    where: { mode: SCORE_MODE.FINAL, is_locked: true },
+    where: {
+      mode: SCORE_MODE.FINAL,
+      main_score: { [Op.ne]: null },
+    },
     include: [{ model: User, as: 'user', include: [{ model: Profile, as: 'profile' }] }],
   });
 

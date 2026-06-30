@@ -86,7 +86,7 @@ export class FinikPaymentProvider {
     const timestamp = Date.now().toString();
     const host = this.getHost();
     const path = '/v1/payment';
-    const redirectUrl = metadata.redirectUrl || `${config.clientUrl}/subscription/payment-return`;
+    const redirectUrl = metadata.redirectUrl || `${config.clientUrl}/account`;
     const webhookUrl = `${config.clientUrl}${config.finik.webhookPath}`;
 
     const body = {

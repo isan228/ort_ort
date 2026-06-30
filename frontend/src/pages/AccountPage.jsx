@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams, useLocation } from 'react-router-dom';
 import { api } from '../api/client.js';
 import { useI18n } from '../i18n/I18nContext.jsx';
 import { AccountLoading } from '../components/account/AccountSection.jsx';
 import { AccountIcon } from '../components/icons/AccountIcons.jsx';
 import PageHint from '../components/ux/PageHint.jsx';
+import { useToast } from '../components/ux/ToastContext.jsx';
+import { parsePaymentReturnParams, clearPaymentReturnParams } from '../utils/paymentReturn.js';
 
 const CHANCE_LABEL = {
   high: 'analysis.chance.high',
@@ -73,7 +75,11 @@ function getBestChance(results) {
 
 export default function AccountPage() {
   const { t } = useI18n();
+  const toast = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
   const [loading, setLoading] = useState(true);
+  const [paymentReturnPending, setPaymentReturnPending] = useState(false);
   const [error, setError] = useState('');
   const [account, setAccount] = useState(null);
   const [analysisTotal, setAnalysisTotal] = useState(0);
@@ -83,6 +89,44 @@ export default function AccountPage() {
   const [ortScore, setOrtScore] = useState(null);
   const [subscription, setSubscription] = useState(null);
   const [plans, setPlans] = useState([]);
+
+  useEffect(() => {
+    const { isReturn } = parsePaymentReturnParams(searchParams, location.pathname);
+    if (!isReturn) return undefined;
+
+    let cancelled = false;
+    setPaymentReturnPending(true);
+
+    async function pollAfterPayment() {
+      const delays = [0, 2000, 4000, 8000, 12000];
+      for (const delay of delays) {
+        if (cancelled) return;
+        if (delay) await new Promise((r) => setTimeout(r, delay));
+        try {
+          const sub = await api.getSubscription();
+          if (sub.subscription) {
+            setSubscription(sub.subscription);
+            setSearchParams(clearPaymentReturnParams(searchParams), { replace: true });
+            setPaymentReturnPending(false);
+            toast.success(t('account.paymentSuccess'));
+            return;
+          }
+        } catch {
+          // keep polling
+        }
+      }
+      if (!cancelled) {
+        setPaymentReturnPending(false);
+        setSearchParams(clearPaymentReturnParams(searchParams), { replace: true });
+        toast.info(t('account.paymentPending'));
+      }
+    }
+
+    pollAfterPayment();
+    return () => {
+      cancelled = true;
+    };
+  }, [searchParams, location.pathname]);
 
   useEffect(() => {
     async function load() {
@@ -137,7 +181,7 @@ export default function AccountPage() {
   }, [plans, t]);
 
   if (loading) {
-    return <AccountLoading label={t('common.loading')} />;
+    return <AccountLoading label={paymentReturnPending ? t('account.paymentChecking') : t('common.loading')} />;
   }
 
   return (

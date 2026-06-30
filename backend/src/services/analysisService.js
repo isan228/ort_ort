@@ -10,12 +10,12 @@ import {
   Faculty,
   University,
 } from '../models/index.js';
-import { SCORE_MODE, REDEMPTION_FEATURE, CATALOG_STATUS, USER_PHASE } from '../constants/index.js';
+import { SCORE_MODE, REDEMPTION_FEATURE, CATALOG_STATUS } from '../constants/index.js';
 import { getSetting } from './settingsService.js';
 import { validateMainScore } from '../utils/validateScore.js';
 import { userHasActiveSubscription } from './subscriptionService.js';
 import { userCanRunPremiumAnalysis, consumeUnlock } from './accessService.js';
-import { syncUserPhaseIfNeeded } from './phaseService.js';
+import { getUserFeatureAccess } from './featureAccessService.js';
 import {
   evaluateProgramV2,
   pickLatestSnapshot,
@@ -132,34 +132,22 @@ export async function getAnalysisContext(userId) {
   const user = await User.findByPk(userId);
   if (!user) throw createHttpError(404, 'NOT_FOUND', 'Пользователь не найден');
 
-  await syncUserPhaseIfNeeded(userId);
-
-  const subscribed = await userHasActiveSubscription(userId);
-  const unlockAvailable = await userCanRunPremiumAnalysis(userId);
-  const premium = subscribed || unlockAvailable;
-  const scoreProfile = await resolveScoreProfile(user);
-  const hasScores = scoreProfile?.main_score != null;
-  const canAnalyze = premium && hasScores;
+  const access = await getUserFeatureAccess(userId);
 
   return {
-    phase: USER_PHASE.AFTER_RESULTS,
-    premium,
-    can_analyze: canAnalyze,
-    analysis_blocked_reason: !premium ? 'subscription' : !hasScores ? 'scores' : null,
+    premium: access.premium,
+    has_scores: access.has_scores,
+    can_analyze: access.can_analyze,
+    can_use_tours: access.can_use_tours,
+    can_view_rankings: access.can_view_rankings,
+    analysis_blocked_reason: access.blocked_reason,
     is_trial: false,
     trial: {
       used: 0,
       limit: 0,
       remaining: 0,
     },
-    scores: scoreProfile
-      ? {
-          main_score: scoreProfile.main_score,
-          subject_scores_json: scoreProfile.subject_scores_json || {},
-          mode: scoreProfile.mode,
-          is_locked: scoreProfile.is_locked,
-        }
-      : null,
+    scores: access.scores,
     algorithm_version: await getSetting('algorithm_version', 'v2-6factor'),
   };
 }
@@ -167,8 +155,6 @@ export async function getAnalysisContext(userId) {
 export async function runAnalysis(userId, { program_ids = [], main_score }) {
   const user = await User.findByPk(userId);
   if (!user) throw createHttpError(404, 'NOT_FOUND', 'Пользователь не найден');
-
-  await syncUserPhaseIfNeeded(userId);
 
   const subscribed = await userHasActiveSubscription(userId);
   const unlockAvailable = await userCanRunPremiumAnalysis(userId);

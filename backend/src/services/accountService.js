@@ -1,13 +1,12 @@
 import { User, Profile, DeviceSession, Wallet, Role } from '../models/index.js';
 import { getUserActiveSubscription } from './subscriptionService.js';
-import { userHasPremiumAccess, listUserUnlocks } from './accessService.js';
-import { syncUserPhaseIfNeeded } from './phaseService.js';
+import { listUserUnlocks } from './accessService.js';
+import { getUserFeatureAccess } from './featureAccessService.js';
 import { createHttpError } from '../utils/errors.js';
 import { writeAuditLog } from './auditService.js';
 import { PUBLIC_DISPLAY_MODE } from '../constants/index.js';
 
 export async function getAccountSummary(userId) {
-  const phase = await syncUserPhaseIfNeeded(userId);
   const user = await User.findByPk(userId, {
     include: [
       { model: Role, as: 'role' },
@@ -19,21 +18,26 @@ export async function getAccountSummary(userId) {
   if (!user) throw createHttpError(404, 'NOT_FOUND', 'Пользователь не найден');
 
   const subscription = await getUserActiveSubscription(userId);
-  const premium = await userHasPremiumAccess(userId);
+  const access = await getUserFeatureAccess(userId);
   const featureUnlocks = await listUserUnlocks(userId);
 
   const json = user.toJSON();
   delete json.password_hash;
-  if (phase) json.phase = phase;
 
   return {
     user: json,
     role: user.role?.code,
     profile: user.profile,
     premium: {
-      active: premium,
+      active: access.premium,
       subscription: subscription || null,
       feature_unlocks: featureUnlocks,
+    },
+    access: {
+      can_analyze: access.can_analyze,
+      can_use_tours: access.can_use_tours,
+      can_view_rankings: access.can_view_rankings,
+      has_scores: access.has_scores,
     },
     trial: {
       used: 0,

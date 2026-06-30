@@ -60,6 +60,11 @@ async function bootstrap() {
   await syncDatabase();
   await seedDefaults();
 
+  console.log(`Public URL: ${config.clientUrl} (Finik redirect / CORS)`);
+  if (config.payment.provider === 'finik') {
+    console.log(`Finik webhook: ${config.clientUrl}${config.finik.webhookPath}`);
+  }
+
   app.listen(config.port, () => {
     console.log(`API running on http://localhost:${config.port}`);
   });

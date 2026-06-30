@@ -18,10 +18,27 @@ function resolveKeyFile(envPath, defaultNames) {
   return path.join(projectRoot, defaultNames[0]);
 }
 
+function resolveClientUrl() {
+  const env = process.env.NODE_ENV || 'development';
+  const fallback = env === 'production' ? 'https://ort.kg' : 'http://localhost:5173';
+  const raw = process.env.PUBLIC_APP_URL || process.env.CLIENT_URL || fallback;
+  const url = raw.replace(/\/$/, '');
+
+  if (env === 'production' && /localhost|127\.0\.0\.1/.test(url)) {
+    console.warn(
+      `[config] CLIENT_URL=${url} недопустим для production — Finik redirect будет https://ort.kg`
+    );
+    return 'https://ort.kg';
+  }
+
+  return url;
+}
+
 export const config = {
   env: process.env.NODE_ENV || 'development',
   port: Number(process.env.PORT) || 3001,
-  clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
+  /** Публичный URL сайта: CORS, Finik RedirectUrl, webhook callback base */
+  clientUrl: resolveClientUrl(),
   jwt: {
     secret: process.env.JWT_SECRET || 'dev-secret-change-me',
     accessExpires: process.env.JWT_ACCESS_EXPIRES || '15m',

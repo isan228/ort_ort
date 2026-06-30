@@ -1,19 +1,32 @@
 import { Router } from 'express';
 import { getKyrgyzstanRanking } from '../services/rankingService.js';
-import { optionalAuth } from '../middleware/auth.js';
+import { authenticate } from '../middleware/auth.js';
+import { getUserFeatureAccess } from '../services/featureAccessService.js';
+import { createHttpError } from '../utils/errors.js';
 
 const router = Router();
 
-router.get('/rankings/kyrgyzstan', optionalAuth, async (req, res, next) => {
+router.get('/rankings/kyrgyzstan', authenticate, async (req, res, next) => {
   try {
+    const access = await getUserFeatureAccess(req.userId);
+    if (!access.can_view_rankings) {
+      throw createHttpError(
+        402,
+        'ANL-002',
+        access.blocked_reason === 'scores'
+          ? 'Укажите баллы в личном кабинете'
+          : 'Рейтинг доступен по подписке Premium'
+      );
+    }
+
     const limit = Number(req.query.limit) || 50;
     const offset = Number(req.query.offset) || 0;
     const ranking = await getKyrgyzstanRanking({
       limit,
       offset,
-      userId: req.userId || null,
+      userId: req.userId,
     });
-    res.json(ranking);
+    res.json({ ...ranking, access });
   } catch (err) {
     next(err);
   }

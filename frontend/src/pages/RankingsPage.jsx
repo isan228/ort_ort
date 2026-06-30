@@ -5,23 +5,53 @@ import { useI18n } from '../i18n/I18nContext.jsx';
 import PageLoader from '../components/ux/PageLoader.jsx';
 import EmptyState from '../components/ux/EmptyState.jsx';
 import PageHint from '../components/ux/PageHint.jsx';
+import { useFeatureAccess } from '../hooks/useFeatureAccess.js';
 
 export default function RankingsPage() {
   const { t } = useI18n();
   const user = getStoredUser();
+  const { can_view_rankings, analysis_blocked_reason, loading: accessLoading, loggedIn } = useFeatureAccess();
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (accessLoading) return undefined;
+
+    if (!loggedIn) {
+      setData(null);
+      setError('');
+      setLoading(false);
+      return undefined;
+    }
+
+    if (!can_view_rankings) {
+      setData(null);
+      setError('');
+      setLoading(false);
+      return undefined;
+    }
+
+    let cancelled = false;
+    setLoading(true);
     api
       .getRanking({ limit: 50 })
-      .then(setData)
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, []);
+      .then((result) => {
+        if (!cancelled) setData(result);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err.message);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
 
-  if (loading) {
+    return () => {
+      cancelled = true;
+    };
+  }, [accessLoading, loggedIn, can_view_rankings]);
+
+  if (loading || accessLoading) {
     return (
       <div className="page">
         <div className="page-inner">
@@ -75,15 +105,26 @@ export default function RankingsPage() {
           </div>
         )}
 
-        {!user && (
+        {loggedIn && !can_view_rankings && analysis_blocked_reason === 'subscription' && (
           <div className="page-callout">
-            <Link to="/login">{t('nav.login')}</Link> — {t('rankings.loginHint')}
+            {t('rankings.blocked.subscription')}{' '}
+            <Link to="/subscription">{t('analysis.blocked.subscriptionLink')}</Link>
           </div>
         )}
 
         <div className="page-card">
           <h2>{t('rankings.top50')}</h2>
-          {(data?.rankings || []).length === 0 ? (
+          {!can_view_rankings ? (
+            <EmptyState
+              icon="🏆"
+              title={t('rankings.blocked.title')}
+              description={!loggedIn ? t('rankings.registerHint') : t('rankings.blocked.subscription')}
+              actionLabel={!loggedIn ? t('ux.empty.toRegister') : t('analysis.blocked.subscriptionLink')}
+              actionTo={!loggedIn ? '/register' : '/subscription'}
+              secondaryLabel={!loggedIn ? t('ux.empty.toLogin') : undefined}
+              secondaryTo={!loggedIn ? '/login' : undefined}
+            />
+          ) : (data?.rankings || []).length === 0 ? (
             <EmptyState
               icon="🏆"
               title={t('rankings.empty')}

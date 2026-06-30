@@ -143,7 +143,7 @@ export async function createRegistrationCheckout(payload, certificateFile, meta 
   const expiresAt = new Date();
   expiresAt.setHours(expiresAt.getHours() + PENDING_TTL_HOURS);
 
-  const redirectUrl = `${config.clientUrl}/register/payment-return`;
+  const redirectUrl = `${config.clientUrl}/register`;
   const amountKgs = Number(plan.price_kgs);
 
   const providerResult = await paymentProvider.createPayment({
@@ -369,7 +369,10 @@ async function buildRegistrationCompletedPayload(payment, pending, session = nul
     payment_id: payment.id,
     user_id: payment.user_id,
     premium,
+    has_scores: hasScores,
     can_analyze: premium && hasScores,
+    can_use_tours: premium && hasScores,
+    can_view_rankings: premium,
     subscription: subscription
       ? {
           id: subscription.id,

@@ -6,6 +6,7 @@ import PageLoader from '../components/ux/PageLoader.jsx';
 import EmptyState from '../components/ux/EmptyState.jsx';
 import { useToast } from '../components/ux/ToastContext.jsx';
 import { useI18n } from '../i18n/I18nContext.jsx';
+import { useFeatureAccess } from '../hooks/useFeatureAccess.js';
 
 const SLOT_LABELS = {
   budget: 'Бюджет',
@@ -21,6 +22,7 @@ const STATUS_LABELS = {
 export default function TourDetailPage() {
   const { t } = useI18n();
   const toast = useToast();
+  const { can_use_tours, can_view_rankings, analysis_blocked_reason, loggedIn } = useFeatureAccess();
   const { id } = useParams();
   const user = getStoredUser();
   const [tour, setTour] = useState(null);
@@ -174,8 +176,24 @@ export default function TourDetailPage() {
         {user && tour.status === 'open' && !joined && (
           <div className="tours-card" style={{ marginBottom: '1rem' }}>
             <h2 style={{ margin: '0 0 0.65rem', fontSize: '1rem', fontWeight: 700 }}>Участие</h2>
-            <p className="muted">Нужны зафиксированные баллы и Premium / бонусный unlock.</p>
-            <div className="tours-slot-options">
+            {!can_use_tours ? (
+              <p className="muted">
+                {analysis_blocked_reason === 'scores' ? (
+                  <>
+                    {t('tours.blocked.scores')}{' '}
+                    <Link to="/account/scores">{t('ux.empty.toScores')}</Link>
+                  </>
+                ) : (
+                  <>
+                    {t('tours.blocked.subscription')}{' '}
+                    <Link to="/subscription">{t('analysis.blocked.subscriptionLink')}</Link>
+                  </>
+                )}
+              </p>
+            ) : (
+              <>
+                <p className="muted">{t('tours.joinHint')}</p>
+                <div className="tours-slot-options">
               <label className="tours-slot-option">
                 <input
                   type="radio"
@@ -200,6 +218,8 @@ export default function TourDetailPage() {
             <button type="button" className="btn" disabled={acting} onClick={handleJoin}>
               {acting ? 'Вход...' : 'Присоединиться'}
             </button>
+              </>
+            )}
           </div>
         )}
 
@@ -244,7 +264,15 @@ export default function TourDetailPage() {
 
         <div className="tours-card">
           <h2 style={{ margin: '0 0 0.85rem', fontSize: '1rem', fontWeight: 700 }}>Рейтинг тура (топ-30)</h2>
-          {(tour.rankingEntries || []).length === 0 ? (
+          {!loggedIn || !can_view_rankings || tour.rankings_locked ? (
+            <EmptyState
+              icon="🔒"
+              title={t('tours.rankingsLocked.title')}
+              description={!loggedIn ? t('tours.blocked.registerHint') : t('tours.rankingsLocked.text')}
+              actionLabel={!loggedIn ? t('ux.empty.toRegister') : t('analysis.blocked.subscriptionLink')}
+              actionTo={!loggedIn ? '/register' : '/subscription'}
+            />
+          ) : (tour.rankingEntries || []).length === 0 ? (
             <EmptyState
               icon="👥"
               title="Пока нет участников"

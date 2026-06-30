@@ -65,11 +65,7 @@ export default function RegisterPage() {
   async function finishRegistrationReturn() {
     setReturnPending(false);
     setSearchParams(clearPaymentReturnParams(searchParams), { replace: true });
-    if (location.pathname.includes('payment-return')) {
-      navigate('/analysis', { replace: true });
-    } else {
-      navigate('/analysis');
-    }
+    navigate('/account', { replace: true });
   }
 
   async function pollRegistrationAfterPayment(paymentId) {

@@ -47,7 +47,7 @@
 | API-020 | GET | `/tours/:id` | Public/Auth |
 | API-021 | POST | `/tours/:id/join` | Auth/Premium |
 | API-022 | POST | `/tours/:id/withdraw` | Auth/Premium |
-| API-023 | GET | `/rankings/kyrgyzstan` | Public/Auth |
+| API-023 | GET | `/rankings/kyrgyzstan` | Auth/Premium |
 
 ## Monetization
 

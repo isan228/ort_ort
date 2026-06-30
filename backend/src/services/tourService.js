@@ -8,7 +8,8 @@ import {
   TOUR_SLOT_TYPE,
 } from '../constants/index.js';
 import { userHasActiveSubscription } from './subscriptionService.js';
-import { userCanJoinTour, consumeUnlock } from './accessService.js';
+import { consumeUnlock } from './accessService.js';
+import { getUserFeatureAccess } from './featureAccessService.js';
 import { REDEMPTION_FEATURE } from '../constants/index.js';
 import { createHttpError } from '../utils/errors.js';
 import { sequelize } from '../config/database.js';
@@ -92,11 +93,26 @@ export async function getTourDetail(tourId, userId = null) {
   const slotStats = await getSlotStats(tourId, settings);
 
   const json = tour.toJSON();
+  const rankingEntries = json.rankingEntries || [];
   json.simulation_only = true;
   json.disclaimer = settings.disclaimer || 'Симуляция. Не является официальной подачей заявления.';
   json.slot_stats = slotStats;
+  json.rankings_locked = true;
+  json.rankingEntries = [];
 
   if (userId) {
+    const access = await getUserFeatureAccess(userId);
+    json.access = {
+      premium: access.premium,
+      can_use_tours: access.can_use_tours,
+      can_view_rankings: access.can_view_rankings,
+    };
+
+    if (access.can_view_rankings) {
+      json.rankingEntries = rankingEntries;
+      json.rankings_locked = false;
+    }
+
     const own = await TourParticipation.findOne({
       where: { tour_id: tourId, user_id: userId, status: PARTICIPATION_STATUS.JOINED },
     });
@@ -145,16 +161,27 @@ async function assertSlotAvailable(tourId, slotType, settings) {
 }
 
 async function getEligibleScoreSnapshot(userId, settings) {
-  const finalProfile = await ScoreProfile.findOne({
-    where: { user_id: userId, mode: SCORE_MODE.FINAL, is_locked: true },
+  const profiles = await ScoreProfile.findAll({
+    where: { user_id: userId },
+    order: [
+      ['mode', 'DESC'],
+      ['is_locked', 'DESC'],
+      ['updated_at', 'DESC'],
+    ],
   });
-  if (!finalProfile) {
-    throw createHttpError(400, 'TOUR-002', 'Недостаточно данных для участия — зафиксируйте баллы');
+
+  const profile =
+    profiles.find((p) => p.mode === SCORE_MODE.FINAL && p.is_locked) ||
+    profiles.find((p) => p.mode === SCORE_MODE.FINAL) ||
+    profiles.find((p) => p.main_score != null);
+
+  if (!profile || profile.main_score == null) {
+    throw createHttpError(400, 'TOUR-002', 'Недостаточно данных для участия — укажите баллы');
   }
 
   const snapshot = {
-    main_score: finalProfile.main_score,
-    subject_scores: finalProfile.subject_scores_json,
+    main_score: profile.main_score,
+    subject_scores: profile.subject_scores_json,
   };
 
   const holdMinutes = Number(settings.hold_minutes || 0);
@@ -170,11 +197,18 @@ export async function joinTour(userId, tourId, slotType) {
     throw createHttpError(400, 'VALIDATION_ERROR', 'Укажите slot_type: budget или contract');
   }
 
-  const subscribed = await userHasActiveSubscription(userId);
-  const canJoin = subscribed || (await userCanJoinTour(userId));
-  if (!canJoin) {
-    throw createHttpError(402, 'ANL-002', 'Функция доступна по подписке');
+  const access = await getUserFeatureAccess(userId);
+  if (!access.can_use_tours) {
+    throw createHttpError(
+      402,
+      'ANL-002',
+      access.blocked_reason === 'scores'
+        ? 'Укажите баллы в личном кабинете'
+        : 'Функция доступна по подписке Premium'
+    );
   }
+
+  const subscribed = await userHasActiveSubscription(userId);
 
   const tour = await Tour.findByPk(tourId);
   if (!tour || tour.status !== TOUR_STATUS.OPEN) {
