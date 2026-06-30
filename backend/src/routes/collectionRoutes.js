@@ -10,7 +10,8 @@ import { authenticate } from '../middleware/auth.js';
 
 const router = Router();
 
-router.use(authenticate);
+router.use('/favorites', authenticate);
+router.use('/comparisons', authenticate);
 
 router.post('/favorites', async (req, res, next) => {
   try {

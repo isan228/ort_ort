@@ -4,7 +4,7 @@ import { authenticate } from '../middleware/auth.js';
 
 const router = Router();
 
-router.use(authenticate);
+router.use('/analysis', authenticate);
 
 router.get('/analysis/context', async (req, res, next) => {
   try {
