@@ -132,7 +132,7 @@ export default function HomePage() {
     const target = searchQuery ? `/analysis?${searchQuery}` : '/analysis';
 
     if (!isAuthenticated()) {
-      navigate('/subscription');
+      navigate('/register');
       return;
     }
 

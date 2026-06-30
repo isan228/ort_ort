@@ -218,6 +218,9 @@ export async function seedDefaults() {
     if (setting.key === 'trial_analyses_limit') {
       await row.update({ value: 0 });
     }
+    if (setting.key === 'ort_results_published') {
+      await row.update({ value: true });
+    }
   }
 
   await User.update(

@@ -281,6 +281,15 @@ export default function AnalysisPage() {
   }, [searchParams]);
 
   async function runAnalysis() {
+    if (!context?.can_analyze) {
+      setError(
+        context?.analysis_blocked_reason === 'scores'
+          ? t('analysis.blocked.scores')
+          : t('analysis.blocked.subscription')
+      );
+      return;
+    }
+
     if (!scoreNum) {
       setError('Укажите балл ОРТ');
       return;
@@ -404,16 +413,29 @@ export default function AnalysisPage() {
               зачисления — инструмент для принятия решений.
             </p>
           </div>
-          <button type="button" className="analysis-save-btn" disabled={running} onClick={runAnalysis}>
+          <button type="button" className="analysis-save-btn" disabled={running || !context?.can_analyze} onClick={runAnalysis}>
             <AnalysisIcon name="bookmark" size={16} />
             {running ? 'Сохранение...' : 'Сохранить анализ'}
           </button>
         </header>
 
-        {!context?.premium && (
+        {!context?.can_analyze && context?.analysis_blocked_reason === 'subscription' && (
           <div className="tours-disclaimer" style={{ marginBottom: '1rem' }}>
-            Анализ доступен по подписке Premium (950 сом).{' '}
-            <Link to="/subscription">Оформить подписку</Link>
+            {t('analysis.blocked.subscription')}{' '}
+            <Link to="/subscription">{t('analysis.blocked.subscriptionLink')}</Link>
+          </div>
+        )}
+
+        {!context?.can_analyze && context?.analysis_blocked_reason === 'scores' && (
+          <div className="tours-disclaimer" style={{ marginBottom: '1rem' }}>
+            {t('analysis.blocked.scores')}{' '}
+            <Link to="/account/scores">{t('account.page.scores')}</Link>
+          </div>
+        )}
+
+        {context?.can_analyze && (
+          <div className="auth-hint" style={{ marginBottom: '1rem' }}>
+            {t('analysis.ready')}
           </div>
         )}
 
@@ -516,7 +538,7 @@ export default function AnalysisPage() {
         </MobileFilterSheet>
 
         {showEdit && <div className="analysis-edit-panel catalog-desktop-only">{editForm}
-            <button type="button" className="btn" disabled={running} onClick={runAnalysis}>
+            <button type="button" className="btn" disabled={running || !context?.can_analyze} onClick={runAnalysis}>
               {running ? t('analysis.running') : t('analysis.run')}
             </button>
           </div>}
@@ -757,7 +779,7 @@ export default function AnalysisPage() {
               получите персональные рекомендации.
             </p>
           </div>
-          <button type="button" className="btn" disabled={running} onClick={runAnalysis}>
+          <button type="button" className="btn" disabled={running || !context?.can_analyze} onClick={runAnalysis}>
             Начать расширенный анализ →
           </button>
         </div>

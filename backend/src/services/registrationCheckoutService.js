@@ -358,6 +358,43 @@ export async function markRegistrationCheckoutFailed(paymentId) {
   }
 }
 
+async function buildRegistrationCompletedPayload(payment, pending, session = null) {
+  const { getUserActiveSubscription } = await import('./subscriptionService.js');
+  const subscription = payment.user_id ? await getUserActiveSubscription(payment.user_id) : null;
+  const premium = Boolean(subscription);
+  const hasScores = pending?.main_score != null;
+
+  const payload = {
+    status: 'completed',
+    payment_id: payment.id,
+    user_id: payment.user_id,
+    premium,
+    can_analyze: premium && hasScores,
+    subscription: subscription
+      ? {
+          id: subscription.id,
+          plan_id: subscription.plan_id,
+          status: subscription.status,
+          starts_at: subscription.starts_at,
+          ends_at: subscription.ends_at,
+          plan: subscription.plan || null,
+        }
+      : null,
+  };
+
+  if (session) {
+    payload.access_token = session.accessToken;
+    payload.refresh_token = session.refreshToken;
+    payload.user = session.user;
+    payload.user_state = session.user.phase;
+    payload.session = session.session;
+  } else {
+    payload.session_already_issued = true;
+  }
+
+  return payload;
+}
+
 export async function getRegistrationCheckoutStatus(paymentId, meta = {}) {
   const payment = await Payment.findByPk(paymentId);
   if (!payment || payment.metadata?.checkout_type !== 'registration') {
@@ -379,12 +416,7 @@ export async function getRegistrationCheckoutStatus(paymentId, meta = {}) {
   }
 
   if (pending?.session_issued_at) {
-    return {
-      status: 'completed',
-      payment_id: paymentId,
-      user_id: payment.user_id,
-      session_already_issued: true,
-    };
+    return buildRegistrationCompletedPayload(payment, pending);
   }
 
   const session = await createSessionForUser(payment.user_id, meta);
@@ -392,16 +424,7 @@ export async function getRegistrationCheckoutStatus(paymentId, meta = {}) {
     await pending.update({ session_issued_at: new Date() });
   }
 
-  return {
-    status: 'completed',
-    payment_id: paymentId,
-    user_id: payment.user_id,
-    access_token: session.accessToken,
-    refresh_token: session.refreshToken,
-    user: session.user,
-    user_state: session.user.phase,
-    session: session.session,
-  };
+  return buildRegistrationCompletedPayload(payment, pending, session);
 }
 
 export async function confirmRegistrationStubPayment(paymentId) {

@@ -70,15 +70,14 @@ export default function RegisterPage() {
       try {
         const status = await api.getRegisterCheckoutStatus(paymentId);
         if (status.status === 'completed') {
+          if (!status.can_analyze && !status.premium) {
+            continue;
+          }
           setReturnPending(false);
           searchParams.delete('payment');
           searchParams.delete('payment_id');
           setSearchParams(searchParams, { replace: true });
-          if (status.access_token || status.session_already_issued) {
-            navigate(status.access_token ? '/analysis' : '/login');
-          } else {
-            navigate('/analysis');
-          }
+          navigate('/analysis');
           return;
         }
         if (status.status === 'failed') {

@@ -138,10 +138,14 @@ export async function getAnalysisContext(userId) {
   const unlockAvailable = await userCanRunPremiumAnalysis(userId);
   const premium = subscribed || unlockAvailable;
   const scoreProfile = await resolveScoreProfile(user);
+  const hasScores = scoreProfile?.main_score != null;
+  const canAnalyze = premium && hasScores;
 
   return {
     phase: USER_PHASE.AFTER_RESULTS,
     premium,
+    can_analyze: canAnalyze,
+    analysis_blocked_reason: !premium ? 'subscription' : !hasScores ? 'scores' : null,
     is_trial: false,
     trial: {
       used: 0,
