@@ -297,7 +297,6 @@ export default function RegisterPage() {
                 type="file"
                 accept="image/jpeg,image/png,application/pdf,image/*,.pdf"
                 onChange={(e) => setCertificateFile(e.target.files?.[0] || null)}
-                required
               />
             </label>
             {certificateFile && (

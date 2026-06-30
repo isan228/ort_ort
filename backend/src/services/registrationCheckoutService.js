@@ -157,26 +157,6 @@ export async function createRegistrationCheckout(payload, certificateFile, meta 
   });
 
   await sequelize.transaction(async (transaction) => {
-    await PendingRegistration.create(
-      {
-        payment_id: paymentId,
-        email: credentials.email,
-        phone: credentials.phone,
-        password_hash: passwordHash,
-        full_name,
-        main_score: Number(main_score),
-        subject_scores_json: subject_scores_json || {},
-        consents,
-        referral_code: referral_code?.trim() || null,
-        certificate_storage_key: certificateFile.storageKey,
-        certificate_mime: certificateFile.mimeType,
-        certificate_size: certificateFile.size,
-        status: PENDING_REGISTRATION_STATUS.PENDING,
-        expires_at: expiresAt,
-      },
-      { transaction }
-    );
-
     await Payment.create(
       {
         id: paymentId,
@@ -193,6 +173,26 @@ export async function createRegistrationCheckout(payload, certificateFile, meta 
           payment_url: providerResult.paymentUrl || null,
           redirect_url: redirectUrl,
         },
+      },
+      { transaction }
+    );
+
+    await PendingRegistration.create(
+      {
+        payment_id: paymentId,
+        email: credentials.email,
+        phone: credentials.phone,
+        password_hash: passwordHash,
+        full_name,
+        main_score: Number(main_score),
+        subject_scores_json: subject_scores_json || {},
+        consents,
+        referral_code: referral_code?.trim() || null,
+        certificate_storage_key: certificateFile.storageKey,
+        certificate_mime: certificateFile.mimeType,
+        certificate_size: certificateFile.size,
+        status: PENDING_REGISTRATION_STATUS.PENDING,
+        expires_at: expiresAt,
       },
       { transaction }
     );
