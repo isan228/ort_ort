@@ -38,6 +38,7 @@ export default function App() {
         <Route index element={<HomePage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
+        <Route path="register/payment-return" element={<RegisterPage />} />
         <Route path="forgot-password" element={<ForgotPasswordPage />} />
         <Route path="reset-password" element={<ResetPasswordPage />} />
         <Route path="universities" element={<UniversitiesPage />} />
@@ -65,6 +66,7 @@ export default function App() {
           </Route>
           <Route path="analysis" element={<AnalysisPage />} />
           <Route path="subscription" element={<SubscriptionPage />} />
+          <Route path="subscription/payment-return" element={<SubscriptionPage />} />
         </Route>
         <Route element={<AdminRoute />}>
           <Route path="admin" element={<AdminPage />} />

@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { api, getStoredUser } from '../api/client.js';
 import { useToast } from '../components/ux/ToastContext.jsx';
 import { useI18n } from '../i18n/I18nContext.jsx';
 import PageHint from '../components/ux/PageHint.jsx';
+import { parsePaymentReturnParams, clearPaymentReturnParams } from '../utils/paymentReturn.js';
 
 export default function SubscriptionPage() {
   const { t } = useI18n();
   const toast = useToast();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const user = getStoredUser();
   const [plans, setPlans] = useState([]);
@@ -26,11 +29,43 @@ export default function SubscriptionPage() {
   }, []);
 
   useEffect(() => {
-    if (searchParams.get('payment') === 'return' && user) {
-      setReturnPending(true);
-      pollSubscriptionAfterReturn();
+    const { isReturn, paymentId } = parsePaymentReturnParams(searchParams, location.pathname);
+    if (!isReturn) return undefined;
+
+    let cancelled = false;
+
+    async function handleReturn() {
+      if (paymentId) {
+        try {
+          await api.getRegisterCheckoutStatus(paymentId);
+          if (!cancelled) {
+            navigate(`/register/payment-return?paymentId=${paymentId}&status=succeeded`, { replace: true });
+          }
+          return;
+        } catch {
+          // not a registration payment
+        }
+      }
+
+      if (user) {
+        setReturnPending(true);
+        pollSubscriptionAfterReturn();
+      }
     }
-  }, [searchParams, user]);
+
+    handleReturn();
+    return () => {
+      cancelled = true;
+    };
+  }, [searchParams, location.pathname, user]);
+
+  function finishSubscriptionReturn() {
+    setReturnPending(false);
+    setSearchParams(clearPaymentReturnParams(searchParams), { replace: true });
+    if (location.pathname.includes('payment-return')) {
+      navigate('/subscription', { replace: true });
+    }
+  }
 
   async function loadData() {
     setLoading(true);
@@ -59,9 +94,7 @@ export default function SubscriptionPage() {
         const subData = await api.getSubscription();
         if (subData.subscription) {
           setSubscription(subData.subscription);
-          setReturnPending(false);
-          searchParams.delete('payment');
-          setSearchParams(searchParams, { replace: true });
+          finishSubscriptionReturn();
           toast.success('Подписка активирована');
           return;
         }

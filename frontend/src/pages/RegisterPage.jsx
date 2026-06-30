@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { api } from '../api/client.js';
 import { useI18n } from '../i18n/I18nContext.jsx';
 import PasswordInput from '../components/ux/PasswordInput.jsx';
+import { parsePaymentReturnParams, clearPaymentReturnParams } from '../utils/paymentReturn.js';
 import {
   ORT_MAIN_SCORE_MIN,
   ORT_MAIN_SCORE_MAX,
@@ -20,6 +21,7 @@ function emptySubjectRow() {
 export default function RegisterPage() {
   const { t } = useI18n();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const refFromUrl = searchParams.get('ref') || '';
   const [form, setForm] = useState({
@@ -54,11 +56,21 @@ export default function RegisterPage() {
   }, []);
 
   useEffect(() => {
-    const paymentId = searchParams.get('payment_id');
-    if (searchParams.get('payment') === 'return' && paymentId) {
+    const { isReturn, paymentId } = parsePaymentReturnParams(searchParams, location.pathname);
+    if (isReturn && paymentId) {
       pollRegistrationAfterPayment(paymentId);
     }
-  }, [searchParams]);
+  }, [searchParams, location.pathname]);
+
+  async function finishRegistrationReturn() {
+    setReturnPending(false);
+    setSearchParams(clearPaymentReturnParams(searchParams), { replace: true });
+    if (location.pathname.includes('payment-return')) {
+      navigate('/analysis', { replace: true });
+    } else {
+      navigate('/analysis');
+    }
+  }
 
   async function pollRegistrationAfterPayment(paymentId) {
     setReturnPending(true);
@@ -73,15 +85,12 @@ export default function RegisterPage() {
           if (!status.can_analyze && !status.premium) {
             continue;
           }
-          setReturnPending(false);
-          searchParams.delete('payment');
-          searchParams.delete('payment_id');
-          setSearchParams(searchParams, { replace: true });
-          navigate('/analysis');
+          await finishRegistrationReturn();
           return;
         }
         if (status.status === 'failed') {
           setReturnPending(false);
+          setSearchParams(clearPaymentReturnParams(searchParams), { replace: true });
           setError(t('register.paymentFailed'));
           return;
         }

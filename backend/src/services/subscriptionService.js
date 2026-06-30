@@ -197,6 +197,7 @@ export async function createPaymentIntent({ userId, planId, applyBalance = false
   }
 
   const paymentId = uuidv4();
+  const redirectUrl = `${config.clientUrl}/subscription/payment-return`;
 
   const providerResult = await paymentProvider.createPayment({
     amountKgs,
@@ -207,6 +208,7 @@ export async function createPaymentIntent({ userId, planId, applyBalance = false
       planCode: plan.code,
       planTitle: plan.title,
       bonus_applied: bonusApplied,
+      redirectUrl,
     },
   });
 

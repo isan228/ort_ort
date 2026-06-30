@@ -143,7 +143,7 @@ export async function createRegistrationCheckout(payload, certificateFile, meta 
   const expiresAt = new Date();
   expiresAt.setHours(expiresAt.getHours() + PENDING_TTL_HOURS);
 
-  const redirectUrl = `${config.clientUrl}/register?payment=return&payment_id=${paymentId}`;
+  const redirectUrl = `${config.clientUrl}/register/payment-return`;
   const amountKgs = Number(plan.price_kgs);
 
   const providerResult = await paymentProvider.createPayment({
