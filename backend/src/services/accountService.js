@@ -34,9 +34,12 @@ export async function getAccountSummary(userId) {
       feature_unlocks: featureUnlocks,
     },
     access: {
+      has_full_access: access.has_full_access,
       can_analyze: access.can_analyze,
       can_use_tours: access.can_use_tours,
       can_view_rankings: access.can_view_rankings,
+      can_use_community: access.can_use_community,
+      can_use_catalog: access.can_use_catalog,
       has_scores: access.has_scores,
     },
     trial: {

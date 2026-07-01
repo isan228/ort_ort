@@ -22,7 +22,7 @@ const STATUS_LABELS = {
 export default function TourDetailPage() {
   const { t } = useI18n();
   const toast = useToast();
-  const { can_use_tours, can_view_rankings, analysis_blocked_reason, loggedIn } = useFeatureAccess();
+  const { can_use_tours, can_view_rankings, loggedIn } = useFeatureAccess();
   const { id } = useParams();
   const user = getStoredUser();
   const [tour, setTour] = useState(null);
@@ -178,17 +178,8 @@ export default function TourDetailPage() {
             <h2 style={{ margin: '0 0 0.65rem', fontSize: '1rem', fontWeight: 700 }}>Участие</h2>
             {!can_use_tours ? (
               <p className="muted">
-                {analysis_blocked_reason === 'scores' ? (
-                  <>
-                    {t('tours.blocked.scores')}{' '}
-                    <Link to="/account/scores">{t('ux.empty.toScores')}</Link>
-                  </>
-                ) : (
-                  <>
-                    {t('tours.blocked.subscription')}{' '}
-                    <Link to="/subscription">{t('analysis.blocked.subscriptionLink')}</Link>
-                  </>
-                )}
+                {t('tours.blocked.subscription')}{' '}
+                <Link to="/subscription">{t('analysis.blocked.subscriptionLink')}</Link>
               </p>
             ) : (
               <>

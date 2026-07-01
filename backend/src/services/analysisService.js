@@ -140,6 +140,9 @@ export async function getAnalysisContext(userId) {
     can_analyze: access.can_analyze,
     can_use_tours: access.can_use_tours,
     can_view_rankings: access.can_view_rankings,
+    can_use_community: access.can_use_community,
+    can_use_catalog: access.can_use_catalog,
+    has_full_access: access.has_full_access,
     analysis_blocked_reason: access.blocked_reason,
     is_trial: false,
     trial: {

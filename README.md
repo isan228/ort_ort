@@ -38,6 +38,7 @@
 | API-016 | POST | `/comparisons` | Auth/Premium |
 | API-017 | GET | `/catalog/universities` | Public/Premium |
 | API-018 | GET | `/catalog/program/:slug` | Public/Premium |
+| — | GET | `/tutors/links` | Auth/Premium |
 
 ## Tours & Rankings
 

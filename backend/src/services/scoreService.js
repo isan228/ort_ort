@@ -10,7 +10,6 @@ import {
 import { Certificate, FileAsset, User, Profile, ScoreProfile, ScoreCorrectionRequest } from '../models/index.js';
 import { writeAuditLog } from './auditService.js';
 import { createHttpError } from '../utils/errors.js';
-import { syncUserPhaseIfNeeded } from './phaseService.js';
 import { rebuildGlobalRanking } from './rankingService.js';
 import { validateMainScore, validateSubjectScore } from '../utils/validateScore.js';
 
@@ -65,7 +64,6 @@ export async function setupRegistrationScores(userId, { main_score, subject_scor
 }
 
 export async function getScoreState(userId) {
-  await syncUserPhaseIfNeeded(userId);
   const finalProfile = await ScoreProfile.findOne({
     where: { user_id: userId, mode: SCORE_MODE.FINAL },
     order: [['updated_at', 'DESC']],

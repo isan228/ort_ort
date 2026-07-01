@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { api } from '../api/client.js';
+import { api, isAuthenticated } from '../api/client.js';
+import { useI18n } from '../i18n/I18nContext.jsx';
+import { useFeatureAccess } from '../hooks/useFeatureAccess.js';
 
 const PLATFORM_LABELS = {
   telegram: 'Telegram',
@@ -9,28 +11,50 @@ const PLATFORM_LABELS = {
 };
 
 export default function CommunityPage() {
+  const { t } = useI18n();
+  const { has_full_access, loading: accessLoading, loggedIn } = useFeatureAccess();
   const [links, setLinks] = useState([]);
   const [disclaimer, setDisclaimer] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (accessLoading) return undefined;
+
+    if (!loggedIn || !has_full_access) {
+      setLinks([]);
+      setDisclaimer('');
+      setError('');
+      setLoading(false);
+      return undefined;
+    }
+
+    let cancelled = false;
     setLoading(true);
     api
       .getTutorLinks()
       .then((data) => {
+        if (cancelled) return;
         setLinks(data.links || []);
         setDisclaimer(data.disclaimer || '');
       })
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, []);
+      .catch((err) => {
+        if (cancelled) setError(err.message);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
 
-  if (loading) {
+    return () => {
+      cancelled = true;
+    };
+  }, [accessLoading, loggedIn, has_full_access]);
+
+  if (loading || accessLoading) {
     return (
       <div className="page">
         <div className="page-inner">
-          <p className="page-empty">Загрузка...</p>
+          <p className="page-empty">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -45,36 +69,46 @@ export default function CommunityPage() {
 
         <header className="page-head">
           <h1>Tutor Community</h1>
-          <p>
-            Сообщества консультантов и выпускников. Перед переходом по ссылке убедитесь, что это нужная
-            группа.
-          </p>
+          <p>{t('community.subtitle')}</p>
         </header>
+
+        {!isAuthenticated() && (
+          <div className="page-callout">
+            <Link to="/register">{t('nav.register')}</Link> — {t('community.blocked.register')}
+          </div>
+        )}
+
+        {loggedIn && !has_full_access && (
+          <div className="page-callout">
+            {t('community.blocked.subscription')}{' '}
+            <Link to="/subscription">{t('analysis.blocked.subscriptionLink')}</Link>
+          </div>
+        )}
 
         {disclaimer && <div className="page-callout page-callout--warn">{disclaimer}</div>}
         {error && <div className="error">{error}</div>}
 
-        {!links.length && !error ? (
-          <p className="page-empty">Ссылки пока не добавлены</p>
+        {has_full_access && !links.length && !error ? (
+          <p className="page-empty">{t('community.empty')}</p>
         ) : (
-          <div className="page-grid">
-            {links.map((link) => (
-              <a
-                key={link.id}
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="page-grid-card"
-              >
-                <span className="page-badge">{PLATFORM_LABELS[link.platform] || link.platform}</span>
-                <h3>{link.title}</h3>
-                {link.description && <p>{link.description}</p>}
-                {link.responsible_tutor && (
-                  <p>Ответственный: {link.responsible_tutor}</p>
-                )}
-              </a>
-            ))}
-          </div>
+          has_full_access && (
+            <div className="page-grid">
+              {links.map((link) => (
+                <a
+                  key={link.id}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="page-grid-card"
+                >
+                  <span className="page-badge">{PLATFORM_LABELS[link.platform] || link.platform}</span>
+                  <h3>{link.title}</h3>
+                  {link.description && <p>{link.description}</p>}
+                  {link.responsible_tutor && <p>Ответственный: {link.responsible_tutor}</p>}
+                </a>
+              ))}
+            </div>
+          )
         )}
 
         <p className="page-breadcrumbs" style={{ marginTop: '1.5rem' }}>

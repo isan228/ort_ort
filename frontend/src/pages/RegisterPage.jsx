@@ -78,7 +78,7 @@ export default function RegisterPage() {
       try {
         const status = await api.getRegisterCheckoutStatus(paymentId);
         if (status.status === 'completed') {
-          if (!status.can_analyze && !status.premium) {
+          if (!status.premium) {
             continue;
           }
           await finishRegistrationReturn();

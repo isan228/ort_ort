@@ -21,22 +21,22 @@ async function resolveScoreProfile(userId) {
   });
 }
 
+/** Доступ к платным функциям — только по подписке. Фаза «до/после результатов» не используется. */
 export async function getUserFeatureAccess(userId) {
   const premium = await userHasPremiumAccess(userId);
   const scoreProfile = await resolveScoreProfile(userId);
   const hasScores = scoreProfile?.main_score != null;
 
-  let blockedReason = null;
-  if (!premium) blockedReason = 'subscription';
-  else if (!hasScores) blockedReason = 'scores';
-
   return {
     premium,
+    has_full_access: premium,
     has_scores: hasScores,
-    can_analyze: premium && hasScores,
-    can_use_tours: premium && hasScores,
+    can_analyze: premium,
+    can_use_tours: premium,
     can_view_rankings: premium,
-    blocked_reason: blockedReason,
+    can_use_community: premium,
+    can_use_catalog: premium,
+    blocked_reason: premium ? null : 'subscription',
     scores: scoreProfile
       ? {
           main_score: scoreProfile.main_score,

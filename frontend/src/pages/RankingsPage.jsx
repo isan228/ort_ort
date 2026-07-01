@@ -10,7 +10,7 @@ import { useFeatureAccess } from '../hooks/useFeatureAccess.js';
 export default function RankingsPage() {
   const { t } = useI18n();
   const user = getStoredUser();
-  const { can_view_rankings, analysis_blocked_reason, loading: accessLoading, loggedIn } = useFeatureAccess();
+  const { can_view_rankings, loading: accessLoading, loggedIn } = useFeatureAccess();
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -105,7 +105,7 @@ export default function RankingsPage() {
           </div>
         )}
 
-        {loggedIn && !can_view_rankings && analysis_blocked_reason === 'subscription' && (
+        {loggedIn && !can_view_rankings && (
           <div className="page-callout">
             {t('rankings.blocked.subscription')}{' '}
             <Link to="/subscription">{t('analysis.blocked.subscriptionLink')}</Link>

@@ -198,13 +198,11 @@ export async function joinTour(userId, tourId, slotType) {
   }
 
   const access = await getUserFeatureAccess(userId);
-  if (!access.can_use_tours) {
+  if (!access.premium) {
     throw createHttpError(
       402,
       'ANL-002',
-      access.blocked_reason === 'scores'
-        ? 'Укажите баллы в личном кабинете'
-        : 'Функция доступна по подписке Premium'
+      'Функция доступна по подписке Premium'
     );
   }
 

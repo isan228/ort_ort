@@ -282,11 +282,7 @@ export default function AnalysisPage() {
 
   async function runAnalysis() {
     if (!context?.can_analyze) {
-      setError(
-        context?.analysis_blocked_reason === 'scores'
-          ? t('analysis.blocked.scores')
-          : t('analysis.blocked.subscription')
-      );
+      setError(t('analysis.blocked.subscription'));
       return;
     }
 
@@ -419,17 +415,10 @@ export default function AnalysisPage() {
           </button>
         </header>
 
-        {!context?.can_analyze && context?.analysis_blocked_reason === 'subscription' && (
+        {!context?.can_analyze && (
           <div className="tours-disclaimer" style={{ marginBottom: '1rem' }}>
             {t('analysis.blocked.subscription')}{' '}
             <Link to="/subscription">{t('analysis.blocked.subscriptionLink')}</Link>
-          </div>
-        )}
-
-        {!context?.can_analyze && context?.analysis_blocked_reason === 'scores' && (
-          <div className="tours-disclaimer" style={{ marginBottom: '1rem' }}>
-            {t('analysis.blocked.scores')}{' '}
-            <Link to="/account/scores">{t('account.page.scores')}</Link>
           </div>
         )}
 

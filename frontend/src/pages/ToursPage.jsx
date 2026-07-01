@@ -155,7 +155,7 @@ function buildStages(tours) {
 export default function ToursPage() {
   const { t } = useI18n();
   const toast = useToast();
-  const { can_use_tours, analysis_blocked_reason, loggedIn } = useFeatureAccess();
+  const { can_use_tours, loggedIn } = useFeatureAccess();
   const userId = getStoredUser()?.id ?? null;
   const isLoggedIn = Boolean(userId);
   const [tours, setTours] = useState([]);
@@ -275,8 +275,7 @@ export default function ToursPage() {
       return;
     }
     if (!can_use_tours) {
-      const msg =
-        analysis_blocked_reason === 'scores' ? t('tours.blocked.scores') : t('tours.blocked.subscription');
+      const msg = t('tours.blocked.subscription');
       toast.error(msg);
       setError(msg);
       return;
@@ -357,17 +356,8 @@ export default function ToursPage() {
 
         {loggedIn && !can_use_tours && (
           <div className="page-callout">
-            {analysis_blocked_reason === 'scores' ? (
-              <>
-                {t('tours.blocked.scores')}{' '}
-                <Link to="/account/scores">{t('ux.empty.toScores')}</Link>
-              </>
-            ) : (
-              <>
-                {t('tours.blocked.subscription')}{' '}
-                <Link to="/subscription">{t('analysis.blocked.subscriptionLink')}</Link>
-              </>
-            )}
+            {t('tours.blocked.subscription')}{' '}
+            <Link to="/subscription">{t('analysis.blocked.subscriptionLink')}</Link>
           </div>
         )}
 

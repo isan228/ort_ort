@@ -370,9 +370,12 @@ async function buildRegistrationCompletedPayload(payment, pending, session = nul
     user_id: payment.user_id,
     premium,
     has_scores: hasScores,
-    can_analyze: premium && hasScores,
-    can_use_tours: premium && hasScores,
+    has_full_access: premium,
+    can_analyze: premium,
+    can_use_tours: premium,
     can_view_rankings: premium,
+    can_use_community: premium,
+    can_use_catalog: premium,
     subscription: subscription
       ? {
           id: subscription.id,

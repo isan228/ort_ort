@@ -1,7 +1,7 @@
 import { Favorite, ComparisonSet, University, Faculty, Specialty } from '../models/index.js';
 import { FAVORITE_ENTITY_TYPE } from '../constants/index.js';
 import { userHasActiveSubscription } from './subscriptionService.js';
-import { userCanCompare, consumeUnlock } from './accessService.js';
+import { userHasPremiumAccess, consumeUnlock } from './accessService.js';
 import { REDEMPTION_FEATURE } from '../constants/index.js';
 import { createHttpError } from '../utils/errors.js';
 
@@ -92,10 +92,9 @@ export async function listFavorites(userId) {
 }
 
 export async function createComparisonSet(userId, { name, items }) {
-  const subscribed = await userHasActiveSubscription(userId);
-  const canCompare = subscribed || (await userCanCompare(userId));
+  const canCompare = await userHasPremiumAccess(userId);
   if (!canCompare) {
-    throw createHttpError(402, 'ANL-002', 'Функция доступна по подписке');
+    throw createHttpError(402, 'ANL-002', 'Функция доступна по подписке Premium');
   }
 
   if (!Array.isArray(items) || items.length < 2) {
@@ -108,6 +107,7 @@ export async function createComparisonSet(userId, { name, items }) {
     items_json: items,
   });
 
+  const subscribed = await userHasActiveSubscription(userId);
   if (!subscribed) {
     await consumeUnlock(userId, REDEMPTION_FEATURE.COMPARE_UNLOCK);
   }
