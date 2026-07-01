@@ -234,6 +234,15 @@ export default function AdminPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
+  async function reloadCatalog() {
+    try {
+      const catalogRes = await api.adminGetCatalog();
+      setCatalog(catalogRes.universities || []);
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
   async function load() {
     setLoading(true);
     setError('');
@@ -322,7 +331,7 @@ export default function AdminPage() {
       <header className="admin-page-head">
       <h1>Админ-панель</h1>
       <p className="muted">
-        Модерация, каталог вузов, туры, новости и системные настройки.
+        Модерация, каталог вузов (факультеты, программы, проходные баллы), туры, новости и настройки.
       </p>
       </header>
 
@@ -353,7 +362,7 @@ export default function AdminPage() {
           className={tab === 'catalog' ? 'btn' : 'btn btn-secondary'}
           onClick={() => setTab('catalog')}
         >
-          Каталог ({catalog.length})
+          Вузы и каталог ({catalog.length})
         </button>
         <button
           type="button"
@@ -444,7 +453,7 @@ export default function AdminPage() {
           )}
 
           {tab === 'catalog' && (
-            <AdminCatalogTab universities={catalog} onUpdated={load} />
+            <AdminCatalogTab universities={catalog} onUpdated={reloadCatalog} />
           )}
 
           {tab === 'tours' && <AdminToursTab tours={tours} onUpdated={load} />}
