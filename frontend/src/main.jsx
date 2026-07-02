@@ -14,6 +14,7 @@ import './styles/universities.css';
 import './styles/page-shell.css';
 import './styles/auth.css';
 import './styles/admin.css';
+import './styles/landing-personas.css';
 import './styles/landing-features.css';
 import './styles/landing-mobile.css';
 import './styles/landing-desktop.css';

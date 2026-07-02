@@ -1,0 +1,240 @@
+/* ——— Секция «Кому подходит ORT.KG?» ——— */
+
+.landing-personas {
+  padding: 3rem 0 3.5rem;
+  background: #fff;
+}
+
+.landing-personas .landing-section-title {
+  margin-bottom: 2.25rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.landing-personas-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+.landing-persona-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-height: 15.5rem;
+  padding: 1.35rem 1.25rem 1.15rem;
+  border: 1px solid transparent;
+  border-radius: 1.25rem;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  overflow: hidden;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.landing-persona-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.landing-persona-card--blue {
+  background: linear-gradient(160deg, #f0f7ff 0%, #e8f2ff 55%, #dbeafe 100%);
+  border-color: #bfdbfe;
+}
+
+.landing-persona-card--green {
+  background: linear-gradient(160deg, #f0fdf8 0%, #e8faf2 55%, #d1fae5 100%);
+  border-color: #a7f3d0;
+}
+
+.landing-persona-card--purple {
+  background: linear-gradient(160deg, #faf8ff 0%, #f3efff 55%, #ede9fe 100%);
+  border-color: #ddd6fe;
+}
+
+.landing-persona-main {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex: 1;
+  min-height: 0;
+}
+
+.landing-persona-body {
+  flex: 1;
+  min-width: 0;
+  padding-right: 0.25rem;
+  z-index: 1;
+}
+
+.landing-persona-body h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.landing-persona-card--blue .landing-persona-body h3 {
+  color: #1d4ed8;
+}
+
+.landing-persona-card--green .landing-persona-body h3 {
+  color: #15803d;
+}
+
+.landing-persona-card--purple .landing-persona-body h3 {
+  color: #6d28d9;
+}
+
+.landing-persona-sub {
+  margin: 0 0 0.85rem;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: #64748b;
+}
+
+.landing-persona-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.landing-persona-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: #334155;
+}
+
+.landing-persona-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+  font-size: 0.62rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.landing-persona-card--blue .landing-persona-check {
+  background: rgba(37, 99, 235, 0.12);
+  color: #2563eb;
+}
+
+.landing-persona-card--green .landing-persona-check {
+  background: rgba(22, 163, 74, 0.12);
+  color: #16a34a;
+}
+
+.landing-persona-card--purple .landing-persona-check {
+  background: rgba(109, 40, 217, 0.12);
+  color: #7c3aed;
+}
+
+.landing-persona-art {
+  flex-shrink: 0;
+  width: 5.5rem;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  font-size: 4.25rem;
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+  margin-bottom: -0.25rem;
+}
+
+.landing-persona-arrow {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.landing-persona-card--blue .landing-persona-arrow {
+  color: #2563eb;
+}
+
+.landing-persona-card--green .landing-persona-arrow {
+  color: #16a34a;
+}
+
+.landing-persona-card--purple .landing-persona-arrow {
+  color: #7c3aed;
+}
+
+@media (max-width: 1024px) {
+  .landing-personas-grid {
+    grid-template-columns: 1fr;
+    max-width: 28rem;
+    margin: 0 auto;
+  }
+
+  .landing-persona-card {
+    min-height: 0;
+  }
+
+  .landing-persona-art {
+    width: 4.5rem;
+    font-size: 3.25rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .landing-personas {
+    padding: 1.75rem 0;
+    background: #f8fafc;
+  }
+
+  .landing-personas .landing-section-title {
+    margin-bottom: 1.25rem;
+    font-size: 1.35rem;
+  }
+
+  .landing-personas-grid {
+    max-width: none;
+    gap: 0.85rem;
+  }
+
+  .landing-persona-card {
+    padding: 1.15rem 1rem 1rem;
+    border-radius: 1rem;
+  }
+
+  .landing-persona-body h3 {
+    font-size: 1rem;
+  }
+
+  .landing-persona-list li {
+    font-size: 0.78rem;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1100px) {
+  .landing-personas-grid {
+    grid-template-columns: 1fr;
+    max-width: 36rem;
+    margin: 0 auto;
+  }
+}

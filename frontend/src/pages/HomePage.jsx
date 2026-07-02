@@ -34,10 +34,10 @@ function buildPersonas(t, navigate, handleStartAnalysis) {
     {
       key: '2026',
       tone: 'blue',
-      emoji: '🎓',
+      emoji: '🧑‍🎓',
       title: t('home.persona2026.title'),
       desc: t('home.persona2026.desc'),
-      bullets: [t('home.persona2026.b1'), t('home.persona2026.b2')],
+      bullets: [t('home.persona2026.b1'), t('home.persona2026.b2'), t('home.persona2026.b3')],
       onClick: handleStartAnalysis,
     },
     {
@@ -46,16 +46,16 @@ function buildPersonas(t, navigate, handleStartAnalysis) {
       emoji: '📅',
       title: t('home.persona2027.title'),
       desc: t('home.persona2027.desc'),
-      bullets: [t('home.persona2027.b1'), t('home.persona2027.b2')],
+      bullets: [t('home.persona2027.b1'), t('home.persona2027.b2'), t('home.persona2027.b3')],
       onClick: () => navigate('/universities'),
     },
     {
       key: 'parent',
       tone: 'purple',
-      emoji: '👨‍👩‍👧',
+      emoji: '👨‍👩‍👧‍👦',
       title: t('home.personaParent.title'),
       desc: t('home.personaParent.desc'),
-      bullets: [t('home.personaParent.b1'), t('home.personaParent.b2')],
+      bullets: [t('home.personaParent.b1'), t('home.personaParent.b2'), t('home.personaParent.b3')],
       onClick: () => navigate('/register'),
     },
   ];
@@ -286,17 +286,24 @@ export default function HomePage() {
                 className={`landing-persona-card landing-persona-card--${persona.tone}`}
                 onClick={persona.onClick}
               >
-                <div className="landing-persona-body">
-                  <h3>{persona.title}</h3>
-                  <p>{persona.desc}</p>
-                  <ul>
-                    {persona.bullets.map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="landing-persona-art" aria-hidden>
-                  {persona.emoji}
+                <div className="landing-persona-main">
+                  <div className="landing-persona-body">
+                    <h3>{persona.title}</h3>
+                    <p className="landing-persona-sub">{persona.desc}</p>
+                    <ul className="landing-persona-list">
+                      {persona.bullets.map((item) => (
+                        <li key={item}>
+                          <span className="landing-persona-check" aria-hidden>
+                            ✓
+                          </span>
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="landing-persona-art" aria-hidden>
+                    {persona.emoji}
+                  </div>
                 </div>
                 <span className="landing-persona-arrow" aria-hidden>
                   <LandingIcon name="arrowRight" size={14} />
