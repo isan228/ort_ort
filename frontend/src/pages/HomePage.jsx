@@ -30,6 +30,15 @@ const DEMO_ROWS = [
   { uni: 'КГУ', program: 'Лечебное дело', chance: 'low', pct: 22 },
 ];
 
+const FEATURE_TILES = [
+  { icon: 'chart', color: 'blue', titleKey: 'home.tile.analysis', descKey: 'home.tile.analysisDesc', to: '/analysis' },
+  { icon: 'calendar', color: 'green', titleKey: 'home.tile.tours', descKey: 'home.tile.toursDesc', to: '/tours' },
+  { icon: 'uni', color: 'purple', titleKey: 'home.tile.universities', descKey: 'home.tile.universitiesDesc', to: '/universities' },
+  { icon: 'users', color: 'orange', titleKey: 'home.tile.community', descKey: 'home.tile.communityDesc', to: '/community' },
+  { icon: 'wallet', color: 'pink', titleKey: 'home.tile.wallet', descKey: 'home.tile.walletDesc', to: '/account/wallet' },
+  { icon: 'news', color: 'navy', titleKey: 'home.tile.news', descKey: 'home.tile.newsDesc', to: '/news' },
+];
+
 function formatStatValue(count) {
   if (count == null || count <= 0) return null;
   if (count >= 1000) return `${Math.floor(count / 100) * 100}+`;
@@ -111,6 +120,7 @@ export default function HomePage() {
     { num: 2, icon: STEP_ICON_NAMES[1], title: t('home.step2.title'), desc: t('home.step2.desc') },
     { num: 3, icon: STEP_ICON_NAMES[2], title: t('home.step3.title'), desc: t('home.step3.desc') },
     { num: 4, icon: STEP_ICON_NAMES[3], title: t('home.step4.title'), desc: t('home.step4.desc') },
+    { num: 5, icon: STEP_ICON_NAMES[4], title: t('home.step5.title'), desc: t('home.step5.desc') },
   ];
 
   useEffect(() => {
@@ -180,7 +190,18 @@ export default function HomePage() {
               </h1>
               <p className="landing-hero-subtitle">{t('home.heroSubtitle')}</p>
 
-              <form className="landing-hero-form" onSubmit={handleStartAnalysis}>
+              <div className="landing-hero-mobile-cta landing-mobile-only">
+                <button type="button" className="btn btn-landing" disabled={ctaLoading} onClick={handleStartAnalysis}>
+                  <span>{ctaLoading ? t('home.ctaLoading') : t('home.ctaFree')}</span>
+                  <LandingIcon name="arrowRight" size={18} className="btn-landing-arrow" />
+                </button>
+                <button type="button" className="btn-landing-outline" onClick={() => navigate('/register')}>
+                  <LandingIcon name="user" size={18} />
+                  {t('home.parentCta')}
+                </button>
+              </div>
+
+              <form className="landing-hero-form landing-desktop-only" onSubmit={handleStartAnalysis}>
                 <h2 className="landing-form-title">{t('home.formTitle')}</h2>
                 <div className="landing-form-row">
                   <label>
@@ -240,6 +261,19 @@ export default function HomePage() {
                   <LandingIcon name="edit" size={12} className="landing-edit-icon" />
                 </span>
               </div>
+
+              <ul className="landing-example-list landing-mobile-only">
+                {DEMO_ROWS.map((row) => (
+                  <li key={`${row.uni}-m`} className="landing-example-list-item">
+                    <div className="landing-example-list-text">
+                      <strong>{row.uni}</strong>
+                      <span>{row.program}</span>
+                    </div>
+                    <ChanceBadge level={row.chance} pct={row.pct} t={t} />
+                  </li>
+                ))}
+              </ul>
+
               <table className="landing-example-table">
                 <thead>
                   <tr>
@@ -260,12 +294,16 @@ export default function HomePage() {
                   ))}
                 </tbody>
               </table>
+              <button type="button" className="landing-example-link landing-mobile-only" disabled={ctaLoading} onClick={handleStartAnalysis}>
+                {t('home.exampleFullLink')}
+                <LandingIcon name="arrowRight" size={14} />
+              </button>
               <p className="landing-example-disclaimer">{t('home.example.disclaimer')}</p>
             </div>
           </div>
         </section>
 
-        <section className="landing-stats">
+        <section className="landing-stats landing-desktop-only">
           <div className="container landing-stats-grid">
             {stats.map((item) => (
               <div key={item.label} className="landing-stat">
@@ -279,10 +317,96 @@ export default function HomePage() {
         </section>
       </div>
 
-      <section className="landing-section">
+      <section className="landing-personas landing-mobile-only">
+        <div className="container">
+          <h2 className="landing-section-title">{t('home.personasTitle')}</h2>
+          {[
+            {
+              key: '2026',
+              tone: 'blue',
+              emoji: '🎓',
+              title: t('home.persona2026.title'),
+              desc: t('home.persona2026.desc'),
+              bullets: [t('home.persona2026.b1'), t('home.persona2026.b2')],
+              onClick: handleStartAnalysis,
+            },
+            {
+              key: '2027',
+              tone: 'green',
+              emoji: '📅',
+              title: t('home.persona2027.title'),
+              desc: t('home.persona2027.desc'),
+              bullets: [t('home.persona2027.b1'), t('home.persona2027.b2')],
+              onClick: () => navigate('/universities'),
+            },
+            {
+              key: 'parent',
+              tone: 'purple',
+              emoji: '👨‍👩‍👧',
+              title: t('home.personaParent.title'),
+              desc: t('home.personaParent.desc'),
+              bullets: [t('home.personaParent.b1'), t('home.personaParent.b2')],
+              onClick: () => navigate('/register'),
+            },
+          ].map((persona) => (
+            <button
+              key={persona.key}
+              type="button"
+              className={`landing-persona-card landing-persona-card--${persona.tone}`}
+              onClick={persona.onClick}
+            >
+              <div className="landing-persona-body">
+                <h3>{persona.title}</h3>
+                <p>{persona.desc}</p>
+                <ul>
+                  {persona.bullets.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+              <div className="landing-persona-art" aria-hidden>
+                {persona.emoji}
+              </div>
+              <span className="landing-persona-arrow" aria-hidden>
+                <LandingIcon name="arrowRight" size={14} />
+              </span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="landing-features landing-mobile-only">
+        <div className="container">
+          <h2 className="landing-section-title">{t('home.featuresTitle')}</h2>
+          <div className="landing-features-grid">
+            {FEATURE_TILES.map((tile) => (
+              <Link key={tile.to} to={tile.to} className="landing-feature-card">
+                <span className={`landing-feature-icon landing-feature-icon--${tile.color}`}>
+                  <LandingIcon name={tile.icon} size={18} />
+                </span>
+                <h3>{t(tile.titleKey)}</h3>
+                <p>{t(tile.descKey)}</p>
+                <span className="landing-feature-link">{t('home.more')}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="landing-section landing-section--how">
         <div className="container">
           <h2 className="landing-section-title">{t('home.howTitle')}</h2>
-          <div className="landing-steps">
+          <div className="landing-steps landing-steps--mobile">
+            {steps.map((step) => (
+              <div key={`m-${step.num}`} className="landing-step landing-step--mobile">
+                <div className="landing-step-num">{step.num}</div>
+                <LandingIcon name={step.icon} size={22} className="landing-step-icon" />
+                <h3>{step.title}</h3>
+                <p>{step.desc}</p>
+              </div>
+            ))}
+          </div>
+          <div className="landing-steps landing-desktop-only">
             {steps.map((step) => (
               <div key={step.num} className="landing-step">
                 <div className="landing-step-num">{step.num}</div>
@@ -295,7 +419,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="landing-section landing-section--muted">
+      <section className="landing-section landing-section--muted landing-desktop-only">
         <div className="container">
           <h2 className="landing-section-title">{t('home.directionsTitle')}</h2>
           <div className="landing-cards-grid">
@@ -319,7 +443,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="landing-section">
+      <section className="landing-section landing-desktop-only">
         <div className="container">
           <h2 className="landing-section-title">{t('home.universitiesTitle')}</h2>
           <div className="landing-cards-grid">
@@ -339,7 +463,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="landing-section landing-section--muted">
+      <section className="landing-section landing-section--muted landing-desktop-only">
         <div className="container">
           <h2 className="landing-section-title">{t('home.newsTitle')}</h2>
           <div className="landing-news-grid">
@@ -377,18 +501,57 @@ export default function HomePage() {
       </section>
 
       <section className="landing-bottom-cta">
-        <div className="container landing-bottom-cta-inner">
-          <LandingIcon name="gradCap" size={36} className="landing-bottom-icon" />
-          <p>{t('home.bottomCta')}</p>
-          <button type="button" className="btn btn-landing btn-landing--inline" disabled={ctaLoading} onClick={handleStartAnalysis}>
-            <span>{ctaLoading ? t('home.ctaLoading') : t('home.ctaAnalysis')}</span>
-            <LandingIcon name="arrowRight" size={18} className="btn-landing-arrow" />
-          </button>
+        <div className="container">
+          <div className="landing-bottom-cta-card landing-mobile-only">
+            <LandingIcon name="gradCap" size={36} className="landing-bottom-icon" />
+            <p>{t('home.bottomCta')}</p>
+            <p className="landing-bottom-cta-sub">{t('home.bottomCtaSub')}</p>
+            <button type="button" className="btn btn-landing" disabled={ctaLoading} onClick={handleStartAnalysis}>
+              <span>{ctaLoading ? t('home.ctaLoading') : t('home.ctaFree')}</span>
+              <LandingIcon name="arrowRight" size={18} className="btn-landing-arrow" />
+            </button>
+          </div>
+          <div className="landing-bottom-cta-inner landing-desktop-only">
+            <LandingIcon name="gradCap" size={36} className="landing-bottom-icon" />
+            <p>{t('home.bottomCta')}</p>
+            <button type="button" className="btn btn-landing btn-landing--inline" disabled={ctaLoading} onClick={handleStartAnalysis}>
+              <span>{ctaLoading ? t('home.ctaLoading') : t('home.ctaAnalysis')}</span>
+              <LandingIcon name="arrowRight" size={18} className="btn-landing-arrow" />
+            </button>
+          </div>
         </div>
       </section>
 
       <footer className="landing-footer">
-        <div className="container landing-footer-inner">
+        <div className="container landing-footer-inner landing-footer-inner--mobile">
+          <div className="landing-footer-brand">
+            <Link to="/" className="landing-footer-logo">
+              ORT.KG
+            </Link>
+            <p className="landing-footer-desc">{t('home.footerDesc')}</p>
+          </div>
+          <div className="landing-footer-social">
+            <a href="https://t.me/" target="_blank" rel="noreferrer">
+              TG
+            </a>
+            <a href="https://instagram.com/" target="_blank" rel="noreferrer">
+              IG
+            </a>
+            <a href="https://youtube.com/" target="_blank" rel="noreferrer">
+              YT
+            </a>
+          </div>
+          <nav className="landing-footer-links">
+            <Link to="/faq">{t('home.footer.about')}</Link>
+            <Link to="/account/support">{t('home.footer.contacts')}</Link>
+            <Link to="/faq">{t('home.footer.team')}</Link>
+            <Link to="/faq">{t('legal.faq')}</Link>
+            <Link to="/legal/terms">{t('legal.terms')}</Link>
+            <Link to="/legal/privacy">{t('legal.privacy')}</Link>
+          </nav>
+          <p className="landing-footer-copy">{t('footer.rights')}</p>
+        </div>
+        <div className="container landing-footer-inner landing-footer-inner--compact">
           <span className="muted">{t('footer.rights')}</span>
           <nav className="footer-nav">
             <Link to="/legal/privacy">{t('legal.privacy')}</Link>

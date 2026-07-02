@@ -4,6 +4,12 @@ import { NAV_PRIMARY, NAV_SECONDARY } from '../../config/siteNav.js';
 import { useI18n } from '../../i18n/I18nContext.jsx';
 import { AccountIcon } from '../icons/AccountIcons.jsx';
 
+const LANDING_DRAWER_ITEMS = [
+  ...NAV_PRIMARY,
+  NAV_SECONDARY.find((item) => item.to === '/subscription'),
+  NAV_SECONDARY.find((item) => item.to === '/account'),
+].filter(Boolean);
+
 export default function SiteNavDrawer({
   open,
   pathname,
@@ -16,6 +22,64 @@ export default function SiteNavDrawer({
   isLanding,
 }) {
   const { t } = useI18n();
+
+  if (isLanding) {
+    return (
+      <nav id="site-nav" className={`site-nav-drawer${open ? ' is-open' : ''}`} aria-label={t('ux.nav.main')}>
+        <div className="container site-nav-drawer-inner">
+          <div className="nav-drawer-group nav-drawer-group--landing">
+            {LANDING_DRAWER_ITEMS.map((item) => (
+              <SiteNavLink key={item.to} item={item} pathname={pathname} onClick={onClose} showIcon />
+            ))}
+            {staff && (
+              <SiteNavLink
+                item={{
+                  to: '/admin',
+                  key: 'nav.admin',
+                  icon: 'admin',
+                  match: (p) => p.startsWith('/admin'),
+                }}
+                pathname={pathname}
+                onClick={onClose}
+                showIcon
+              />
+            )}
+          </div>
+
+          <div className="nav-drawer-footer nav-drawer-footer--landing">
+            <div className="lang-switch lang-switch--nav" role="group" aria-label={t('account.language')}>
+              <button
+                type="button"
+                className={locale === 'ru' ? 'chip active' : 'chip'}
+                onClick={() => setLocale('ru')}
+              >
+                {t('lang.ru')}
+              </button>
+              <button
+                type="button"
+                className={locale === 'ky' ? 'chip active' : 'chip'}
+                onClick={() => setLocale('ky')}
+              >
+                {t('lang.ky')}
+              </button>
+            </div>
+            <div className="nav-drawer-auth nav-drawer-auth--landing">
+              {user ? (
+                <button type="button" className="nav-drawer-logout site-nav-link site-nav-link--row" onClick={onLogout}>
+                  <AccountIcon name="logout" size={18} className="site-nav-link-icon" />
+                  <span className="site-nav-link-label">{t('nav.logout')}</span>
+                </button>
+              ) : (
+                <Link to="/login" className="btn" onClick={onClose}>
+                  {t('nav.loginRegister')}
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+      </nav>
+    );
+  }
 
   return (
     <nav id="site-nav" className={`site-nav-drawer${open ? ' is-open' : ''}`} aria-label={t('ux.nav.main')}>
