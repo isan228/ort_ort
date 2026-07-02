@@ -145,14 +145,14 @@
     max-width: none;
   }
 
-  .landing-hero-mobile-cta {
+  .landing-hero-cta {
     display: flex;
     flex-direction: column;
     gap: 0.65rem;
     margin-bottom: 0.25rem;
   }
 
-  .landing-hero-mobile-cta .btn-landing {
+  .landing-hero-cta .btn-landing {
     margin-top: 0;
     border-radius: 999px;
     box-shadow: 0 4px 14px rgba(26, 86, 219, 0.25);
@@ -281,6 +281,12 @@
   .landing-personas {
     padding: 1.75rem 0;
     background: #f8fafc;
+  }
+
+  .landing-personas-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
   }
 
   .landing-persona-card {

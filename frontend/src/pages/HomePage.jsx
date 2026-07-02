@@ -3,24 +3,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { api, isAuthenticated } from '../api/client.js';
 import { useI18n } from '../i18n/I18nContext.jsx';
 import {
-  ORT_MAIN_SCORE_MIN,
-  ORT_MAIN_SCORE_MAX,
   validateOrtMainScore,
-  getOrtScoreErrorMessage,
 } from '../utils/ortScore.js';
 import {
   LandingIcon,
-  DIRECTION_ICON_NAMES,
   STEP_ICON_NAMES,
   STAT_ICON_NAMES,
   CHANCE_ICON_NAMES,
 } from '../components/icons/LandingIcons.jsx';
-import UniLogo from '../components/UniLogo.jsx';
-
-const CATEGORY_LABELS = {
-  announcement: 'home.news.announcement',
-  guide: 'home.news.guide',
-};
 
 const DEMO_ROWS = [
   { uni: 'КГМА', program: 'Лечебное дело', chance: 'high', pct: 82 },
@@ -31,13 +21,45 @@ const DEMO_ROWS = [
 ];
 
 const FEATURE_TILES = [
-  { icon: 'chart', color: 'blue', titleKey: 'home.tile.analysis', descKey: 'home.tile.analysisDesc', to: '/analysis' },
-  { icon: 'calendar', color: 'green', titleKey: 'home.tile.tours', descKey: 'home.tile.toursDesc', to: '/tours' },
-  { icon: 'uni', color: 'purple', titleKey: 'home.tile.universities', descKey: 'home.tile.universitiesDesc', to: '/universities' },
-  { icon: 'users', color: 'orange', titleKey: 'home.tile.community', descKey: 'home.tile.communityDesc', to: '/community' },
-  { icon: 'wallet', color: 'pink', titleKey: 'home.tile.wallet', descKey: 'home.tile.walletDesc', to: '/account/wallet' },
-  { icon: 'news', color: 'navy', titleKey: 'home.tile.news', descKey: 'home.tile.newsDesc', to: '/news' },
+  { icon: 'chart', color: 'blue', titleKey: 'home.tile.analysis', descKey: 'home.tile.analysisDesc', linkKey: 'home.feature.analysisLink', to: '/analysis' },
+  { icon: 'calendar', color: 'green', titleKey: 'home.tile.tours', descKey: 'home.tile.toursDesc', linkKey: 'home.feature.toursLink', to: '/tours' },
+  { icon: 'uni', color: 'purple', titleKey: 'home.tile.universities', descKey: 'home.tile.universitiesDesc', linkKey: 'home.feature.universitiesLink', to: '/universities' },
+  { icon: 'users', color: 'orange', titleKey: 'home.tile.community', descKey: 'home.tile.communityDesc', linkKey: 'home.feature.communityLink', to: '/community' },
+  { icon: 'wallet', color: 'pink', titleKey: 'home.tile.wallet', descKey: 'home.tile.walletDesc', linkKey: 'home.feature.walletLink', to: '/account/wallet' },
+  { icon: 'news', color: 'navy', titleKey: 'home.tile.news', descKey: 'home.tile.newsDesc', linkKey: 'home.feature.newsLink', to: '/news' },
 ];
+
+function buildPersonas(t, navigate, handleStartAnalysis) {
+  return [
+    {
+      key: '2026',
+      tone: 'blue',
+      emoji: '🎓',
+      title: t('home.persona2026.title'),
+      desc: t('home.persona2026.desc'),
+      bullets: [t('home.persona2026.b1'), t('home.persona2026.b2')],
+      onClick: handleStartAnalysis,
+    },
+    {
+      key: '2027',
+      tone: 'green',
+      emoji: '📅',
+      title: t('home.persona2027.title'),
+      desc: t('home.persona2027.desc'),
+      bullets: [t('home.persona2027.b1'), t('home.persona2027.b2')],
+      onClick: () => navigate('/universities'),
+    },
+    {
+      key: 'parent',
+      tone: 'purple',
+      emoji: '👨‍👩‍👧',
+      title: t('home.personaParent.title'),
+      desc: t('home.personaParent.desc'),
+      bullets: [t('home.personaParent.b1'), t('home.personaParent.b2')],
+      onClick: () => navigate('/register'),
+    },
+  ];
+}
 
 function formatStatValue(count) {
   if (count == null || count <= 0) return null;
@@ -64,20 +86,10 @@ export default function HomePage() {
   const { t } = useI18n();
   const navigate = useNavigate();
   const [score, setScore] = useState('185');
-  const [direction, setDirection] = useState('medicine');
-  const [universities, setUniversities] = useState([]);
-  const [news, setNews] = useState([]);
+  const [direction] = useState('medicine');
   const [programs, setPrograms] = useState([]);
-  const [scoreError, setScoreError] = useState('');
   const [ctaLoading, setCtaLoading] = useState(false);
   const [platformStats, setPlatformStats] = useState(null);
-
-  const directionKeys = ['medicine', 'dentistry', 'it', 'economics', 'law'];
-  const directions = directionKeys.map((key, i) => ({
-    key,
-    icon: DIRECTION_ICON_NAMES[i],
-    chance: [78, 65, 82, 71, 58][i],
-  }));
 
   const stats = useMemo(() => {
     const usersCount = platformStats?.users_count ?? 0;
@@ -85,11 +97,6 @@ export default function HomePage() {
     const programCount = platformStats?.programs_count ?? 0;
 
     return [
-      {
-        icon: STAT_ICON_NAMES[3],
-        value: usersCount > 0 ? String(usersCount) : '—',
-        label: t('home.stat.users'),
-      },
       {
         icon: STAT_ICON_NAMES[0],
         value: formatStatValue(uniCount) || t('home.stat.soon'),
@@ -103,6 +110,12 @@ export default function HomePage() {
         muted: !formatStatValue(programCount),
       },
       { icon: STAT_ICON_NAMES[2], value: '5', label: t('home.stat.years') },
+      {
+        icon: STAT_ICON_NAMES[3],
+        value: usersCount > 0 ? `${formatStatValue(usersCount) || usersCount}` : '200K+',
+        label: t('home.stat.students'),
+        muted: false,
+      },
       { icon: STAT_ICON_NAMES[4], value: '№1', label: t('home.stat.service') },
     ];
   }, [platformStats, t]);
@@ -124,8 +137,6 @@ export default function HomePage() {
   ];
 
   useEffect(() => {
-    api.getUniversities().then((data) => setUniversities((data.universities || []).slice(0, 5))).catch(() => {});
-    api.getNews({ limit: 4 }).then((data) => setNews(data.articles || [])).catch(() => {});
     api.listPrograms().then((data) => setPrograms((data.programs || []).slice(0, 20))).catch(() => {});
     api.getPublicStats().then(setPlatformStats).catch(() => {});
   }, []);
@@ -149,10 +160,9 @@ export default function HomePage() {
 
   async function handleStartAnalysis(e) {
     e?.preventDefault?.();
-    setScoreError('');
     const check = validateOrtMainScore(score);
     if (!check.valid) {
-      setScoreError(getOrtScoreErrorMessage(check.error, t));
+      navigate('/register');
       return;
     }
 
@@ -168,15 +178,7 @@ export default function HomePage() {
     }
   }
 
-  async function handleDirectionClick(e) {
-    e.preventDefault();
-    setCtaLoading(true);
-    try {
-      await goToAnalysis('');
-    } finally {
-      setCtaLoading(false);
-    }
-  }
+  const personas = buildPersonas(t, navigate, handleStartAnalysis);
 
   return (
     <div className="landing">
@@ -190,7 +192,7 @@ export default function HomePage() {
               </h1>
               <p className="landing-hero-subtitle">{t('home.heroSubtitle')}</p>
 
-              <div className="landing-hero-mobile-cta landing-mobile-only">
+              <div className="landing-hero-cta">
                 <button type="button" className="btn btn-landing" disabled={ctaLoading} onClick={handleStartAnalysis}>
                   <span>{ctaLoading ? t('home.ctaLoading') : t('home.ctaFree')}</span>
                   <LandingIcon name="arrowRight" size={18} className="btn-landing-arrow" />
@@ -201,52 +203,17 @@ export default function HomePage() {
                 </button>
               </div>
 
-              <form className="landing-hero-form landing-desktop-only" onSubmit={handleStartAnalysis}>
-                <h2 className="landing-form-title">{t('home.formTitle')}</h2>
-                <div className="landing-form-row">
-                  <label>
-                    <span>{t('home.scoreLabel')}</span>
-                    <input
-                      type="number"
-                      min={ORT_MAIN_SCORE_MIN}
-                      max={ORT_MAIN_SCORE_MAX}
-                      value={score}
-                      onChange={(e) => {
-                        setScore(e.target.value);
-                        setScoreError('');
-                      }}
-                      placeholder="185"
-                    />
-                  </label>
-                  {scoreError && <p className="landing-form-score-error">{scoreError}</p>}
-                  <label>
-                    <span>{t('home.directionLabel')}</span>
-                    <select value={direction} onChange={(e) => setDirection(e.target.value)}>
-                      <option value="medicine">{t('home.direction.medicineFull')}</option>
-                      {programs.map((p) => (
-                        <option key={p.id} value={p.slug}>
-                          {p.name}
-                        </option>
-                      ))}
-                      {directions
-                        .filter((d) => d.key !== 'medicine')
-                        .map((d) => (
-                          <option key={d.key} value={d.key}>
-                            {t(`home.direction.${d.key}`)}
-                          </option>
-                        ))}
-                    </select>
-                  </label>
-                </div>
-                <button type="submit" className="btn btn-landing" disabled={ctaLoading}>
-                  <span>{ctaLoading ? t('home.ctaLoading') : t('home.ctaAnalysis')}</span>
-                  <LandingIcon name="arrowRight" size={18} className="btn-landing-arrow" />
-                </button>
-                <p className="landing-form-note">
-                  <LandingIcon name="shield" size={16} className="landing-form-shield" />
-                  {t('home.formNote')}
-                </p>
-              </form>
+              <div className="landing-hero-stats landing-desktop-only">
+                {stats.map((item) => (
+                  <div key={item.label} className="landing-stat">
+                    <LandingIcon name={item.icon} size={22} className="landing-stat-svg" />
+                    <span className="landing-stat-text">
+                      <strong className={item.muted ? 'landing-stat-soon' : undefined}>{item.value}</strong>
+                      {item.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div className="landing-example-card">
@@ -298,84 +265,49 @@ export default function HomePage() {
                 {t('home.exampleFullLink')}
                 <LandingIcon name="arrowRight" size={14} />
               </button>
+              <button type="button" className="landing-example-link--desktop landing-desktop-only" disabled={ctaLoading} onClick={handleStartAnalysis}>
+                {t('home.exampleFullLink')}
+                <LandingIcon name="arrowRight" size={14} />
+              </button>
               <p className="landing-example-disclaimer">{t('home.example.disclaimer')}</p>
             </div>
           </div>
         </section>
-
-        <section className="landing-stats landing-desktop-only">
-          <div className="container landing-stats-grid">
-            {stats.map((item) => (
-              <div key={item.label} className="landing-stat">
-                <LandingIcon name={item.icon} size={22} className="landing-stat-svg" />
-                <span className="landing-stat-text">
-                  <strong className={item.muted ? 'landing-stat-soon' : undefined}>{item.value}</strong> {item.label}
-                </span>
-              </div>
-            ))}
-          </div>
-        </section>
       </div>
 
-      <section className="landing-personas landing-mobile-only">
+      <section className="landing-personas">
         <div className="container">
           <h2 className="landing-section-title">{t('home.personasTitle')}</h2>
-          {[
-            {
-              key: '2026',
-              tone: 'blue',
-              emoji: '🎓',
-              title: t('home.persona2026.title'),
-              desc: t('home.persona2026.desc'),
-              bullets: [t('home.persona2026.b1'), t('home.persona2026.b2')],
-              onClick: handleStartAnalysis,
-            },
-            {
-              key: '2027',
-              tone: 'green',
-              emoji: '📅',
-              title: t('home.persona2027.title'),
-              desc: t('home.persona2027.desc'),
-              bullets: [t('home.persona2027.b1'), t('home.persona2027.b2')],
-              onClick: () => navigate('/universities'),
-            },
-            {
-              key: 'parent',
-              tone: 'purple',
-              emoji: '👨‍👩‍👧',
-              title: t('home.personaParent.title'),
-              desc: t('home.personaParent.desc'),
-              bullets: [t('home.personaParent.b1'), t('home.personaParent.b2')],
-              onClick: () => navigate('/register'),
-            },
-          ].map((persona) => (
-            <button
-              key={persona.key}
-              type="button"
-              className={`landing-persona-card landing-persona-card--${persona.tone}`}
-              onClick={persona.onClick}
-            >
-              <div className="landing-persona-body">
-                <h3>{persona.title}</h3>
-                <p>{persona.desc}</p>
-                <ul>
-                  {persona.bullets.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              </div>
-              <div className="landing-persona-art" aria-hidden>
-                {persona.emoji}
-              </div>
-              <span className="landing-persona-arrow" aria-hidden>
-                <LandingIcon name="arrowRight" size={14} />
-              </span>
-            </button>
-          ))}
+          <div className="landing-personas-grid">
+            {personas.map((persona) => (
+              <button
+                key={persona.key}
+                type="button"
+                className={`landing-persona-card landing-persona-card--${persona.tone}`}
+                onClick={persona.onClick}
+              >
+                <div className="landing-persona-body">
+                  <h3>{persona.title}</h3>
+                  <p>{persona.desc}</p>
+                  <ul>
+                    {persona.bullets.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="landing-persona-art" aria-hidden>
+                  {persona.emoji}
+                </div>
+                <span className="landing-persona-arrow" aria-hidden>
+                  <LandingIcon name="arrowRight" size={14} />
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
       </section>
 
-      <section className="landing-features landing-mobile-only">
+      <section className="landing-features">
         <div className="container">
           <h2 className="landing-section-title">{t('home.featuresTitle')}</h2>
           <div className="landing-features-grid">
@@ -386,7 +318,7 @@ export default function HomePage() {
                 </span>
                 <h3>{t(tile.titleKey)}</h3>
                 <p>{t(tile.descKey)}</p>
-                <span className="landing-feature-link">{t('home.more')}</span>
+                <span className="landing-feature-link">{t(tile.linkKey)}</span>
               </Link>
             ))}
           </div>
@@ -406,9 +338,9 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-          <div className="landing-steps landing-desktop-only">
+          <div className="landing-steps landing-steps--desktop landing-desktop-only">
             {steps.map((step) => (
-              <div key={step.num} className="landing-step">
+              <div key={step.num} className="landing-step landing-step--desktop">
                 <div className="landing-step-num">{step.num}</div>
                 <LandingIcon name={step.icon} size={28} className="landing-step-icon" />
                 <h3>{step.title}</h3>
@@ -416,87 +348,6 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-        </div>
-      </section>
-
-      <section className="landing-section landing-section--muted landing-desktop-only">
-        <div className="container">
-          <h2 className="landing-section-title">{t('home.directionsTitle')}</h2>
-          <div className="landing-cards-grid">
-            {directions.map((dir) => (
-              <a
-                key={dir.key}
-                href="/analysis"
-                className="landing-card landing-direction-card"
-                onClick={handleDirectionClick}
-              >
-                <LandingIcon name={dir.icon} size={28} className="landing-direction-icon" />
-                <h3>{t(`home.direction.${dir.key}`)}</h3>
-                <p className="muted">{t('home.avgScore')}: 165</p>
-                <p className="muted">{t('home.competition')}: 4.2 : 1</p>
-                <span className="landing-best-chance">
-                  {t('home.bestChance')}: {dir.chance}%
-                </span>
-              </a>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="landing-section landing-desktop-only">
-        <div className="container">
-          <h2 className="landing-section-title">{t('home.universitiesTitle')}</h2>
-          <div className="landing-cards-grid">
-            {(universities.length ? universities : [{ id: 'placeholder', name: 'КГТУ им. Р. Скрябина', slug: 'ksucta', city: 'Бишкек' }]).map(
-              (uni) => (
-                <Link key={uni.id} to={`/universities/${uni.slug}`} className="landing-card landing-uni-card">
-                  <UniLogo name={uni.name} logoUrl={uni.logo_url} size={48} className="landing-uni-logo" />
-                  <h3>{uni.name}</h3>
-                  <p className="muted">{uni.city}</p>
-                  <p className="muted">{t('home.programsCount')}: 2+</p>
-                  <p className="muted">{t('home.avgScore')}: 158</p>
-                  <span className="landing-uni-link">{t('home.more')}</span>
-                </Link>
-              )
-            )}
-          </div>
-        </div>
-      </section>
-
-      <section className="landing-section landing-section--muted landing-desktop-only">
-        <div className="container">
-          <h2 className="landing-section-title">{t('home.newsTitle')}</h2>
-          <div className="landing-news-grid">
-            {(news.length ? news : []).map((article) => (
-              <Link key={article.id} to={`/news/${article.slug}`} className="landing-card landing-news-card">
-                <div className="landing-news-thumb" />
-                <div className="landing-news-body">
-                  <div className="landing-news-meta">
-                    {article.category && (
-                      <span className="landing-news-tag">
-                        {t(CATEGORY_LABELS[article.category] || 'home.news.default')}
-                      </span>
-                    )}
-                    {article.published_at && (
-                      <span className="muted">
-                        {new Date(article.published_at).toLocaleDateString('ru-RU')}
-                      </span>
-                    )}
-                  </div>
-                  <h3>{article.title}</h3>
-                  {article.excerpt && <p className="muted">{article.excerpt}</p>}
-                </div>
-              </Link>
-            ))}
-            {!news.length && <p className="muted">{t('home.newsEmpty')}</p>}
-          </div>
-          {news.length > 0 && (
-            <p style={{ marginTop: '1.5rem', textAlign: 'center' }}>
-              <Link to="/news" className="landing-uni-link">
-                {t('home.allNews')}
-              </Link>
-            </p>
-          )}
         </div>
       </section>
 
@@ -511,11 +362,14 @@ export default function HomePage() {
               <LandingIcon name="arrowRight" size={18} className="btn-landing-arrow" />
             </button>
           </div>
-          <div className="landing-bottom-cta-inner landing-desktop-only">
-            <LandingIcon name="gradCap" size={36} className="landing-bottom-icon" />
-            <p>{t('home.bottomCta')}</p>
-            <button type="button" className="btn btn-landing btn-landing--inline" disabled={ctaLoading} onClick={handleStartAnalysis}>
-              <span>{ctaLoading ? t('home.ctaLoading') : t('home.ctaAnalysis')}</span>
+          <div className="landing-bottom-cta-banner landing-desktop-only">
+            <LandingIcon name="gradCap" size={48} className="landing-bottom-icon" />
+            <div className="landing-bottom-cta-text">
+              <p>{t('home.bottomCta')}</p>
+              <p className="landing-bottom-cta-sub">{t('home.bottomCtaSub')}</p>
+            </div>
+            <button type="button" className="btn btn-landing" disabled={ctaLoading} onClick={handleStartAnalysis}>
+              <span>{ctaLoading ? t('home.ctaLoading') : t('home.ctaFree')}</span>
               <LandingIcon name="arrowRight" size={18} className="btn-landing-arrow" />
             </button>
           </div>
@@ -523,6 +377,65 @@ export default function HomePage() {
       </section>
 
       <footer className="landing-footer">
+        <div className="container landing-footer-inner landing-footer-inner--desktop">
+          <div className="landing-footer-top">
+            <div className="landing-footer-brand">
+              <Link to="/" className="landing-footer-logo">
+                ORT.KG
+              </Link>
+              <p className="landing-footer-desc">{t('home.footerDesc')}</p>
+              <div className="landing-footer-social">
+                <a href="https://t.me/" target="_blank" rel="noreferrer">
+                  TG
+                </a>
+                <a href="https://instagram.com/" target="_blank" rel="noreferrer">
+                  IG
+                </a>
+                <a href="https://youtube.com/" target="_blank" rel="noreferrer">
+                  YT
+                </a>
+                <a href="https://tiktok.com/" target="_blank" rel="noreferrer">
+                  TT
+                </a>
+              </div>
+            </div>
+            <div className="landing-footer-col">
+              <h4>{t('home.footer.platform')}</h4>
+              <nav>
+                <Link to="/analysis">{t('nav.analysis')}</Link>
+                <Link to="/tours">{t('nav.tours')}</Link>
+                <Link to="/universities">{t('nav.universities')}</Link>
+                <Link to="/rankings">{t('nav.rankings')}</Link>
+              </nav>
+            </div>
+            <div className="landing-footer-col">
+              <h4>{t('home.footer.company')}</h4>
+              <nav>
+                <Link to="/faq">{t('home.footer.about')}</Link>
+                <Link to="/account/support">{t('home.footer.contacts')}</Link>
+                <Link to="/news">{t('nav.news')}</Link>
+                <Link to="/faq">{t('home.footer.team')}</Link>
+              </nav>
+            </div>
+            <div className="landing-footer-col">
+              <h4>{t('home.footer.support')}</h4>
+              <nav>
+                <Link to="/faq">{t('legal.faq')}</Link>
+                <Link to="/account/support">{t('home.footer.helpCenter')}</Link>
+                <Link to="/account/support">{t('home.footer.feedback')}</Link>
+                <Link to="/legal/terms">{t('home.footer.rules')}</Link>
+              </nav>
+            </div>
+          </div>
+          <div className="landing-footer-bottom">
+            <p className="landing-footer-copy">{t('footer.rights')}</p>
+            <div className="landing-footer-legal">
+              <Link to="/legal/privacy">{t('legal.privacy')}</Link>
+              <Link to="/legal/terms">{t('legal.terms')}</Link>
+              <Link to="/legal/offer">{t('legal.offer')}</Link>
+            </div>
+          </div>
+        </div>
         <div className="container landing-footer-inner landing-footer-inner--mobile">
           <div className="landing-footer-brand">
             <Link to="/" className="landing-footer-logo">
@@ -550,15 +463,6 @@ export default function HomePage() {
             <Link to="/legal/privacy">{t('legal.privacy')}</Link>
           </nav>
           <p className="landing-footer-copy">{t('footer.rights')}</p>
-        </div>
-        <div className="container landing-footer-inner landing-footer-inner--compact">
-          <span className="muted">{t('footer.rights')}</span>
-          <nav className="footer-nav">
-            <Link to="/legal/privacy">{t('legal.privacy')}</Link>
-            <Link to="/legal/terms">{t('legal.terms')}</Link>
-            <Link to="/legal/offer">{t('legal.offer')}</Link>
-            <Link to="/faq">{t('legal.faq')}</Link>
-          </nav>
         </div>
       </footer>
     </div>

@@ -89,6 +89,10 @@ export default function Layout() {
                 {NAV_PRIMARY.map((item) => (
                   <SiteNavLink key={item.to} item={item} pathname={pathname} />
                 ))}
+                {isLanding &&
+                  NAV_SECONDARY.filter((item) => item.to === '/subscription' || item.to === '/account').map((item) => (
+                    <SiteNavLink key={item.to} item={item} pathname={pathname} />
+                  ))}
               </div>
             </nav>
 

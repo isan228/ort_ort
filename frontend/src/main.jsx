@@ -15,6 +15,7 @@ import './styles/page-shell.css';
 import './styles/auth.css';
 import './styles/admin.css';
 import './styles/landing-mobile.css';
+import './styles/landing-desktop.css';
 import './styles/header.css';
 import './styles/mobile-catalog.css';
 import './styles/ux.css';
