@@ -1,0 +1,163 @@
+/* ——— Секция «Возможности ORT.KG» (общие стили) ——— */
+
+.landing-features {
+  padding: 3rem 0 3.5rem;
+  background: #fff;
+}
+
+.landing-features .landing-section-title {
+  margin-bottom: 2.25rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.landing-features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+.landing-feature-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  min-height: 11.5rem;
+  padding: 1.35rem 1.35rem 1.15rem;
+  border: 1px solid #e8edf3;
+  border-radius: 1rem;
+  background: #fff;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.landing-feature-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.08);
+  transform: translateY(-2px);
+  text-decoration: none;
+  color: inherit;
+}
+
+.landing-feature-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.7rem;
+  margin-bottom: 0.85rem;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.landing-feature-icon .landing-icon svg {
+  stroke-width: 2;
+}
+
+.landing-feature-icon--blue {
+  background: linear-gradient(145deg, #3b82f6, #2563eb);
+}
+
+.landing-feature-icon--green {
+  background: linear-gradient(145deg, #34d399, #16a34a);
+}
+
+.landing-feature-icon--purple {
+  background: linear-gradient(145deg, #a78bfa, #7c3aed);
+}
+
+.landing-feature-icon--orange {
+  background: linear-gradient(145deg, #fb923c, #ea580c);
+}
+
+.landing-feature-icon--pink {
+  background: linear-gradient(145deg, #f472b6, #db2777);
+}
+
+.landing-feature-icon--navy {
+  background: linear-gradient(145deg, #60a5fa, #2563eb);
+}
+
+.landing-feature-card h3 {
+  margin: 0 0 0.45rem;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #0f172a;
+}
+
+.landing-feature-card p {
+  margin: 0;
+  flex: 1;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: #64748b;
+}
+
+.landing-feature-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  margin-top: 0.85rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #2563eb;
+  line-height: 1.3;
+}
+
+.landing-feature-card:hover .landing-feature-link {
+  color: #1d4ed8;
+}
+
+@media (max-width: 768px) {
+  .landing-features {
+    padding: 1.75rem 0;
+  }
+
+  .landing-features .landing-section-title {
+    margin-bottom: 1.25rem;
+    font-size: 1.35rem;
+  }
+
+  .landing-features-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .landing-feature-card {
+    min-height: 8.5rem;
+    padding: 1rem 0.85rem 0.9rem;
+    border-radius: 0.85rem;
+  }
+
+  .landing-feature-icon {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 0.55rem;
+    margin-bottom: 0.55rem;
+  }
+
+  .landing-feature-card h3 {
+    font-size: 0.82rem;
+  }
+
+  .landing-feature-card p {
+    font-size: 0.72rem;
+    line-height: 1.35;
+  }
+
+  .landing-feature-link {
+    margin-top: 0.55rem;
+    font-size: 0.72rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .landing-features-grid {
+    grid-template-columns: 1fr;
+  }
+}

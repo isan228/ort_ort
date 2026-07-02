@@ -178,42 +178,7 @@
     font-size: 3.5rem;
   }
 
-  /* Возможности — 3×2 */
-  .landing-features {
-    padding: 3.5rem 0;
-    background: #f8fafc;
-  }
-
-  .landing-features-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-  }
-
-  .landing-feature-card {
-    min-height: 9.5rem;
-    padding: 1.25rem;
-    border-radius: 1rem;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-  }
-
-  .landing-feature-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
-  }
-
-  .landing-feature-card h3 {
-    font-size: 0.95rem;
-  }
-
-  .landing-feature-card p {
-    font-size: 0.8rem;
-  }
-
-  .landing-feature-icon {
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: 0.65rem;
-  }
+  /* Возможности — стили в landing-features.css */
 
   /* Как это работает — горизонтально */
   .landing-section--how {

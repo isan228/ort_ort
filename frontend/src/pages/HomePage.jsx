@@ -22,10 +22,10 @@ const DEMO_ROWS = [
 
 const FEATURE_TILES = [
   { icon: 'chart', color: 'blue', titleKey: 'home.tile.analysis', descKey: 'home.tile.analysisDesc', linkKey: 'home.feature.analysisLink', to: '/analysis' },
-  { icon: 'calendar', color: 'green', titleKey: 'home.tile.tours', descKey: 'home.tile.toursDesc', linkKey: 'home.feature.toursLink', to: '/tours' },
-  { icon: 'uni', color: 'purple', titleKey: 'home.tile.universities', descKey: 'home.tile.universitiesDesc', linkKey: 'home.feature.universitiesLink', to: '/universities' },
+  { icon: 'trophy', color: 'green', titleKey: 'home.tile.tours', descKey: 'home.tile.toursDesc', linkKey: 'home.feature.toursLink', to: '/tours' },
+  { icon: 'gradCap', color: 'purple', titleKey: 'home.tile.universities', descKey: 'home.tile.universitiesDesc', linkKey: 'home.feature.universitiesLink', to: '/universities' },
   { icon: 'users', color: 'orange', titleKey: 'home.tile.community', descKey: 'home.tile.communityDesc', linkKey: 'home.feature.communityLink', to: '/community' },
-  { icon: 'wallet', color: 'pink', titleKey: 'home.tile.wallet', descKey: 'home.tile.walletDesc', linkKey: 'home.feature.walletLink', to: '/account/wallet' },
+  { icon: 'gift', color: 'pink', titleKey: 'home.tile.wallet', descKey: 'home.tile.walletDesc', linkKey: 'home.feature.walletLink', to: '/account/wallet' },
   { icon: 'news', color: 'navy', titleKey: 'home.tile.news', descKey: 'home.tile.newsDesc', linkKey: 'home.feature.newsLink', to: '/news' },
 ];
 
@@ -314,7 +314,7 @@ export default function HomePage() {
             {FEATURE_TILES.map((tile) => (
               <Link key={tile.to} to={tile.to} className="landing-feature-card">
                 <span className={`landing-feature-icon landing-feature-icon--${tile.color}`}>
-                  <LandingIcon name={tile.icon} size={18} />
+                  <LandingIcon name={tile.icon} size={20} />
                 </span>
                 <h3>{t(tile.titleKey)}</h3>
                 <p>{t(tile.descKey)}</p>
