@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../api/client.js';
 import { useI18n } from '../i18n/I18nContext.jsx';
 import { UniversityIcon } from '../components/icons/UniversityIcons.jsx';
+import UniLogo from '../components/UniLogo.jsx';
 import PageHint from '../components/ux/PageHint.jsx';
 import MobileFilterSheet, { CatalogMobileBar } from '../components/ux/MobileFilterSheet.jsx';
 
@@ -35,17 +36,6 @@ const FORM_OPTIONS = [
 ];
 
 const LEVEL_OPTIONS = ['Бакалавриат', 'Магистратура', 'Аспирантура'];
-
-function getInitials(name) {
-  if (!name) return 'ВУЗ';
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 3)
-    .map((w) => w[0])
-    .join('')
-    .toUpperCase();
-}
 
 function hashNum(id, mod) {
   let hash = 0;
@@ -511,7 +501,7 @@ export default function UniversitiesPage() {
             <div className="universities-list">
               {pageItems.map((uni) => (
                 <Link key={uni.id} to={`/universities/${uni.slug}`} className="universities-card">
-                  <div className="universities-logo">{getInitials(uni.name)}</div>
+                  <UniLogo name={uni.name} logoUrl={uni.logo_url} size={56} className="universities-logo" />
 
                   <div className="universities-card-body">
                     <div className="universities-card-head">

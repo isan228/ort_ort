@@ -5,11 +5,21 @@ import {
   ProgramRule,
   PassingScoreSnapshot,
 } from '../models/index.js';
+import { FileAsset } from '../models/FileAsset.js';
 import { CATALOG_STATUS, TRUST_LEVEL } from '../constants/index.js';
 import { createHttpError } from '../utils/errors.js';
 import { writeAuditLog } from './auditService.js';
+import { attachUniversityLogo } from '../utils/catalogMedia.js';
+
+const logoInclude = {
+  model: FileAsset,
+  as: 'logo',
+  required: false,
+  attributes: ['id', 'storage_key', 'mime_type', 'size'],
+};
 
 const universityTreeInclude = [
+  logoInclude,
   {
     model: Faculty,
     as: 'faculties',
@@ -33,7 +43,7 @@ const universityTreeInclude = [
 ];
 
 export async function listCatalogAdmin() {
-  return University.findAll({
+  const rows = await University.findAll({
     order: [
       ['sort_order', 'ASC'],
       ['name', 'ASC'],
@@ -42,6 +52,8 @@ export async function listCatalogAdmin() {
     ],
     include: universityTreeInclude,
   });
+
+  return rows.map((row) => attachUniversityLogo(row));
 }
 
 export async function createUniversity(actorId, data) {
@@ -74,7 +86,7 @@ export async function createUniversity(actorId, data) {
     after: university.toJSON(),
   });
 
-  return university;
+  return attachUniversityLogo(university);
 }
 
 export async function updateUniversity(actorId, id, data) {
@@ -115,7 +127,11 @@ export async function updateUniversity(actorId, id, data) {
     after: university.toJSON(),
   });
 
-  return university;
+  const refreshed = await University.findByPk(university.id, {
+    include: [{ model: FileAsset, as: 'logo' }],
+  });
+
+  return attachUniversityLogo(refreshed);
 }
 
 export async function createFaculty(actorId, data) {

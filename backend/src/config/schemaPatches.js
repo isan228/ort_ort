@@ -36,4 +36,20 @@ export async function applySchemaPatches() {
     await ortSetting.update({ value: true });
     console.log('Schema patch: ort_results_published set to true');
   }
+
+  const [[logoCol]] = await sequelize.query(`
+    SELECT column_name
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'universities'
+      AND column_name = 'logo_file_id'
+  `);
+
+  if (!logoCol) {
+    await sequelize.query(`
+      ALTER TABLE universities
+      ADD COLUMN logo_file_id UUID REFERENCES file_assets(id) ON DELETE SET NULL;
+    `);
+    console.log('Schema patch: universities.logo_file_id added');
+  }
 }

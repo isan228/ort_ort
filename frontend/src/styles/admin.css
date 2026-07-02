@@ -164,6 +164,59 @@
   line-height: 1.3;
 }
 
+.admin-uni-list-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+}
+
+.admin-uni-list-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.admin-uni-list-logo.uni-logo-fallback {
+  font-size: 0.55rem;
+}
+
+.admin-logo-upload {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.admin-file-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.55rem 0.9rem;
+  border: 1px dashed var(--admin-border);
+  border-radius: 0.55rem;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.admin-file-btn:hover {
+  border-color: #2563eb;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.admin-file-btn input {
+  display: none;
+}
+
+.admin-logo-preview.uni-logo-fallback {
+  font-size: 0.75rem;
+}
+
 .admin-catalog-main {
   min-width: 0;
 }

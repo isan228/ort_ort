@@ -15,6 +15,7 @@ import {
   STAT_ICON_NAMES,
   CHANCE_ICON_NAMES,
 } from '../components/icons/LandingIcons.jsx';
+import UniLogo from '../components/UniLogo.jsx';
 
 const CATEGORY_LABELS = {
   announcement: 'home.news.announcement',
@@ -28,15 +29,6 @@ const DEMO_ROWS = [
   { uni: 'КГМИ', program: 'Лечебное дело', chance: 'low', pct: 35 },
   { uni: 'КГУ', program: 'Лечебное дело', chance: 'low', pct: 22 },
 ];
-
-function getUniInitials(name = '') {
-  return name
-    .split(/\s+/)
-    .map((w) => w[0])
-    .join('')
-    .slice(0, 4)
-    .toUpperCase();
-}
 
 function formatStatValue(count) {
   if (count == null || count <= 0) return null;
@@ -334,7 +326,7 @@ export default function HomePage() {
             {(universities.length ? universities : [{ id: 'placeholder', name: 'КГТУ им. Р. Скрябина', slug: 'ksucta', city: 'Бишкек' }]).map(
               (uni) => (
                 <Link key={uni.id} to={`/universities/${uni.slug}`} className="landing-card landing-uni-card">
-                  <div className="landing-uni-logo">{getUniInitials(uni.name)}</div>
+                  <UniLogo name={uni.name} logoUrl={uni.logo_url} size={48} className="landing-uni-logo" />
                   <h3>{uni.name}</h3>
                   <p className="muted">{uni.city}</p>
                   <p className="muted">{t('home.programsCount')}: 2+</p>

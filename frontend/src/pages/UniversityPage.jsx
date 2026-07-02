@@ -2,21 +2,11 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api } from '../api/client.js';
 import FavoriteButton from '../components/FavoriteButton.jsx';
+import UniLogo from '../components/UniLogo.jsx';
 import PageLoader from '../components/ux/PageLoader.jsx';
 import EmptyState from '../components/ux/EmptyState.jsx';
 import ErrorState from '../components/ux/ErrorState.jsx';
 import { useI18n } from '../i18n/I18nContext.jsx';
-
-function getInitials(name) {
-  if (!name) return 'ВУЗ';
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 3)
-    .map((w) => w[0])
-    .join('')
-    .toUpperCase();
-}
 
 function typeBadgeClass(type) {
   const t = (type || '').toLowerCase();
@@ -100,7 +90,7 @@ export default function UniversityPage() {
         </p>
 
         <div className="uni-detail-hero">
-          <div className="uni-detail-logo">{getInitials(university.name)}</div>
+          <UniLogo name={university.name} logoUrl={university.logo_url} size={64} className="uni-detail-logo" />
           <div className="uni-detail-head">
             <h1>{university.name}</h1>
             <div className="universities-meta-row">

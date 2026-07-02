@@ -334,6 +334,19 @@ export const api = {
     request('/api/v1/admin/catalog/universities', { method: 'POST', body: JSON.stringify(body) }),
   adminUpdateUniversity: (id, body) =>
     request(`/api/v1/admin/catalog/universities/${id}`, { method: 'PATCH', body: JSON.stringify(body) }),
+  adminUploadUniversityLogo: async (id, file) => {
+    const formData = new FormData();
+    formData.append('logo', file);
+    const token = getToken();
+    const response = await fetch(`${API_BASE}/api/v1/admin/catalog/universities/${id}/logo`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data?.error?.message || 'Ошибка загрузки логотипа');
+    return data;
+  },
   adminCreateFaculty: (body) =>
     request('/api/v1/admin/catalog/faculties', { method: 'POST', body: JSON.stringify(body) }),
   adminUpdateFaculty: (id, body) =>

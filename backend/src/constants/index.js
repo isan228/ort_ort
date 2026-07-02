@@ -105,7 +105,10 @@ export const ALLOWED_CERT_MIME = [
   'application/pdf',
 ];
 
+export const ALLOWED_LOGO_MIME = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'];
+
 export const MAX_CERT_SIZE_BYTES = 10 * 1024 * 1024;
+export const MAX_LOGO_SIZE_BYTES = 2 * 1024 * 1024;
 
 /** Основной балл ОРТ: минимум для поступления и максимум по шкале */
 export const ORT_MAIN_SCORE_MIN = 100;

@@ -32,6 +32,13 @@ app.use(cors({ origin: config.clientUrl, credentials: true }));
 app.use(morgan(config.env === 'development' ? 'dev' : 'combined'));
 app.use(express.json());
 
+app.use(
+  '/uploads/universities',
+  express.static(path.join(process.cwd(), 'uploads', 'universities'), {
+    maxAge: config.env === 'production' ? '7d' : 0,
+  })
+);
+
 app.use('/api', publicRoutes);
 app.use('/api/v1', authRoutes);
 app.use('/api/v1', accountRoutes);
@@ -54,7 +61,9 @@ app.use(errorHandler);
 
 async function bootstrap() {
   const certDir = path.join(process.cwd(), 'uploads', 'certificates');
+  const uniLogoDir = path.join(process.cwd(), 'uploads', 'universities');
   fs.mkdirSync(certDir, { recursive: true });
+  fs.mkdirSync(uniLogoDir, { recursive: true });
 
   await connectDatabase();
   await syncDatabase();

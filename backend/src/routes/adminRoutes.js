@@ -30,6 +30,8 @@ import {
   createPassingScoreSnapshot,
   updatePassingScoreSnapshot,
 } from '../services/adminCatalogService.js';
+import { uploadUniversityLogo } from '../services/catalogMediaService.js';
+import { universityLogoUpload } from '../middleware/upload.js';
 import { listToursAdmin, createTour, updateTour } from '../services/adminTourService.js';
 import { listNewsAdmin, createNewsArticle, updateNewsArticle } from '../services/adminContentService.js';
 import { listUsers, updateUser, listRoles } from '../services/adminUserService.js';
@@ -235,6 +237,29 @@ router.patch('/catalog/universities/:id', adminOnly, async (req, res, next) => {
     next(err);
   }
 });
+
+router.post(
+  '/catalog/universities/:id/logo',
+  adminOnly,
+  universityLogoUpload.single('logo'),
+  async (req, res, next) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          error: { code: 'VALIDATION_ERROR', message: 'Выберите файл логотипа' },
+        });
+      }
+      const university = await uploadUniversityLogo(req.userId, req.params.id, {
+        storageKey: req.file.filename,
+        mimeType: req.file.mimetype,
+        size: req.file.size,
+      });
+      res.json({ university });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
 
 router.post('/catalog/faculties', adminOnly, async (req, res, next) => {
   try {

@@ -5,7 +5,16 @@ import {
   ProgramRule,
   PassingScoreSnapshot,
 } from '../models/index.js';
+import { FileAsset } from '../models/FileAsset.js';
 import { CATALOG_STATUS } from '../constants/index.js';
+import { attachUniversityLogo } from '../utils/catalogMedia.js';
+
+const logoInclude = {
+  model: FileAsset,
+  as: 'logo',
+  required: false,
+  attributes: ['storage_key'],
+};
 
 const universityInclude = [
   {
@@ -53,20 +62,23 @@ export async function listUniversities({ search, city, isPremium = false }) {
   const universities = await University.findAll({
     where,
     order: [['sort_order', 'ASC'], ['name', 'ASC']],
-    include: isPremium
-      ? universityInclude
-      : [
-          {
-            model: Faculty,
-            as: 'faculties',
-            attributes: ['id', 'slug', 'name'],
-            where: { status: CATALOG_STATUS.ACTIVE },
-            required: false,
-          },
-        ],
+    include: [
+      logoInclude,
+      ...(isPremium
+        ? universityInclude
+        : [
+            {
+              model: Faculty,
+              as: 'faculties',
+              attributes: ['id', 'slug', 'name'],
+              where: { status: CATALOG_STATUS.ACTIVE },
+              required: false,
+            },
+          ]),
+    ],
   });
 
-  let result = universities.map((u) => u.toJSON());
+  let result = universities.map((u) => attachUniversityLogo(u));
 
   if (search) {
     const q = search.toLowerCase();
@@ -106,16 +118,18 @@ export async function getUniversityBySlug(slug, isPremium = false) {
 
   const university = await University.findOne({
     where: { slug, status: CATALOG_STATUS.ACTIVE },
-    include,
+    include: [logoInclude, ...include],
   });
 
   if (!university) return null;
 
+  const withLogo = attachUniversityLogo(university);
+
   if (isPremium) {
-    return maskPremiumFields(university, isPremium);
+    return maskPremiumFields(withLogo, isPremium);
   }
 
-  return university.toJSON();
+  return withLogo;
 }
 
 export async function getSpecialtyBySlug(slug, isPremium = false) {

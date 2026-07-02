@@ -289,6 +289,21 @@
   flex-shrink: 0;
 }
 
+.uni-logo-img {
+  object-fit: contain;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  box-sizing: border-box;
+}
+
+.uni-logo-img.universities-logo,
+.uni-logo-img.uni-detail-logo,
+.uni-logo-img.landing-uni-logo,
+.uni-logo-img.admin-logo-preview,
+.uni-logo-img.admin-uni-list-logo {
+  display: block;
+}
+
 .universities-card-body {
   min-width: 0;
 }

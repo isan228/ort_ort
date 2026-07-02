@@ -1,6 +1,7 @@
 import { DataTypes } from 'sequelize';
 import { sequelize } from '../config/database.js';
 import { CATALOG_STATUS, TRUST_LEVEL } from '../constants/index.js';
+import { FileAsset } from './FileAsset.js';
 
 const University = sequelize.define(
   'University',
@@ -49,6 +50,10 @@ const University = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
+    },
+    logo_file_id: {
+      type: DataTypes.UUID,
+      allowNull: true,
     },
   },
   { tableName: 'universities' }
@@ -228,6 +233,7 @@ const PassingScoreSnapshot = sequelize.define(
 );
 
 University.hasMany(Faculty, { foreignKey: 'university_id', as: 'faculties' });
+University.belongsTo(FileAsset, { foreignKey: 'logo_file_id', as: 'logo' });
 Faculty.belongsTo(University, { foreignKey: 'university_id', as: 'university' });
 Faculty.hasMany(Specialty, { foreignKey: 'faculty_id', as: 'specialties' });
 Specialty.belongsTo(Faculty, { foreignKey: 'faculty_id', as: 'faculty' });

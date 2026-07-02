@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../api/client.js';
 import { useToast } from '../ux/ToastContext.jsx';
+import UniLogo from '../UniLogo.jsx';
 import {
   UNI_TYPES,
   CATALOG_STATUSES,
@@ -57,6 +58,8 @@ export default function AdminCatalogTab({ universities, onUpdated }) {
 
   const [expandedFaculty, setExpandedFaculty] = useState(null);
   const [expandedSpecialty, setExpandedSpecialty] = useState(null);
+  const [logoFile, setLogoFile] = useState(null);
+  const [logoPreview, setLogoPreview] = useState('');
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -87,6 +90,8 @@ export default function AdminCatalogTab({ universities, onUpdated }) {
         is_featured: Boolean(selected.is_featured),
         sort_order: Number(selected.sort_order) || 0,
       });
+      setLogoFile(null);
+      setLogoPreview(selected.logo_url || '');
     }
   }, [selected, mode]);
 
@@ -115,6 +120,15 @@ export default function AdminCatalogTab({ universities, onUpdated }) {
     setScoreForm(emptyPassingScore());
     setExpandedFaculty(null);
     setExpandedSpecialty(null);
+    setLogoFile(null);
+    setLogoPreview('');
+  }
+
+  function onLogoPick(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLogoFile(file);
+    setLogoPreview(URL.createObjectURL(file));
   }
 
   function selectUniversity(uni) {
@@ -137,6 +151,8 @@ export default function AdminCatalogTab({ universities, onUpdated }) {
     setScoreForm(emptyPassingScore());
     setExpandedFaculty(null);
     setExpandedSpecialty(null);
+    setLogoFile(null);
+    setLogoPreview(uni.logo_url || '');
   }
 
   function onNameChange(name) {
@@ -153,22 +169,45 @@ export default function AdminCatalogTab({ universities, onUpdated }) {
       sort_order: Number(uniForm.sort_order) || 0,
       is_featured: Boolean(uniForm.is_featured),
     };
+    const hasLogo = Boolean(logoFile);
     if (mode === 'create') {
       await run(async () => {
         const res = await api.adminCreateUniversity(payload);
+        const id = res.university?.id;
         setMode('edit');
-        setSelectedId(res.university?.id || null);
-      }, 'Вуз создан');
+        setSelectedId(id || null);
+        if (logoFile && id) {
+          await api.adminUploadUniversityLogo(id, logoFile);
+          setLogoFile(null);
+        }
+      }, hasLogo ? 'Вуз и логотип сохранены' : 'Вуз создан');
     } else if (selected) {
       await run(async () => {
         await api.adminUpdateUniversity(selected.id, payload);
-      }, 'Данные вуза сохранены');
+        if (logoFile) {
+          await api.adminUploadUniversityLogo(selected.id, logoFile);
+          setLogoFile(null);
+        }
+      }, hasLogo ? 'Вуз и логотип сохранены' : 'Данные вуза сохранены');
     }
   }
 
   function universityFormFields() {
     return (
       <div className="admin-form-grid">
+        <Field label="Логотип вуза *" hint="PNG, JPEG, WebP или SVG, до 2 МБ">
+          <div className="admin-logo-upload">
+            <UniLogo name={uniForm.name} logoUrl={logoPreview} size={72} className="admin-logo-preview" />
+            <label className="admin-file-btn">
+              <span>{logoPreview ? 'Заменить логотип' : 'Загрузить логотип'}</span>
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                onChange={onLogoPick}
+              />
+            </label>
+          </div>
+        </Field>
         <Field label="Название *">
           <input
             className="admin-input"
@@ -764,10 +803,15 @@ export default function AdminCatalogTab({ universities, onUpdated }) {
                 className={`admin-uni-list-item${selectedId === uni.id && mode === 'edit' ? ' active' : ''}`}
                 onClick={() => selectUniversity(uni)}
               >
-                <strong>{uni.name}</strong>
-                <span className="muted">
-                  {uni.city || '—'} · {countPrograms(uni)} прогр.
-                </span>
+                <div className="admin-uni-list-row">
+                  <UniLogo name={uni.name} logoUrl={uni.logo_url} size={36} className="admin-uni-list-logo" />
+                  <div className="admin-uni-list-text">
+                    <strong>{uni.name}</strong>
+                    <span className="muted">
+                      {uni.city || '—'} · {countPrograms(uni)} прогр.
+                    </span>
+                  </div>
+                </div>
                 <span className={`admin-badge admin-badge--${uni.status}`}>{uni.status}</span>
               </button>
             ))}
@@ -781,7 +825,7 @@ export default function AdminCatalogTab({ universities, onUpdated }) {
               <Section title="Новый вуз" subtitle="Заполните основную информацию и сохраните">
                 {universityFormFields()}
                 <div className="admin-inline-actions">
-                  <button type="button" className="btn" disabled={busy || !uniForm.name || !uniForm.slug} onClick={saveUniversity}>
+                  <button type="button" className="btn" disabled={busy || !uniForm.name || !uniForm.slug || !logoPreview} onClick={saveUniversity}>
                     Создать вуз
                   </button>
                   <button type="button" className="btn btn-secondary" onClick={startCreate}>
