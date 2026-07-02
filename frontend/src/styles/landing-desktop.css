@@ -11,10 +11,6 @@
     display: inline-flex;
   }
 
-  .landing-steps--desktop {
-    display: grid;
-  }
-
   .landing-bottom-cta-banner {
     display: flex;
   }
@@ -156,57 +152,7 @@
 
   /* Возможности — стили в landing-features.css */
 
-  /* Как это работает — горизонтально */
-  .landing-section--how {
-    padding: 3.5rem 0;
-    background: #fff;
-  }
-
-  .landing-steps--desktop {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 0.75rem;
-    align-items: start;
-  }
-
-  .landing-step--desktop {
-    text-align: center;
-    position: relative;
-    padding: 0 0.35rem;
-  }
-
-  .landing-step--desktop:not(:last-child)::after {
-    content: '';
-    position: absolute;
-    top: 1rem;
-    left: calc(50% + 1.25rem);
-    right: calc(-50% + 1.25rem);
-    height: 0;
-    border-top: 2px dotted #cbd5e1;
-    pointer-events: none;
-  }
-
-  .landing-step--desktop .landing-step-num {
-    width: 2.1rem;
-    height: 2.1rem;
-    line-height: 2.1rem;
-    font-size: 0.85rem;
-    margin-bottom: 0.65rem;
-  }
-
-  .landing-step--desktop .landing-step-icon {
-    margin-bottom: 0.65rem;
-  }
-
-  .landing-step--desktop h3 {
-    font-size: 0.9rem;
-    margin-bottom: 0.35rem;
-  }
-
-  .landing-step--desktop p {
-    font-size: 0.78rem;
-    line-height: 1.4;
-  }
+  /* Как это работает — стили в landing-how.css */
 
   /* Нижний CTA */
   .landing-bottom-cta {
@@ -395,15 +341,6 @@
 
   .landing-features-grid {
     grid-template-columns: repeat(2, 1fr);
-  }
-
-  .landing-steps--desktop {
-    grid-template-columns: repeat(3, 1fr);
-    row-gap: 1.5rem;
-  }
-
-  .landing-step--desktop::after {
-    display: none;
   }
 
   .landing-footer-top {

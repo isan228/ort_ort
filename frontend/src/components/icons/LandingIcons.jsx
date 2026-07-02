@@ -144,6 +144,12 @@ const ICONS = {
     <path d="M9 8h6M9 12h6" />
   </>
   ),
+  search: (
+  <>
+    <circle cx="11" cy="11" r="7" />
+    <path d="M20 20l-4-4" />
+  </>
+  ),
   gift: (
   <>
     <rect x="4" y="8" width="16" height="12" rx="1.5" />
@@ -163,6 +169,6 @@ export function LandingIcon({ name, size = DEFAULT_SIZE, className = '' }) {
 }
 
 export const DIRECTION_ICON_NAMES = ['medicine', 'dentistry', 'it', 'economics', 'law'];
-export const STEP_ICON_NAMES = ['form', 'chart', 'compare', 'target', 'gradCap'];
+export const STEP_ICON_NAMES = ['form', 'search', 'chart', 'target', 'gradCap'];
 export const STAT_ICON_NAMES = ['uni', 'cap', 'chart', 'users', 'trophy'];
 export const CHANCE_ICON_NAMES = { high: 'trendUp', medium: 'trendFlat', low: 'trendDown' };

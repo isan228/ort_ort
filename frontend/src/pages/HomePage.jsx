@@ -332,26 +332,25 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="landing-section landing-section--how">
+      <section className="landing-how">
         <div className="container">
           <h2 className="landing-section-title">{t('home.howTitle')}</h2>
-          <div className="landing-steps landing-steps--mobile">
-            {steps.map((step) => (
-              <div key={`m-${step.num}`} className="landing-step landing-step--mobile">
-                <div className="landing-step-num">{step.num}</div>
-                <LandingIcon name={step.icon} size={22} className="landing-step-icon" />
-                <h3>{step.title}</h3>
-                <p>{step.desc}</p>
-              </div>
-            ))}
-          </div>
-          <div className="landing-steps landing-steps--desktop landing-desktop-only">
-            {steps.map((step) => (
-              <div key={step.num} className="landing-step landing-step--desktop">
-                <div className="landing-step-num">{step.num}</div>
-                <LandingIcon name={step.icon} size={28} className="landing-step-icon" />
-                <h3>{step.title}</h3>
-                <p>{step.desc}</p>
+          <div className="landing-how-steps">
+            {steps.map((step, index) => (
+              <div key={step.num} className="landing-how-step">
+                <div className="landing-how-rail" aria-hidden>
+                  <div className="landing-how-num">{step.num}</div>
+                  {index < steps.length - 1 && <div className="landing-how-line" />}
+                </div>
+                <div className="landing-how-content">
+                  <span className="landing-how-icon">
+                    <LandingIcon name={step.icon} size={20} />
+                  </span>
+                  <div className="landing-how-text">
+                    <h3>{step.title}</h3>
+                    <p>{step.desc}</p>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
