@@ -604,7 +604,7 @@ export default function UniversitiesPage() {
             </p>
           </div>
           <Link to="/analysis" className="btn">
-            Начать анализ бесплатно
+            {t('home.cta')}
           </Link>
         </div>
       </div>

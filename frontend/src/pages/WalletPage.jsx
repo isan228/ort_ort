@@ -46,7 +46,7 @@ export default function WalletPage() {
     setError('');
     try {
       const result = await api.redeemBonus(feature);
-      toast.success(`Списано ${result.cost} бонусов`);
+      toast.success(t('account.wallet.redeemed', { cost: result.cost }));
       load();
     } catch (err) {
       setError(err.message);
@@ -56,46 +56,49 @@ export default function WalletPage() {
 
   if (loading) return <AccountLoading />;
 
+  const referredBonus = referral?.redemption_rules?.referred_user_bonus ?? 50;
+  const referrerBonus = referral?.reward_per_referral ?? 50;
+
   return (
-    <AccountPageWrap
-      title="Бонусы и рефералы"
-      subtitle="Приглашайте друзей и тратьте бонусы на функции платформы"
-    >
+    <AccountPageWrap title={t('account.wallet.title')} subtitle={t('account.wallet.subtitle')}>
       <AccountAlerts error={error} />
 
       <div className="account-stats-row account-stats-row--2">
         <div className="account-stat-card account-stat-card--blue">
           <div>
             <strong>{wallet?.bonus_balance ?? 0}</strong>
-            <span>бонусов</span>
+            <span>{t('account.wallet.bonuses')}</span>
           </div>
         </div>
         <div className="account-stat-card account-stat-card--amber">
           <div>
             <strong>{wallet?.coin_balance ?? 0}</strong>
-            <span>монет</span>
+            <span>{t('account.wallet.coins')}</span>
           </div>
         </div>
       </div>
 
-      <AccountPanel title="Реферальная ссылка">
+      <AccountPanel title={t('account.referral.title')}>
         <p className="account-muted-line">
-          За каждого приглашённого: +{referral?.reward_per_referral ?? 50} бонусов вам и +50 новому пользователю
+          {t('account.referral.desc')} (+{referrerBonus} / +{referredBonus})
         </p>
         <p>
-          Код: <strong>{referral?.code}</strong>
+          {t('account.referral.code')}: <strong>{referral?.code}</strong>
         </p>
         <p className="account-link-box">{referral?.link}</p>
         <p className="account-muted-line">
-          Приглашено: {referral?.referred_count ?? 0} · Начислено: {referral?.awarded_count ?? 0}
+          {t('account.referral.stats', {
+            count: referral?.referred_count ?? 0,
+            awarded: referral?.awarded_count ?? 0,
+          })}
         </p>
         <button type="button" className="btn" onClick={copyLink}>
-          Копировать ссылку
+          {t('account.referral.copy')}
         </button>
       </AccountPanel>
 
       {rules?.costs && (
-        <AccountPanel title="На что потратить бонусы">
+        <AccountPanel title={t('account.wallet.redeemTitle')}>
           <ul className="account-list">
             <li>Доп. анализ — {rules.costs.extra_analysis} бонусов</li>
             <li>Сравнение программ — {rules.costs.compare_unlock} бонусов</li>
@@ -104,21 +107,21 @@ export default function WalletPage() {
           </ul>
           <div className="account-btn-row">
             <button type="button" className="btn btn-secondary" onClick={() => redeem('extra_analysis')}>
-              Купить анализ
+              {t('account.wallet.redeemAnalysis')}
             </button>
             <button type="button" className="btn btn-secondary" onClick={() => redeem('compare_unlock')}>
-              Открыть сравнение
+              {t('account.wallet.redeemCompare')}
             </button>
             <button type="button" className="btn btn-secondary" onClick={() => redeem('tour_unlock')}>
-              Открыть тур
+              {t('account.wallet.redeemTour')}
             </button>
           </div>
         </AccountPanel>
       )}
 
-      <AccountPanel title="История операций">
+      <AccountPanel title={t('account.wallet.history')}>
         {!wallet?.transactions?.length ? (
-          <p className="account-muted-line">Пока нет операций</p>
+          <p className="account-muted-line">{t('account.wallet.noHistory')}</p>
         ) : (
           <ul className="account-tx-list">
             {(wallet.transactions || []).map((tx) => (

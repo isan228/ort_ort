@@ -60,6 +60,7 @@ export default function AdminPromoTab({ promoCodes, onUpdated }) {
 
   return (
     <div className="admin-promo-tab">
+      <p className="muted">Промокоды создают только администраторы. Обычные пользователи не могут создавать промокоды.</p>
       <div className="card admin-card">
         <h2>Создать промокод</h2>
         <p className="muted">Только администраторы могут создавать промокоды. Пользователи применяют их при оплате подписки.</p>

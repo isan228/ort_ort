@@ -21,8 +21,14 @@ export function I18nProvider({ children }) {
   const value = useMemo(() => {
     const messages = LOCALES[locale] || ru;
 
-    function t(key, fallback = key) {
-      return messages[key] ?? LOCALES.ru[key] ?? fallback;
+    function t(key, params) {
+      let text = messages[key] ?? LOCALES.ru[key] ?? key;
+      if (params && typeof text === 'string') {
+        for (const [name, value] of Object.entries(params)) {
+          text = text.replaceAll(`{${name}}`, String(value));
+        }
+      }
+      return text;
     }
 
     function setLocale(next) {

@@ -89,6 +89,13 @@ export default function AccountPage() {
   const [ortScore, setOrtScore] = useState(null);
   const [subscription, setSubscription] = useState(null);
   const [plans, setPlans] = useState([]);
+  const [referral, setReferral] = useState(null);
+
+  function copyReferralLink() {
+    if (!referral?.link) return;
+    navigator.clipboard.writeText(referral.link);
+    toast.success(t('ux.toast.copied'));
+  }
 
   useEffect(() => {
     const { isReturn } = parsePaymentReturnParams(searchParams, location.pathname);
@@ -133,16 +140,18 @@ export default function AccountPage() {
       setLoading(true);
       setError('');
       try {
-        const [me, history, scores, favs, sub, plansData] = await Promise.all([
+        const [me, history, scores, favs, sub, plansData, referralData] = await Promise.all([
           api.me(),
           api.getAnalysisHistory({ limit: 1 }),
           api.getScores(),
           api.getFavorites(),
           api.getSubscription().catch(() => ({ subscription: null })),
           api.getPlans().catch(() => ({ plans: [] })),
+          api.getReferral().catch(() => null),
         ]);
 
         setAccount(me);
+        setReferral(referralData);
         setAnalysisTotal(history.total ?? history.analyses?.length ?? 0);
         setFavorites(favs.favorites || []);
         setSubscription(sub.subscription);
@@ -321,6 +330,37 @@ export default function AccountPage() {
       </div>
 
       <aside className="account-dashboard-aside">
+        <section className="account-panel account-sub-card account-referral-card">
+          <h3>{t('account.referral.title')}</h3>
+          <p className="muted">{t('account.referral.desc')}</p>
+          <p className="account-referral-balance">
+            {t('account.referral.balance')}:{' '}
+            <strong>{account?.wallet?.bonus_balance ?? 0}</strong>
+          </p>
+          {referral?.code && (
+            <p className="account-muted-line">
+              {t('account.referral.code')}: <strong>{referral.code}</strong>
+            </p>
+          )}
+          {referral?.link && <p className="account-link-box">{referral.link}</p>}
+          {referral && (
+            <p className="account-muted-line">
+              {t('account.referral.stats', {
+                count: referral.referred_count ?? 0,
+                awarded: referral.awarded_count ?? 0,
+              })}
+            </p>
+          )}
+          <div className="account-referral-actions">
+            <button type="button" className="btn" onClick={copyReferralLink}>
+              {t('account.referral.copy')}
+            </button>
+            <Link to="/account/wallet" className="btn btn-secondary">
+              {t('account.referral.more')}
+            </Link>
+          </div>
+        </section>
+
         <section className="account-panel account-sub-card">
           <h3>{t('account.subscription')}</h3>
           {isPremium ? (

@@ -194,7 +194,7 @@ export default function HomePage() {
 
               <div className="landing-hero-cta">
                 <button type="button" className="btn btn-landing" disabled={ctaLoading} onClick={handleStartAnalysis}>
-                  <span>{ctaLoading ? t('home.ctaLoading') : t('home.ctaFree')}</span>
+                  <span>{ctaLoading ? t('home.ctaLoading') : t('home.cta')}</span>
                   <LandingIcon name="arrowRight" size={18} className="btn-landing-arrow" />
                 </button>
                 <button type="button" className="btn-landing-outline" onClick={() => navigate('/register')}>
@@ -364,7 +364,7 @@ export default function HomePage() {
             <p>{t('home.bottomCta')}</p>
             <p className="landing-bottom-cta-sub">{t('home.bottomCtaSub')}</p>
             <button type="button" className="btn btn-landing" disabled={ctaLoading} onClick={handleStartAnalysis}>
-              <span>{ctaLoading ? t('home.ctaLoading') : t('home.ctaFree')}</span>
+              <span>{ctaLoading ? t('home.ctaLoading') : t('home.cta')}</span>
               <LandingIcon name="arrowRight" size={18} className="btn-landing-arrow" />
             </button>
           </div>
@@ -375,7 +375,7 @@ export default function HomePage() {
               <p className="landing-bottom-cta-sub">{t('home.bottomCtaSub')}</p>
             </div>
             <button type="button" className="btn btn-landing" disabled={ctaLoading} onClick={handleStartAnalysis}>
-              <span>{ctaLoading ? t('home.ctaLoading') : t('home.ctaFree')}</span>
+              <span>{ctaLoading ? t('home.ctaLoading') : t('home.cta')}</span>
               <LandingIcon name="arrowRight" size={18} className="btn-landing-arrow" />
             </button>
           </div>

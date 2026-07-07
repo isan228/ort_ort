@@ -78,6 +78,7 @@ export default function AccountLayout() {
     { to: '/analysis', icon: 'chart', label: t('account.nav.analyses') },
     { to: '/tours', icon: 'calendar', label: t('account.nav.tours') },
     { to: '/account/collections', icon: 'star', label: t('account.nav.favorites') },
+    { to: '/account/wallet', icon: 'wallet', label: t('account.nav.wallet') },
     { to: '/account/notifications', icon: 'bell', label: t('account.nav.notifications'), badge: unread },
   ];
 

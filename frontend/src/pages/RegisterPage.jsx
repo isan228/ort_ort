@@ -33,7 +33,7 @@ export default function RegisterPage() {
   const [subjects, setSubjects] = useState([]);
   const [certificateFile, setCertificateFile] = useState(null);
   const [consents, setConsents] = useState({ privacy: false, offer: false });
-  const [promoCode, setPromoCode] = useState(refFromUrl);
+  const [referralCode, setReferralCode] = useState(refFromUrl);
   const [plans, setPlans] = useState([]);
   const [selectedPlanId, setSelectedPlanId] = useState('');
   const [returnPending, setReturnPending] = useState(false);
@@ -176,7 +176,7 @@ export default function RegisterPage() {
       payload.append('subject_scores_json', JSON.stringify(subjectScores));
       payload.append('consents', JSON.stringify(consents));
       payload.append('plan_id', selectedPlanId);
-      if (promoCode.trim()) payload.append('referral_code', promoCode.trim());
+      if (referralCode.trim()) payload.append('referral_code', referralCode.trim());
       payload.append('certificate', certificateFile);
 
       const result = await api.register(payload);
@@ -312,11 +312,11 @@ export default function RegisterPage() {
           </div>
 
           <label className="auth-field">
-            <span>{t('register.promoCode')}</span>
+            <span>{t('register.referralCode')}</span>
             <input
               className="auth-input"
-              value={promoCode}
-              onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+              value={referralCode}
+              onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
             />
           </label>
 

@@ -648,6 +648,23 @@
   margin-bottom: 1rem;
 }
 
+.account-referral-balance {
+  margin: 0.5rem 0 0.25rem;
+  font-size: 0.9rem;
+}
+
+.account-referral-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.account-referral-actions .btn {
+  flex: 1;
+  min-width: 8rem;
+}
+
 .account-link-box {
   padding: 0.65rem 0.75rem;
   border-radius: 0.5rem;
