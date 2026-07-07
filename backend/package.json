@@ -7,7 +7,8 @@
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
     "db:sync": "node src/scripts/syncDb.js",
-    "admin:create-test": "node src/scripts/createTestAdmin.js"
+    "admin:create-test": "node src/scripts/createTestAdmin.js",
+    "kgma:import-xls": "node src/scripts/importKgmaAdmissionXls.js"
   },
   "dependencies": {
     "@mancho.devs/authorizer": "^2.12.8",

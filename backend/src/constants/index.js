@@ -200,3 +200,19 @@ export const TUTOR_LINK_STATUS = {
   INACTIVE: 'inactive',
 };
 
+/** КГМА и др.: грант / контракт */
+export const ADMISSION_FUNDING_TYPE = {
+  GRANT: 'grant',
+  CONTRACT: 'contract',
+};
+
+/** Категория региона абитуриента для грантовых проходных КГМА */
+export const ADMISSION_REGION_CATEGORY = {
+  BISHKEK: 'bishkek',
+  SMALL_CITY: 'small_city',
+  VILLAGE: 'village',
+  HIGHLAND: 'highland',
+};
+
+export const KGMA_UNIVERSITY_SLUG = 'kgma';
+

@@ -16,6 +16,7 @@ import {
 import { Op } from 'sequelize';
 import { ROLES, TRUST_LEVEL, TOUR_STATUS, TIMER_MODE, NEWS_STATUS, TUTOR_LINK_PLATFORM, TUTOR_LINK_STATUS } from '../constants/index.js';
 import { DEFAULT_LEGAL, LEGAL_SETTING_KEY } from '../services/legalService.js';
+import { seedKgma } from './seedKgma.js';
 
 const DEFAULT_ROLES = [
   { code: ROLES.USER, name: 'Пользователь' },
@@ -68,6 +69,11 @@ const DEFAULT_SETTINGS = [
     key: 'algorithm_version',
     value: 'v2-6factor',
     description: 'Текущая версия алгоритма анализа',
+  },
+  {
+    key: 'admission_stats_year',
+    value: 2024,
+    description: 'Год статистики проходных для расчёта шанса (КГМА: химия+био+основной)',
   },
   {
     key: 'analysis_weights',
@@ -229,6 +235,7 @@ export async function seedDefaults() {
   );
 
   await seedCatalog();
+  await seedKgma();
   await seedTour();
   await seedNews();
   await seedFaq();

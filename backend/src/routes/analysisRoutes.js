@@ -17,8 +17,22 @@ router.get('/analysis/context', async (req, res, next) => {
 
 router.post('/analysis', async (req, res, next) => {
   try {
-    const { program_ids, main_score } = req.body;
-    const result = await runAnalysis(req.userId, { program_ids, main_score });
+    const {
+      program_ids,
+      main_score,
+      subject_scores_json,
+      funding_type,
+      region_category,
+      admission_tour,
+    } = req.body;
+    const result = await runAnalysis(req.userId, {
+      program_ids,
+      main_score,
+      subject_scores_json,
+      funding_type,
+      region_category,
+      admission_tour,
+    });
     res.status(201).json({
       analysis_id: result.analysis.id,
       analysis: result.analysis,

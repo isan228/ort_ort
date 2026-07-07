@@ -30,6 +30,7 @@ import { FeatureUnlock } from './FeatureUnlock.js';
 import { FaqItem } from './FaqItem.js';
 import { PromoCode, PromoCodeUse } from './PromoCode.js';
 import { PendingRegistration } from './PendingRegistration.js';
+import { AdmissionStatistic } from './AdmissionStatistic.js';
 
 export {
   Role,
@@ -72,6 +73,7 @@ export {
   PromoCode,
   PromoCodeUse,
   PendingRegistration,
+  AdmissionStatistic,
 };
 
 export const models = {
@@ -115,4 +117,5 @@ export const models = {
   PromoCode,
   PromoCodeUse,
   PendingRegistration,
+  AdmissionStatistic,
 };

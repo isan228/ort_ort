@@ -22,6 +22,13 @@ const CHANCE_LABEL = {
 
 const TABLE_LIMIT = 8;
 
+const KGMA_REGION_OPTIONS = [
+  { value: 'bishkek', label: 'г. Бишкек' },
+  { value: 'small_city', label: 'Малый город' },
+  { value: 'village', label: 'Село' },
+  { value: 'highland', label: 'Высокогорье' },
+];
+
 function getInitials(name) {
   if (!name) return 'ВУЗ';
   return name
@@ -58,11 +65,14 @@ function pseudoDynamics(id) {
   return val;
 }
 
-function buildRows(programs, score, apiMap) {
+function buildRows(programs, score, apiMap, competitiveScore) {
   return programs.map((program) => {
     const api = apiMap.get(program.id);
     if (api && !api.error) {
-      const cutoff = api.passing_snapshot?.budget_cutoff ?? api.main_score_min;
+      const isKgma = api.scoring_model === 'kgma';
+      const cutoff = isKgma
+        ? api.cutoff_min
+        : api.passing_snapshot?.budget_cutoff ?? api.main_score_min;
       return {
         id: program.id,
         slug: program.slug,
@@ -71,12 +81,19 @@ function buildRows(programs, score, apiMap) {
         avgScore: cutoff ?? program.main_score_min,
         chancePercent: api.chance_percent,
         chanceCategory: api.chance_category,
+        qualifyingTour: api.qualifying_tour,
+        competitiveScore: isKgma ? api.competitive_score : null,
         dynamics: pseudoDynamics(program.id),
         fromApi: true,
+        isKgma,
       };
     }
 
-    const chance = estimateChance(score, program.main_score_min);
+    const previewScore =
+      program.university_slug === 'kgma' && competitiveScore != null
+        ? competitiveScore
+        : score;
+    const chance = estimateChance(previewScore, program.main_score_min);
     return {
       id: program.id,
       slug: program.slug,
@@ -131,6 +148,10 @@ export default function AnalysisPage() {
   const [alternatives, setAlternatives] = useState([]);
   const [analysisDate, setAnalysisDate] = useState(null);
   const [mainScore, setMainScore] = useState('');
+  const [chemistry, setChemistry] = useState('');
+  const [biology, setBiology] = useState('');
+  const [fundingType, setFundingType] = useState('grant');
+  const [regionCategory, setRegionCategory] = useState('bishkek');
   const [direction, setDirection] = useState('');
   const [region, setRegion] = useState('');
   const [studyForm, setStudyForm] = useState('Очная');
@@ -144,6 +165,17 @@ export default function AnalysisPage() {
   const [error, setError] = useState('');
 
   const scoreNum = mainScore ? Number(mainScore) : null;
+  const chemNum = chemistry ? Number(chemistry) : null;
+  const bioNum = biology ? Number(biology) : null;
+  const competitiveScore =
+    chemNum != null && bioNum != null && scoreNum != null
+      ? Math.round((chemNum + bioNum + scoreNum) * 10) / 10
+      : null;
+
+  const hasKgmaPrograms = useMemo(
+    () => programs.some((p) => p.university_slug === 'kgma'),
+    [programs]
+  );
 
   const apiMap = useMemo(() => {
     const map = new Map();
@@ -161,8 +193,8 @@ export default function AnalysisPage() {
     if (region) {
       list = list.filter((p) => p.city === region);
     }
-    return buildRows(list, scoreNum, apiMap);
-  }, [programs, scoreNum, apiMap, direction, region]);
+    return buildRows(list, scoreNum, apiMap, competitiveScore);
+  }, [programs, scoreNum, apiMap, direction, region, competitiveScore]);
 
   const counts = useMemo(() => {
     const c = { high: 0, medium: 0, low: 0 };
@@ -261,6 +293,10 @@ export default function AnalysisPage() {
           setMainScore(String(ctx.scores.main_score));
         }
 
+        const subjects = ctx.scores?.subject_scores_json || {};
+        if (subjects.chemistry != null) setChemistry(String(subjects.chemistry));
+        if (subjects.biology != null) setBiology(String(subjects.biology));
+
         const latest = historyData.analyses?.[0];
         if (latest?.result_json?.programs?.length) {
           setApiResults(latest.result_json.programs);
@@ -303,14 +339,30 @@ export default function AnalysisPage() {
       return;
     }
 
+    const includesKgma = filteredRows
+      .slice(0, 5)
+      .some((r) => programs.find((p) => p.id === r.id)?.university_slug === 'kgma');
+
+    if (includesKgma && competitiveScore == null) {
+      setError('Для КГМА укажите баллы по химии, биологии и основному тесту');
+      return;
+    }
+
     setRunning(true);
     setError('');
 
     try {
-      const data = await api.runAnalysis({
+      const payload = {
         program_ids: ids,
         main_score: check.value,
-      });
+        funding_type: fundingType,
+        region_category: regionCategory,
+      };
+      if (chemNum != null && bioNum != null) {
+        payload.subject_scores_json = { chemistry: chemNum, biology: bioNum };
+      }
+
+      const data = await api.runAnalysis(payload);
       setApiResults(data.results || []);
       setAlternatives(data.alternatives || []);
       setAnalysisDate(new Date().toISOString());
@@ -338,7 +390,7 @@ export default function AnalysisPage() {
     <>
       <div className="analysis-edit-grid">
         <label className="analysis-field">
-          <span>Балл ОРТ</span>
+          <span>Балл ОРТ (основной тест)</span>
           <input
             type="number"
             className="analysis-input"
@@ -349,6 +401,67 @@ export default function AnalysisPage() {
           />
           <span className="analysis-field-hint">{t('score.hint')}</span>
         </label>
+        {(hasKgmaPrograms || competitiveScore != null) && (
+          <>
+            <label className="analysis-field">
+              <span>Химия (КГМА)</span>
+              <input
+                type="number"
+                className="analysis-input"
+                min={60}
+                max={300}
+                value={chemistry}
+                onChange={(e) => setChemistry(e.target.value)}
+              />
+            </label>
+            <label className="analysis-field">
+              <span>Биология (КГМА)</span>
+              <input
+                type="number"
+                className="analysis-input"
+                min={60}
+                max={300}
+                value={biology}
+                onChange={(e) => setBiology(e.target.value)}
+              />
+            </label>
+            <label className="analysis-field">
+              <span>Форма обучения (КГМА)</span>
+              <select
+                className="analysis-select"
+                value={fundingType}
+                onChange={(e) => setFundingType(e.target.value)}
+              >
+                <option value="grant">Грант (бюджет)</option>
+                <option value="contract">Контракт</option>
+              </select>
+            </label>
+            {fundingType === 'grant' && (
+              <label className="analysis-field">
+                <span>Категория региона (КГМА)</span>
+                <select
+                  className="analysis-select"
+                  value={regionCategory}
+                  onChange={(e) => setRegionCategory(e.target.value)}
+                >
+                  {KGMA_REGION_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+            {competitiveScore != null && (
+              <p className="analysis-field-hint" style={{ gridColumn: '1 / -1' }}>
+                Конкурсный балл КГМА: <strong>{competitiveScore}</strong> (химия + биология + основной)
+                {context?.admission_stats_year && (
+                  <> · статистика {context.admission_stats_year} года</>
+                )}
+              </p>
+            )}
+          </>
+        )}
         <label className="analysis-field">
           <span>Направление (фильтр)</span>
           <input
@@ -405,8 +518,8 @@ export default function AnalysisPage() {
           <div>
             <h1>Анализ шансов поступления</h1>
             <p>
-              Прогноз основан на ваших баллах, проходных баллах прошлых лет и конкурсе. Это не гарантия
-              зачисления — инструмент для принятия решений.
+              Прогноз основан на ваших баллах и официальной статистике проходных (для КГМА — химия +
+              биология + основной тест). Это не гарантия зачисления.
             </p>
           </div>
           <button type="button" className="analysis-save-btn" disabled={running || !context?.can_analyze} onClick={runAnalysis}>
@@ -504,7 +617,7 @@ export default function AnalysisPage() {
             </div>
             <div className="analysis-meta-item">
               Используемая статистика
-              <strong>2020–2024</strong>
+              <strong>{context?.admission_stats_year ?? '2024'} (КГМА)</strong>
             </div>
           </div>
         </div>
@@ -583,9 +696,9 @@ export default function AnalysisPage() {
                   <thead>
                     <tr>
                       <th>Вуз</th>
-                      <th>Ср. проходной</th>
+                      <th>Проходной</th>
                       <th>Шанс</th>
-                      <th>Динамика</th>
+                      <th>Тур</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -616,15 +729,16 @@ export default function AnalysisPage() {
                           )}
                         </td>
                         <td>
-                          <span className={`analysis-dynamics ${row.dynamics >= 0 ? 'up' : 'down'}`}>
-                            {row.dynamics >= 0 ? (
-                              <AnalysisIcon name="arrowUp" size={14} />
-                            ) : (
-                              <AnalysisIcon name="arrowDown" size={14} />
-                            )}
-                            {row.dynamics >= 0 ? '+' : ''}
-                            {row.dynamics}
-                          </span>
+                          {row.qualifyingTour != null ? (
+                            <span className="analysis-muted">{row.qualifyingTour}-й</span>
+                          ) : row.fromApi ? (
+                            '—'
+                          ) : (
+                            <span className={`analysis-dynamics ${row.dynamics >= 0 ? 'up' : 'down'}`}>
+                              {row.dynamics >= 0 ? '+' : ''}
+                              {row.dynamics}
+                            </span>
+                          )}
                         </td>
                       </tr>
                     ))}

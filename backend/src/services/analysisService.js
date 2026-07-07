@@ -22,6 +22,15 @@ import {
   compareProgramResults,
   DEFAULT_WEIGHTS,
 } from './analysisEngine.js';
+import {
+  calculateKgmaCompetitiveScore,
+  evaluateKgmaProgram,
+} from './kgmaAnalysisEngine.js';
+import {
+  getActiveAdmissionStatsYear,
+  isKgmaUniversity,
+} from './admissionStatsService.js';
+import { ADMISSION_FUNDING_TYPE, ADMISSION_REGION_CATEGORY } from '../constants/index.js';
 import { createHttpError } from '../utils/errors.js';
 
 async function resolveScoreProfile(user) {
@@ -72,11 +81,30 @@ function buildProgramMeta(specialty) {
   };
 }
 
-function evaluateSpecialtyProgram(specialty, mainScore, subjectScores, weights) {
+async function evaluateSpecialtyProgram(
+  specialty,
+  mainScore,
+  subjectScores,
+  weights,
+  admissionOptions = {}
+) {
+  const universitySlug = specialty.faculty?.university?.slug;
+  const meta = buildProgramMeta(specialty);
+
+  if (isKgmaUniversity(universitySlug)) {
+    return evaluateKgmaSpecialtyProgram(
+      specialty,
+      mainScore,
+      subjectScores,
+      admissionOptions,
+      meta
+    );
+  }
+
   const rule = specialty.programRules?.[0];
   if (!rule) {
     return {
-      ...buildProgramMeta(specialty),
+      ...meta,
       error: 'Правила поступления не настроены',
     };
   }
@@ -91,12 +119,47 @@ function evaluateSpecialtyProgram(specialty, mainScore, subjectScores, weights) 
   });
 
   return {
-    ...buildProgramMeta(specialty),
+    ...meta,
     ...evaluation,
   };
 }
 
-async function findAlternatives({ mainScore, subjectScores, excludeIds = [], weights, limit = 3 }) {
+async function evaluateKgmaSpecialtyProgram(
+  specialty,
+  mainScore,
+  subjectScores,
+  admissionOptions,
+  meta
+) {
+  const competitiveScore = calculateKgmaCompetitiveScore(subjectScores, mainScore);
+  const academicYear =
+    admissionOptions.admission_stats_year ?? (await getActiveAdmissionStatsYear());
+
+  const evaluation = await evaluateKgmaProgram({
+    specialtyName: specialty.name,
+    specialtySlug: specialty.slug,
+    competitiveScore,
+    academicYear,
+    fundingType: admissionOptions.funding_type || ADMISSION_FUNDING_TYPE.GRANT,
+    regionCategory:
+      admissionOptions.region_category || ADMISSION_REGION_CATEGORY.BISHKEK,
+    referenceTour: admissionOptions.admission_tour ?? 1,
+  });
+
+  return {
+    ...meta,
+    ...evaluation,
+  };
+}
+
+async function findAlternatives({
+  mainScore,
+  subjectScores,
+  excludeIds = [],
+  weights,
+  admissionOptions = {},
+  limit = 3,
+}) {
   const candidates = await Specialty.findAll({
     where: {
       status: CATALOG_STATUS.ACTIVE,
@@ -119,13 +182,21 @@ async function findAlternatives({ mainScore, subjectScores, excludeIds = [], wei
     limit: 40,
   });
 
-  const evaluated = candidates
-    .map((specialty) => evaluateSpecialtyProgram(specialty, mainScore, subjectScores, weights))
-    .filter((item) => !item.error && item.chance_percent >= 45)
-    .sort(compareProgramResults)
-    .slice(0, limit);
+  const evaluated = [];
+  for (const specialty of candidates) {
+    const item = await evaluateSpecialtyProgram(
+      specialty,
+      mainScore,
+      subjectScores,
+      weights,
+      admissionOptions
+    );
+    if (!item.error && item.chance_percent >= 45) {
+      evaluated.push(item);
+    }
+  }
 
-  return evaluated;
+  return evaluated.sort(compareProgramResults).slice(0, limit);
 }
 
 export async function getAnalysisContext(userId) {
@@ -133,6 +204,10 @@ export async function getAnalysisContext(userId) {
   if (!user) throw createHttpError(404, 'NOT_FOUND', 'Пользователь не найден');
 
   const access = await getUserFeatureAccess(userId);
+  const admissionStatsYear = await getActiveAdmissionStatsYear();
+  const subjectScores = access.scores?.subject_scores_json || {};
+  const mainScore = access.scores?.main_score;
+  const kgmaScore = calculateKgmaCompetitiveScore(subjectScores, mainScore);
 
   return {
     premium: access.premium,
@@ -152,10 +227,22 @@ export async function getAnalysisContext(userId) {
     },
     scores: access.scores,
     algorithm_version: await getSetting('algorithm_version', 'v2-6factor'),
+    admission_stats_year: admissionStatsYear,
+    kgma_competitive_score: kgmaScore,
   };
 }
 
-export async function runAnalysis(userId, { program_ids = [], main_score }) {
+export async function runAnalysis(
+  userId,
+  {
+    program_ids = [],
+    main_score,
+    subject_scores_json,
+    funding_type,
+    region_category,
+    admission_tour,
+  } = {}
+) {
   const user = await User.findByPk(userId);
   if (!user) throw createHttpError(404, 'NOT_FOUND', 'Пользователь не найден');
 
@@ -173,7 +260,10 @@ export async function runAnalysis(userId, { program_ids = [], main_score }) {
 
   const scoreProfile = await resolveScoreProfile(user);
   const effectiveMainScore = main_score ?? scoreProfile?.main_score;
-  const subjectScores = scoreProfile?.subject_scores_json || {};
+  const subjectScores = {
+    ...(scoreProfile?.subject_scores_json || {}),
+    ...(subject_scores_json || {}),
+  };
 
   if (effectiveMainScore == null) {
     throw createHttpError(400, 'SCORE-001', 'Сначала введите баллы');
@@ -187,12 +277,40 @@ export async function runAnalysis(userId, { program_ids = [], main_score }) {
     throw createHttpError(404, 'NOT_FOUND', 'Одна или несколько программ не найдены');
   }
 
+  const hasKgma = specialties.some((s) => isKgmaUniversity(s.faculty?.university?.slug));
+  if (hasKgma) {
+    const kgmaScore = calculateKgmaCompetitiveScore(subjectScores, validatedMainScore);
+    if (!kgmaScore.complete) {
+      throw createHttpError(
+        400,
+        'SCORE-002',
+        'Для анализа КГМА укажите баллы по химии, биологии и основному тесту'
+      );
+    }
+  }
+
+  const admissionStatsYear = await getActiveAdmissionStatsYear();
+  const admissionOptions = {
+    admission_stats_year: admissionStatsYear,
+    funding_type: funding_type || ADMISSION_FUNDING_TYPE.GRANT,
+    region_category: region_category || ADMISSION_REGION_CATEGORY.BISHKEK,
+    admission_tour: admission_tour != null ? Number(admission_tour) : 1,
+  };
+
   const algorithmVersion = await getSetting('algorithm_version', 'v2-6factor');
   const weightsSetting = await getSetting('analysis_weights', null);
   const weights = weightsSetting ? { ...DEFAULT_WEIGHTS, ...weightsSetting } : DEFAULT_WEIGHTS;
 
-  const results = specialties.map((specialty) =>
-    evaluateSpecialtyProgram(specialty, validatedMainScore, subjectScores, weights)
+  const results = await Promise.all(
+    specialties.map((specialty) =>
+      evaluateSpecialtyProgram(
+        specialty,
+        validatedMainScore,
+        subjectScores,
+        weights,
+        admissionOptions
+      )
+    )
   );
 
   const validResults = results.filter((r) => !r.error);
@@ -207,6 +325,7 @@ export async function runAnalysis(userId, { program_ids = [], main_score }) {
       subjectScores,
       excludeIds: program_ids,
       weights,
+      admissionOptions,
       limit: 3,
     });
   }
@@ -220,6 +339,7 @@ export async function runAnalysis(userId, { program_ids = [], main_score }) {
           program_ids,
           main_score: validatedMainScore,
           subject_scores_json: subjectScores,
+          ...admissionOptions,
         },
         result_json: { programs: results, alternatives },
         algorithm_version: algorithmVersion,
@@ -242,6 +362,10 @@ export async function runAnalysis(userId, { program_ids = [], main_score }) {
     is_trial: false,
     algorithm_version: algorithmVersion,
     show_low_chance_flow: lowestChance < 45,
+    admission_stats_year: admissionStatsYear,
+    kgma_competitive_score: hasKgma
+      ? calculateKgmaCompetitiveScore(subjectScores, validatedMainScore)
+      : null,
   };
 }
 
