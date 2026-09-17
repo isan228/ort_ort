@@ -24,7 +24,7 @@ export default function AdminRoute() {
   }, [stored]);
 
   if (allowed === null) return <p>Загрузка...</p>;
-  if (!stored) return <Navigate to="/login" replace />;
+  if (!stored) return <Navigate to="/login?returnTo=/admin" replace />;
   if (!allowed) return <Navigate to="/account" replace />;
 
   return <Outlet />;

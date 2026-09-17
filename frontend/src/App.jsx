@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout.jsx';
 import HomePage from './pages/HomePage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
@@ -69,6 +69,7 @@ export default function App() {
           <Route path="analysis" element={<AnalysisPage />} />
           <Route path="subscription" element={<SubscriptionPage />} />
         </Route>
+        <Route path="админ" element={<Navigate to="/admin" replace />} />
         <Route element={<AdminRoute />}>
           <Route path="admin" element={<AdminPage />} />
         </Route>
