@@ -18,11 +18,13 @@ export default function Layout() {
   const pathname = location.pathname;
   const isLanding = pathname === '/';
   const isAccount = pathname.startsWith('/account');
+  const isAdmin = pathname.startsWith('/admin') || pathname === '/админ';
   const isAuth = ['/login', '/register', '/forgot-password', '/reset-password'].includes(pathname);
 
   function mainClassName() {
     if (isLanding) return 'main-landing';
     if (isAccount) return 'main-account';
+    if (isAdmin) return 'main-admin';
     if (pathname.startsWith('/news')) return 'main-news';
     if (pathname.startsWith('/tours')) return 'main-tours';
     if (pathname.startsWith('/analysis')) return 'main-analysis';
@@ -30,7 +32,6 @@ export default function Layout() {
       return 'main-universities';
     }
     if (isAuth) return 'main-auth';
-    if (pathname.startsWith('/admin')) return 'main-admin';
     return 'main-page';
   }
 
@@ -75,7 +76,7 @@ export default function Layout() {
         {t('ux.skipToContent')}
       </a>
       <ScrollToTop />
-      {!isAccount && (
+      {!isAccount && !isAdmin && (
         <header
           className={`site-header${isLanding ? ' site-header--landing' : ''}${menuOpen ? ' site-header--menu-open' : ''}`}
         >
@@ -179,7 +180,7 @@ export default function Layout() {
       <main id="main-content" className={mainClassName()} tabIndex={-1}>
         <Outlet />
       </main>
-      {!isLanding && !isAccount && !isAuth && (
+      {!isLanding && !isAccount && !isAdmin && !isAuth && (
         <footer className="site-footer">
           <div className="container footer-inner">
             <nav className="footer-quick" aria-label={t('ux.quickNav')}>
@@ -199,7 +200,7 @@ export default function Layout() {
           </div>
         </footer>
       )}
-      {!isAuth && !isAccount && (
+      {!isAuth && !isAccount && !isAdmin && (
         <>
           <HelpFab />
           <BackToTop />

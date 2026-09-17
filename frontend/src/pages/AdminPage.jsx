@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { api, getUserRole } from '../api/client.js';
+import { Link, useNavigate } from 'react-router-dom';
+import { api, getUserRole, getStoredUser } from '../api/client.js';
 import AdminCatalogTab from '../components/admin/AdminCatalogTab.jsx';
 import AdminToursTab from '../components/admin/AdminToursTab.jsx';
 import AdminNewsTab from '../components/admin/AdminNewsTab.jsx';
@@ -11,7 +11,23 @@ import AdminPaymentsTab from '../components/admin/AdminPaymentsTab.jsx';
 import AdminPromoTab from '../components/admin/AdminPromoTab.jsx';
 import { ORT_MAIN_SCORE_MIN, ORT_MAIN_SCORE_MAX, validateOrtMainScore, getOrtScoreErrorMessage } from '../utils/ortScore.js';
 import PageLoader from '../components/ux/PageLoader.jsx';
-import { useToast } from '../components/ux/ToastContext.jsx';
+import { AccountIcon } from '../components/icons/AccountIcons.jsx';
+import BurgerButton from '../components/ux/BurgerButton.jsx';
+import { useI18n } from '../i18n/I18nContext.jsx';
+
+function getInitials(user) {
+  const name = user?.profile?.nickname || user?.email || user?.phone || 'A';
+  return name
+    .split(/\s+/)
+    .map((p) => p[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+}
+
+function getDisplayName(user) {
+  return user?.profile?.nickname || user?.email?.split('@')[0] || user?.phone || 'Админ';
+}
 
 function CertificateCard({ cert, onUpdated }) {
   const [rejectReason, setRejectReason] = useState('');
@@ -213,8 +229,11 @@ function SupportTicketCard({ ticket, onUpdated }) {
 }
 
 export default function AdminPage() {
-  const toast = useToast();
+  const navigate = useNavigate();
+  const { t, locale, setLocale } = useI18n();
+  const stored = getStoredUser();
   const [tab, setTab] = useState('certificates');
+  const [menuOpen, setMenuOpen] = useState(false);
   const [certificates, setCertificates] = useState([]);
   const [corrections, setCorrections] = useState([]);
   const [supportTickets, setSupportTickets] = useState([]);
@@ -234,6 +253,52 @@ export default function AdminPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
+  const canManagePayments = ['admin', 'superadmin'].includes(getUserRole());
+
+  const moderationNav = [
+    { id: 'certificates', icon: 'check', label: 'Сертификаты', count: certificates.length },
+    { id: 'corrections', icon: 'calc', label: 'Исправления', count: corrections.length },
+    { id: 'support', icon: 'help', label: 'Поддержка', count: supportTickets.length },
+  ];
+
+  const contentNav = [
+    { id: 'catalog', icon: 'catalog', label: 'Вузы и каталог', count: catalog.length },
+    { id: 'tours', icon: 'calendar', label: 'Туры', count: tours.length },
+    { id: 'news', icon: 'news', label: 'Новости', count: newsArticles.length },
+  ];
+
+  const systemNav = [
+    { id: 'users', icon: 'user', label: 'Пользователи', count: usersTotal },
+    { id: 'legal', icon: 'compare', label: 'Legal' },
+    { id: 'faq', icon: 'faq', label: 'FAQ', count: faqItems.length },
+    ...(canManagePayments
+      ? [
+          { id: 'payments', icon: 'wallet', label: 'Платежи', count: paymentsTotal },
+          { id: 'promo', icon: 'gift', label: 'Промокоды', count: promoCodes.length },
+        ]
+      : []),
+  ];
+
+  const activeNavItem = [...moderationNav, ...contentNav, ...systemNav].find((item) => item.id === tab);
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [tab]);
+
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    function onKey(e) {
+      if (e.key === 'Escape') setMenuOpen(false);
+    }
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [menuOpen]);
+
   async function reloadCatalog() {
     try {
       const catalogRes = await api.adminGetCatalog();
@@ -249,17 +314,17 @@ export default function AdminPage() {
     try {
       const [certs, corr, support, catalogRes, toursRes, newsRes, usersRes, rolesRes, legalRes, faqRes] =
         await Promise.all([
-        api.adminPendingCertificates(),
-        api.adminPendingCorrections(),
-        api.adminSupportTickets(),
-        api.adminGetCatalog(),
-        api.adminGetTours(),
-        api.adminGetNews(),
-        api.adminGetUsers({ search: userSearch || undefined }),
-        api.adminGetRoles(),
-        api.adminGetLegal(),
-        api.adminGetFaq(),
-      ]);
+          api.adminPendingCertificates(),
+          api.adminPendingCorrections(),
+          api.adminSupportTickets(),
+          api.adminGetCatalog(),
+          api.adminGetTours(),
+          api.adminGetNews(),
+          api.adminGetUsers({ search: userSearch || undefined }),
+          api.adminGetRoles(),
+          api.adminGetLegal(),
+          api.adminGetFaq(),
+        ]);
       setCertificates(certs.certificates || []);
       setCorrections(corr.requests || []);
       setSupportTickets(support.tickets || []);
@@ -308,8 +373,6 @@ export default function AdminPage() {
     }
   }
 
-  const canManagePayments = ['admin', 'superadmin'].includes(getUserRole());
-
   async function searchUsers(query) {
     setUserSearch(query);
     setLoading(true);
@@ -325,175 +388,252 @@ export default function AdminPage() {
     }
   }
 
+  async function handleLogout() {
+    await api.logout();
+    setMenuOpen(false);
+    navigate('/login');
+  }
+
+  function selectTab(id) {
+    setTab(id);
+    setMenuOpen(false);
+  }
+
+  function renderNavItems(items) {
+    return items.map((item) => (
+      <button
+        key={item.id}
+        type="button"
+        className={`account-nav-link admin-nav-btn${tab === item.id ? ' active' : ''}`}
+        onClick={() => selectTab(item.id)}
+      >
+        <AccountIcon name={item.icon} size={18} />
+        <span>{item.label}</span>
+        {item.count != null && item.count > 0 && (
+          <span className="account-nav-badge">{item.count > 99 ? '99+' : item.count}</span>
+        )}
+      </button>
+    ));
+  }
+
   return (
-    <div className="admin-page">
-      <div className="admin-page-inner">
-      <header className="admin-page-head">
-      <h1>Админ-панель</h1>
-      <p className="muted">
-        Модерация, каталог вузов (факультеты, программы, проходные баллы), туры, новости и настройки.
-      </p>
+    <div className="account-shell admin-shell">
+      <header className={`account-topbar${menuOpen ? ' account-topbar--menu-open' : ''}`}>
+        <div className="account-topbar-left">
+          <Link to="/" className="account-logo">
+            ORT.KG
+          </Link>
+          <span className="account-topbar-sep" aria-hidden />
+          <span className="account-topbar-label">Админ-панель</span>
+        </div>
+
+        <div className="account-topbar-actions">
+          <div className="lang-switch account-lang-switch" role="group" aria-label={t('account.language')}>
+            <button
+              type="button"
+              className={locale === 'ru' ? 'chip active' : 'chip'}
+              onClick={() => setLocale('ru')}
+            >
+              {t('lang.ru')}
+            </button>
+            <button
+              type="button"
+              className={locale === 'ky' ? 'chip active' : 'chip'}
+              onClick={() => setLocale('ky')}
+            >
+              {t('lang.ky')}
+            </button>
+          </div>
+
+          <div className="account-user-chip">
+            <div className="account-avatar">{getInitials(stored)}</div>
+            <div className="account-user-meta">
+              <strong>{getDisplayName(stored)}</strong>
+              <span className="account-user-id">{getUserRole() || 'staff'}</span>
+            </div>
+          </div>
+
+          <button type="button" className="account-logout-btn" onClick={handleLogout}>
+            {t('nav.logout')}
+          </button>
+
+          <BurgerButton
+            open={menuOpen}
+            onClick={() => setMenuOpen((v) => !v)}
+            label={t('ux.menu')}
+            controlsId="admin-nav-drawer"
+          />
+        </div>
       </header>
 
-      <div className="admin-tabs">
+      {menuOpen && (
         <button
           type="button"
-          className={tab === 'certificates' ? 'btn' : 'btn btn-secondary'}
-          onClick={() => setTab('certificates')}
-        >
-          Сертификаты ({certificates.length})
-        </button>
-        <button
-          type="button"
-          className={tab === 'corrections' ? 'btn' : 'btn btn-secondary'}
-          onClick={() => setTab('corrections')}
-        >
-          Исправления ({corrections.length})
-        </button>
-        <button
-          type="button"
-          className={tab === 'support' ? 'btn' : 'btn btn-secondary'}
-          onClick={() => setTab('support')}
-        >
-          Поддержка ({supportTickets.length})
-        </button>
-        <button
-          type="button"
-          className={tab === 'catalog' ? 'btn' : 'btn btn-secondary'}
-          onClick={() => setTab('catalog')}
-        >
-          Вузы и каталог ({catalog.length})
-        </button>
-        <button
-          type="button"
-          className={tab === 'tours' ? 'btn' : 'btn btn-secondary'}
-          onClick={() => setTab('tours')}
-        >
-          Туры ({tours.length})
-        </button>
-        <button
-          type="button"
-          className={tab === 'news' ? 'btn' : 'btn btn-secondary'}
-          onClick={() => setTab('news')}
-        >
-          Новости ({newsArticles.length})
-        </button>
-        <button
-          type="button"
-          className={tab === 'users' ? 'btn' : 'btn btn-secondary'}
-          onClick={() => setTab('users')}
-        >
-          Пользователи ({usersTotal})
-        </button>
-        <button
-          type="button"
-          className={tab === 'legal' ? 'btn' : 'btn btn-secondary'}
-          onClick={() => setTab('legal')}
-        >
-          Legal
-        </button>
-        <button
-          type="button"
-          className={tab === 'faq' ? 'btn' : 'btn btn-secondary'}
-          onClick={() => setTab('faq')}
-        >
-          FAQ ({faqItems.length})
-        </button>
-        {canManagePayments && (
-          <button
-            type="button"
-            className={tab === 'payments' ? 'btn' : 'btn btn-secondary'}
-            onClick={() => setTab('payments')}
-          >
-            Платежи ({paymentsTotal})
-          </button>
-        )}
-        {canManagePayments && (
-          <button
-            type="button"
-            className={tab === 'promo' ? 'btn' : 'btn btn-secondary'}
-            onClick={() => setTab('promo')}
-          >
-            Промокоды
-          </button>
-        )}
-      </div>
-
-      {error && <div className="error">{error}</div>}
-
-      {loading ? (
-        <PageLoader compact />
-      ) : (
-        <>
-          {tab === 'certificates' && (
-            <>
-              {certificates.map((cert) => (
-                <CertificateCard key={cert.id} cert={cert} onUpdated={load} />
-              ))}
-              {!certificates.length && <p className="muted">Нет сертификатов на проверке.</p>}
-            </>
-          )}
-
-          {tab === 'corrections' && (
-            <>
-              {corrections.map((req) => (
-                <CorrectionCard key={req.id} request={req} onUpdated={load} />
-              ))}
-              {!corrections.length && <p className="muted">Нет открытых запросов.</p>}
-            </>
-          )}
-
-          {tab === 'support' && (
-            <>
-              {supportTickets.map((ticket) => (
-                <SupportTicketCard key={ticket.id} ticket={ticket} onUpdated={load} />
-              ))}
-              {!supportTickets.length && <p className="muted">Нет тикетов поддержки.</p>}
-            </>
-          )}
-
-          {tab === 'catalog' && (
-            <AdminCatalogTab universities={catalog} onUpdated={reloadCatalog} />
-          )}
-
-          {tab === 'tours' && <AdminToursTab tours={tours} onUpdated={load} />}
-
-          {tab === 'news' && <AdminNewsTab articles={newsArticles} onUpdated={load} />}
-
-          {tab === 'users' && (
-            <AdminUsersTab
-              users={adminUsers}
-              roles={roles}
-              total={usersTotal}
-              onSearch={searchUsers}
-              onUpdated={load}
-            />
-          )}
-
-          {tab === 'legal' && (
-            <AdminLegalTab documents={legalDocuments} onUpdated={load} />
-          )}
-
-          {tab === 'faq' && <AdminFaqTab items={faqItems} onUpdated={load} />}
-
-          {tab === 'payments' && canManagePayments && (
-            <AdminPaymentsTab
-              payments={payments}
-              total={paymentsTotal}
-              onFilter={filterPayments}
-              onUpdated={load}
-            />
-          )}
-
-          {tab === 'promo' && canManagePayments && (
-            <AdminPromoTab promoCodes={promoCodes} onUpdated={load} />
-          )}
-        </>
+          className="header-backdrop"
+          aria-label={t('ux.menuClose')}
+          tabIndex={-1}
+          onClick={() => setMenuOpen(false)}
+        />
       )}
 
-      <p className="page-breadcrumbs" style={{ marginTop: '1rem' }}>
-        <Link to="/account">← Кабинет</Link>
-      </p>
+      <div id="admin-nav-drawer" className={`account-header-drawer${menuOpen ? ' is-open' : ''}`}>
+        <div className="account-drawer-user">
+          <div className="account-avatar">{getInitials(stored)}</div>
+          <div>
+            <strong>{getDisplayName(stored)}</strong>
+            <span className="account-user-id">{getUserRole() || 'staff'}</span>
+          </div>
+        </div>
+
+        <p className="nav-drawer-section">Модерация</p>
+        <nav className="account-drawer-nav">{renderNavItems(moderationNav)}</nav>
+
+        <p className="nav-drawer-section">Контент</p>
+        <nav className="account-drawer-nav">{renderNavItems(contentNav)}</nav>
+
+        <p className="nav-drawer-section">Система</p>
+        <nav className="account-drawer-nav">{renderNavItems(systemNav)}</nav>
+
+        <Link to="/account" className="account-drawer-link" onClick={() => setMenuOpen(false)}>
+          <AccountIcon name="home" size={18} />
+          <span>В кабинет</span>
+        </Link>
+
+        <button type="button" className="account-drawer-link account-drawer-logout" onClick={handleLogout}>
+          {t('nav.logout')}
+        </button>
+      </div>
+
+      <div className="account-body">
+        <aside className="account-sidebar">
+          <p className="account-nav-section">Модерация</p>
+          <nav className="account-nav">{renderNavItems(moderationNav)}</nav>
+
+          <p className="account-nav-section">Контент</p>
+          <nav className="account-nav account-nav--tools">{renderNavItems(contentNav)}</nav>
+
+          <p className="account-nav-section">Система</p>
+          <nav className="account-nav account-nav--tools">{renderNavItems(systemNav)}</nav>
+
+          <div className="account-invite-card admin-sidebar-card">
+            <AccountIcon name="admin" size={24} className="account-invite-icon" />
+            <div>
+              <strong>Служебная панель</strong>
+              <p>Модерация, каталог, платежи и настройки платформы</p>
+            </div>
+            <Link to="/account" className="btn btn-sm account-invite-btn">
+              В кабинет
+            </Link>
+          </div>
+        </aside>
+
+        <div className="account-content">
+          <header className="account-page-head">
+            <h2>{activeNavItem?.label || 'Админ-панель'}</h2>
+            <p>Управление платформой ORT.KG</p>
+          </header>
+
+          <div className="account-stats-row account-stats-row--admin">
+            <div className="account-stat-card account-stat-card--blue">
+              <AccountIcon name="check" size={22} />
+              <div>
+                <strong>{certificates.length}</strong>
+                <span>сертификаты</span>
+              </div>
+            </div>
+            <div className="account-stat-card account-stat-card--amber">
+              <AccountIcon name="calc" size={22} />
+              <div>
+                <strong>{corrections.length}</strong>
+                <span>исправления</span>
+              </div>
+            </div>
+            <div className="account-stat-card account-stat-card--purple">
+              <AccountIcon name="help" size={22} />
+              <div>
+                <strong>{supportTickets.length}</strong>
+                <span>поддержка</span>
+              </div>
+            </div>
+            <div className="account-stat-card account-stat-card--green">
+              <AccountIcon name="catalog" size={22} />
+              <div>
+                <strong>{catalog.length}</strong>
+                <span>вузы</span>
+              </div>
+            </div>
+          </div>
+
+          {error && <div className="error account-alert">{error}</div>}
+
+          {loading ? (
+            <PageLoader compact />
+          ) : (
+            <section className="account-panel admin-content-panel">
+              {tab === 'certificates' && (
+                <>
+                  {certificates.map((cert) => (
+                    <CertificateCard key={cert.id} cert={cert} onUpdated={load} />
+                  ))}
+                  {!certificates.length && <p className="account-muted-line">Нет сертификатов на проверке.</p>}
+                </>
+              )}
+
+              {tab === 'corrections' && (
+                <>
+                  {corrections.map((req) => (
+                    <CorrectionCard key={req.id} request={req} onUpdated={load} />
+                  ))}
+                  {!corrections.length && <p className="account-muted-line">Нет открытых запросов.</p>}
+                </>
+              )}
+
+              {tab === 'support' && (
+                <>
+                  {supportTickets.map((ticket) => (
+                    <SupportTicketCard key={ticket.id} ticket={ticket} onUpdated={load} />
+                  ))}
+                  {!supportTickets.length && <p className="account-muted-line">Нет тикетов поддержки.</p>}
+                </>
+              )}
+
+              {tab === 'catalog' && (
+                <AdminCatalogTab universities={catalog} onUpdated={reloadCatalog} />
+              )}
+
+              {tab === 'tours' && <AdminToursTab tours={tours} onUpdated={load} />}
+
+              {tab === 'news' && <AdminNewsTab articles={newsArticles} onUpdated={load} />}
+
+              {tab === 'users' && (
+                <AdminUsersTab
+                  users={adminUsers}
+                  roles={roles}
+                  total={usersTotal}
+                  onSearch={searchUsers}
+                  onUpdated={load}
+                />
+              )}
+
+              {tab === 'legal' && <AdminLegalTab documents={legalDocuments} onUpdated={load} />}
+
+              {tab === 'faq' && <AdminFaqTab items={faqItems} onUpdated={load} />}
+
+              {tab === 'payments' && canManagePayments && (
+                <AdminPaymentsTab
+                  payments={payments}
+                  total={paymentsTotal}
+                  onFilter={filterPayments}
+                  onUpdated={load}
+                />
+              )}
+
+              {tab === 'promo' && canManagePayments && (
+                <AdminPromoTab promoCodes={promoCodes} onUpdated={load} />
+              )}
+            </section>
+          )}
+        </div>
       </div>
     </div>
   );

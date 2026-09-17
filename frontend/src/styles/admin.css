@@ -1,4 +1,4 @@
-/* ——— Админ-панель ——— */
+/* ——— Админ-панель (оболочка как кабинет) ——— */
 
 .main-admin {
   padding: 0;
@@ -6,49 +6,65 @@
   width: 100%;
 }
 
-.admin-page {
-  --admin-bg: #f1f5f9;
-  --admin-card: #ffffff;
-  --admin-border: #e2e8f0;
-  --admin-muted: #64748b;
-  background: var(--admin-bg);
-  min-height: calc(100vh - 64px);
+.admin-shell {
+  --account-accent: #0f766e;
 }
 
-.admin-page-inner {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 1.25rem 1rem 2.5rem;
+.admin-shell .account-logo {
+  color: #0f766e;
 }
 
-.admin-page-head {
-  margin-bottom: 1rem;
+.admin-shell .account-logo:hover {
+  color: #115e59;
 }
 
-.admin-page-head h1 {
-  margin: 0 0 0.25rem;
-  font-size: clamp(1.35rem, 3vw, 1.75rem);
-  font-weight: 800;
+.admin-shell .account-nav-link.active {
+  background: #ccfbf1;
+  color: #0f766e;
 }
 
-.admin-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
+.admin-shell .account-avatar {
+  background: linear-gradient(135deg, #14b8a6, #0f766e);
+}
+
+.admin-nav-btn {
+  width: 100%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+}
+
+.admin-nav-btn:hover {
+  background: #e2e8f0;
+  color: var(--account-text);
+}
+
+.admin-sidebar-card {
+  background: linear-gradient(135deg, #f0fdfa, #ccfbf1);
+  border-color: #99f6e4;
+}
+
+.admin-sidebar-card .account-invite-icon {
+  color: #0f766e;
+}
+
+.account-stats-row--admin {
   margin-bottom: 1.25rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--admin-border);
 }
 
-.admin-tabs .btn,
-.admin-tabs .btn-secondary {
-  font-size: 0.82rem;
-  padding: 0.45rem 0.75rem;
+.admin-content-panel {
+  padding: 1.1rem 1.15rem;
+}
+
+.admin-content-panel > .admin-card:last-child {
+  margin-bottom: 0;
 }
 
 .admin-card {
-  background: var(--admin-card);
-  border: 1px solid var(--admin-border);
+  background: #fff;
+  border: 1px solid var(--account-border, #e2e8f0);
   border-radius: 0.75rem;
   padding: 1.1rem;
   margin-bottom: 0.85rem;
@@ -71,26 +87,20 @@
 .admin-actions textarea {
   width: 100%;
   padding: 0.55rem 0.65rem;
-  border: 1px solid var(--admin-border);
+  border: 1px solid var(--account-border, #e2e8f0);
   border-radius: 0.5rem;
   font: inherit;
   margin-bottom: 0.5rem;
 }
 
-.admin-page .muted {
-  color: var(--admin-muted);
+.admin-page .muted,
+.admin-shell .muted {
+  color: var(--account-muted, #64748b);
 }
 
-@media (max-width: 768px) {
-  .admin-tabs {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .admin-tabs .btn,
-  .admin-tabs .btn-secondary {
-    width: 100%;
-    text-align: center;
+@media (max-width: 900px) {
+  .account-stats-row--admin {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
@@ -104,8 +114,8 @@
 }
 
 .admin-catalog-sidebar {
-  background: var(--admin-card);
-  border: 1px solid var(--admin-border);
+  background: #fff;
+  border: 1px solid var(--account-border, #e2e8f0);
   border-radius: 0.75rem;
   padding: 1rem;
   position: sticky;
@@ -142,7 +152,7 @@
   width: 100%;
   text-align: left;
   padding: 0.65rem 0.75rem;
-  border: 1px solid var(--admin-border);
+  border: 1px solid var(--account-border, #e2e8f0);
   border-radius: 0.55rem;
   background: #fff;
   cursor: pointer;
@@ -194,7 +204,7 @@
   align-items: center;
   justify-content: center;
   padding: 0.55rem 0.9rem;
-  border: 1px dashed var(--admin-border);
+  border: 1px dashed var(--account-border, #e2e8f0);
   border-radius: 0.55rem;
   background: #f8fafc;
   color: #334155;
@@ -222,15 +232,15 @@
 }
 
 .admin-catalog-empty {
-  background: var(--admin-card);
-  border: 1px dashed var(--admin-border);
+  background: #fff;
+  border: 1px dashed var(--account-border, #e2e8f0);
   border-radius: 0.75rem;
   padding: 2rem 1.25rem;
 }
 
 .admin-section {
-  background: var(--admin-card);
-  border: 1px solid var(--admin-border);
+  background: #fff;
+  border: 1px solid var(--account-border, #e2e8f0);
   border-radius: 0.75rem;
   padding: 1.1rem;
   margin-bottom: 1rem;
@@ -279,14 +289,14 @@
 .admin-field-hint {
   display: block;
   font-size: 0.72rem;
-  color: var(--admin-muted);
+  color: var(--account-muted, #64748b);
   margin-bottom: 0.25rem;
 }
 
 .admin-input {
   width: 100%;
   padding: 0.55rem 0.65rem;
-  border: 1px solid var(--admin-border);
+  border: 1px solid var(--account-border, #e2e8f0);
   border-radius: 0.5rem;
   font: inherit;
   background: #fff;
@@ -335,7 +345,7 @@
 
 .admin-tree-item,
 .admin-tree-subitem {
-  border: 1px solid var(--admin-border);
+  border: 1px solid var(--account-border, #e2e8f0);
   border-radius: 0.55rem;
   margin-bottom: 0.5rem;
   overflow: hidden;
@@ -366,7 +376,7 @@
 
 .admin-tree-body {
   padding: 0.85rem 0.75rem 1rem;
-  border-top: 1px solid var(--admin-border);
+  border-top: 1px solid var(--account-border, #e2e8f0);
 }
 
 .admin-tree-body--nested {
@@ -376,7 +386,7 @@
 .admin-subblock {
   margin-top: 1rem;
   padding-top: 0.85rem;
-  border-top: 1px dashed var(--admin-border);
+  border-top: 1px dashed var(--account-border, #e2e8f0);
 }
 
 .admin-subblock h4 {
@@ -397,7 +407,7 @@
 }
 
 .admin-rule-card {
-  border: 1px solid var(--admin-border);
+  border: 1px solid var(--account-border, #e2e8f0);
   border-radius: 0.55rem;
   padding: 0.75rem;
   margin-bottom: 0.65rem;
