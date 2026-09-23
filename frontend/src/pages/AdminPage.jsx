@@ -252,38 +252,62 @@ export default function AdminPage() {
   const [userSearch, setUserSearch] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [section, setSection] = useState('moderation');
 
   const canManagePayments = ['admin', 'superadmin'].includes(getUserRole());
 
-  const moderationNav = [
-    { id: 'certificates', icon: 'check', label: 'Сертификаты', count: certificates.length },
-    { id: 'corrections', icon: 'calc', label: 'Исправления', count: corrections.length },
-    { id: 'support', icon: 'help', label: 'Поддержка', count: supportTickets.length },
+  const sections = [
+    {
+      id: 'moderation',
+      label: 'Модерация',
+      icon: 'check',
+      items: [
+        { id: 'certificates', icon: 'check', label: 'Сертификаты', count: certificates.length },
+        { id: 'corrections', icon: 'calc', label: 'Исправления', count: corrections.length },
+        { id: 'support', icon: 'help', label: 'Поддержка', count: supportTickets.length },
+      ],
+    },
+    {
+      id: 'content',
+      label: 'Контент',
+      icon: 'catalog',
+      items: [
+        { id: 'catalog', icon: 'catalog', label: 'Вузы и каталог', count: catalog.length },
+        { id: 'tours', icon: 'calendar', label: 'Туры', count: tours.length },
+        { id: 'news', icon: 'news', label: 'Новости', count: newsArticles.length },
+      ],
+    },
+    {
+      id: 'system',
+      label: 'Система',
+      icon: 'admin',
+      items: [
+        { id: 'users', icon: 'user', label: 'Пользователи', count: usersTotal },
+        { id: 'legal', icon: 'compare', label: 'Legal' },
+        { id: 'faq', icon: 'faq', label: 'FAQ', count: faqItems.length },
+        ...(canManagePayments
+          ? [
+              { id: 'payments', icon: 'wallet', label: 'Платежи', count: paymentsTotal },
+              { id: 'promo', icon: 'gift', label: 'Промокоды', count: promoCodes.length },
+            ]
+          : []),
+      ],
+    },
   ];
 
-  const contentNav = [
-    { id: 'catalog', icon: 'catalog', label: 'Вузы и каталог', count: catalog.length },
-    { id: 'tours', icon: 'calendar', label: 'Туры', count: tours.length },
-    { id: 'news', icon: 'news', label: 'Новости', count: newsArticles.length },
-  ];
+  const activeSection = sections.find((s) => s.id === section) || sections[0];
+  const activeNavItem = activeSection.items.find((item) => item.id === tab) || activeSection.items[0];
 
-  const systemNav = [
-    { id: 'users', icon: 'user', label: 'Пользователи', count: usersTotal },
-    { id: 'legal', icon: 'compare', label: 'Legal' },
-    { id: 'faq', icon: 'faq', label: 'FAQ', count: faqItems.length },
-    ...(canManagePayments
-      ? [
-          { id: 'payments', icon: 'wallet', label: 'Платежи', count: paymentsTotal },
-          { id: 'promo', icon: 'gift', label: 'Промокоды', count: promoCodes.length },
-        ]
-      : []),
-  ];
-
-  const activeNavItem = [...moderationNav, ...contentNav, ...systemNav].find((item) => item.id === tab);
+  useEffect(() => {
+    const current = sections.find((s) => s.id === section) || sections[0];
+    if (!current.items.some((item) => item.id === tab)) {
+      setTab(current.items[0]?.id || 'certificates');
+    }
+  }, [section, tab, canManagePayments]);
 
   useEffect(() => {
     setMenuOpen(false);
-  }, [tab]);
+  }, [tab, section]);
 
   useEffect(() => {
     if (!menuOpen) return undefined;
@@ -394,6 +418,13 @@ export default function AdminPage() {
     navigate('/login');
   }
 
+  function selectSection(id) {
+    const next = sections.find((s) => s.id === id);
+    setSection(id);
+    if (next?.items?.[0]) setTab(next.items[0].id);
+    setMenuOpen(false);
+  }
+
   function selectTab(id) {
     setTab(id);
     setMenuOpen(false);
@@ -414,6 +445,30 @@ export default function AdminPage() {
         )}
       </button>
     ));
+  }
+
+  function renderSectionTabs() {
+    return (
+      <div className="admin-section-tabs" role="tablist" aria-label="Разделы админки">
+        {sections.map((s) => {
+          const pending = s.items.reduce((sum, item) => sum + (item.count || 0), 0);
+          return (
+            <button
+              key={s.id}
+              type="button"
+              role="tab"
+              aria-selected={section === s.id}
+              className={`admin-section-tab${section === s.id ? ' is-active' : ''}`}
+              onClick={() => selectSection(s.id)}
+            >
+              <AccountIcon name={s.icon} size={18} />
+              <span>{s.label}</span>
+              {pending > 0 && <span className="admin-section-tab-count">{pending > 99 ? '99+' : pending}</span>}
+            </button>
+          );
+        })}
+      </div>
+    );
   }
 
   return (
@@ -485,14 +540,23 @@ export default function AdminPage() {
           </div>
         </div>
 
-        <p className="nav-drawer-section">Модерация</p>
-        <nav className="account-drawer-nav">{renderNavItems(moderationNav)}</nav>
+        <p className="nav-drawer-section">Разделы</p>
+        <nav className="account-drawer-nav">
+          {sections.map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              className={`account-drawer-link admin-nav-btn${section === s.id ? ' active' : ''}`}
+              onClick={() => selectSection(s.id)}
+            >
+              <AccountIcon name={s.icon} size={18} />
+              <span>{s.label}</span>
+            </button>
+          ))}
+        </nav>
 
-        <p className="nav-drawer-section">Контент</p>
-        <nav className="account-drawer-nav">{renderNavItems(contentNav)}</nav>
-
-        <p className="nav-drawer-section">Система</p>
-        <nav className="account-drawer-nav">{renderNavItems(systemNav)}</nav>
+        <p className="nav-drawer-section">{activeSection.label}</p>
+        <nav className="account-drawer-nav">{renderNavItems(activeSection.items)}</nav>
 
         <Link to="/account" className="account-drawer-link" onClick={() => setMenuOpen(false)}>
           <AccountIcon name="home" size={18} />
@@ -506,20 +570,29 @@ export default function AdminPage() {
 
       <div className="account-body">
         <aside className="account-sidebar">
-          <p className="account-nav-section">Модерация</p>
-          <nav className="account-nav">{renderNavItems(moderationNav)}</nav>
+          <p className="account-nav-section">Разделы</p>
+          <nav className="account-nav admin-section-nav">
+            {sections.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                className={`account-nav-link admin-nav-btn${section === s.id ? ' active' : ''}`}
+                onClick={() => selectSection(s.id)}
+              >
+                <AccountIcon name={s.icon} size={18} />
+                <span>{s.label}</span>
+              </button>
+            ))}
+          </nav>
 
-          <p className="account-nav-section">Контент</p>
-          <nav className="account-nav account-nav--tools">{renderNavItems(contentNav)}</nav>
-
-          <p className="account-nav-section">Система</p>
-          <nav className="account-nav account-nav--tools">{renderNavItems(systemNav)}</nav>
+          <p className="account-nav-section">{activeSection.label}</p>
+          <nav className="account-nav account-nav--tools">{renderNavItems(activeSection.items)}</nav>
 
           <div className="account-invite-card admin-sidebar-card">
             <AccountIcon name="admin" size={24} className="account-invite-icon" />
             <div>
               <strong>Служебная панель</strong>
-              <p>Модерация, каталог, платежи и настройки платформы</p>
+              <p>Сначала выберите раздел, затем вкладку внутри него</p>
             </div>
             <Link to="/account" className="btn btn-sm account-invite-btn">
               В кабинет
@@ -530,38 +603,30 @@ export default function AdminPage() {
         <div className="account-content">
           <header className="account-page-head">
             <h2>{activeNavItem?.label || 'Админ-панель'}</h2>
-            <p>Управление платформой ORT.KG</p>
+            <p>
+              {activeSection.label} · управление платформой ORT.KG
+            </p>
           </header>
 
-          <div className="account-stats-row account-stats-row--admin">
-            <div className="account-stat-card account-stat-card--blue">
-              <AccountIcon name="check" size={22} />
-              <div>
-                <strong>{certificates.length}</strong>
-                <span>сертификаты</span>
-              </div>
-            </div>
-            <div className="account-stat-card account-stat-card--amber">
-              <AccountIcon name="calc" size={22} />
-              <div>
-                <strong>{corrections.length}</strong>
-                <span>исправления</span>
-              </div>
-            </div>
-            <div className="account-stat-card account-stat-card--purple">
-              <AccountIcon name="help" size={22} />
-              <div>
-                <strong>{supportTickets.length}</strong>
-                <span>поддержка</span>
-              </div>
-            </div>
-            <div className="account-stat-card account-stat-card--green">
-              <AccountIcon name="catalog" size={22} />
-              <div>
-                <strong>{catalog.length}</strong>
-                <span>вузы</span>
-              </div>
-            </div>
+          {renderSectionTabs()}
+
+          <div className="admin-subtabs" role="tablist" aria-label={activeSection.label}>
+            {activeSection.items.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                role="tab"
+                aria-selected={tab === item.id}
+                className={`admin-subtab${tab === item.id ? ' is-active' : ''}`}
+                onClick={() => selectTab(item.id)}
+              >
+                <AccountIcon name={item.icon} size={16} />
+                <span>{item.label}</span>
+                {item.count != null && item.count > 0 && (
+                  <span className="admin-subtab-count">{item.count}</span>
+                )}
+              </button>
+            ))}
           </div>
 
           {error && <div className="error account-alert">{error}</div>}
