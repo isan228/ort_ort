@@ -338,10 +338,28 @@ WHERE email = 'ваш@email.com';
 
 ## 11. Обновление версии на сервере
 
-На сервере под пользователем `ort`:
+```bash
+cd /var/www/ort-2026
+git fetch origin
+git reset --hard origin/main   # или: git pull --ff-only origin main
+npm run update
+```
+
+`npm run update` делает: `npm install` → `db:sync` → сборка frontend → `rsync` в `/var/www/ort` → `pm2 restart ort-api`.
+
+Опции:
 
 ```bash
-cd ~/ort
+SKIP_RSYNC=1 npm run update          # без копирования статики
+SKIP_DB_SYNC=1 npm run update        # без синхронизации БД
+WEB_ROOT=/var/www/ort npm run update # путь статики
+PM2_APP=ort-api npm run update       # имя процесса PM2
+```
+
+Или вручную:
+
+```bash
+cd /var/www/ort-2026
 git pull origin main
 npm install
 npm run build -w frontend
@@ -357,7 +375,7 @@ npm run push -- "fix: описание"
 
 ```bash
 # на сервере
-cd ~/ort && git pull && npm install && npm run build -w frontend && pm2 restart ort-api
+cd /var/www/ort-2026 && git pull && npm run update
 ```
 
 ---

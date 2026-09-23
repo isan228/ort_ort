@@ -11,7 +11,8 @@
     "dev": "concurrently \"npm run dev -w backend\" \"npm run dev -w frontend\"",
     "dev:backend": "npm run dev -w backend",
     "dev:frontend": "npm run dev -w frontend",
-    "build": "npm run build -w backend && npm run build -w frontend",
+    "build": "npm run build -w frontend",
+    "update": "node scripts/update.js",
     "admin:create-test": "npm run admin:create-test -w backend",
     "push": "node scripts/git-push.js"
   },
