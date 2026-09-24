@@ -13,6 +13,8 @@
     "dev:frontend": "npm run dev -w frontend",
     "build": "npm run build -w frontend",
     "update": "node scripts/update.js",
+    "pm2:start": "pm2 start ecosystem.config.cjs",
+    "pm2:restart": "pm2 restart ort-api --update-env",
     "admin:create-test": "npm run admin:create-test -w backend",
     "push": "node scripts/git-push.js"
   },
